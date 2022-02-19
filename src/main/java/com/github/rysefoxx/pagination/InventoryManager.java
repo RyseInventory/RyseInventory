@@ -1,6 +1,7 @@
 package com.github.rysefoxx.pagination;
 
 import com.github.rysefoxx.other.EventCreator;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author Rysefoxx | Rysefoxx#6772
@@ -55,9 +57,24 @@ public class InventoryManager {
      * @param identifier The ID to identify
      * @return null if no inventory with the ID could be found.
      * @implNote Only works if the inventory has also been assigned an identifier.
+     * @throws IllegalArgumentException when identifier is null
      */
-    public @Nullable RyseInventory getInventory(@NotNull Object identifier) {
+    public @Nullable RyseInventory getInventory(@NotNull Object identifier) throws IllegalArgumentException {
+        Validate.notNull(identifier, "Object must not be null.");
         return this.inventories.values().stream().filter(inventory -> Objects.equals(inventory.getIdentifier(), identifier)).findFirst().orElse(null);
+    }
+
+    /**
+     * With this method you can get the inventory content from the player.
+     *
+     * @param player
+     * @return the player inventory content.
+     * @throws IllegalArgumentException when player is null
+     */
+    public Optional<InventoryContents> getContents(@NotNull Player player) throws IllegalArgumentException {
+        Validate.notNull(player, "Player must not be null.");
+        if (!this.content.containsKey(player)) return Optional.empty();
+        return Optional.ofNullable(this.content.get(player));
     }
 
     /**
@@ -67,7 +84,9 @@ public class InventoryManager {
         Bukkit.getPluginManager().registerEvents(new InventoryListener(), this.plugin);
     }
 
-    private void invokeScheduler(@NotNull Player player, @NotNull RyseInventory inventory) {
+    private void invokeScheduler(@NotNull Player player, @NotNull RyseInventory inventory) throws IllegalArgumentException {
+        Validate.notNull(player, "Player must not be null.");
+        Validate.notNull(inventory, "RyseInventory must not be null.");
         new BukkitRunnable() {
             final InventoryContents contents = content.get(player);
 
@@ -88,37 +107,38 @@ public class InventoryManager {
     }
 
     @Contract(pure = true)
-    private boolean hasInventory(@NotNull Player player) {
+    private boolean hasInventory(@NotNull Player player) throws IllegalArgumentException {
+        Validate.notNull(player, "Player must not be null.");
         return this.inventories.containsKey(player);
     }
 
     @Contract(pure = true)
-    private boolean hasContents(@NotNull Player player) {
+    private boolean hasContents(@NotNull Player player) throws IllegalArgumentException {
+        Validate.notNull(player, "Player must not be null.");
         return this.content.containsKey(player);
     }
 
-    protected void removeInventoryFromPlayer(@NotNull Player player) {
+    protected void removeInventoryFromPlayer(@NotNull Player player) throws IllegalArgumentException {
+        Validate.notNull(player, "Player must not be null.");
         this.inventories.remove(player);
         this.content.remove(player);
     }
 
-    protected void addInventoryToPlayer(@NotNull Player player, @NotNull RyseInventory inventory) {
+    protected void addInventoryToPlayer(@NotNull Player player, @NotNull RyseInventory inventory) throws IllegalArgumentException {
+        Validate.notNull(player, "Player must not be null.");
+        Validate.notNull(inventory, "RyseInventory must not be null.");
         if (hasInventory(player)) {
             RyseInventory savedInventory = this.inventories.get(player);
             savedInventory.close(player);
         }
 
-        InventoryContents inventoryContents = new InventoryContents(player);
+        InventoryContents inventoryContents = new InventoryContents(player, inventory);
         inventory.getProvider().init(player, inventoryContents);
 
         this.inventories.put(player, inventory);
         this.content.put(player, inventoryContents);
 
         invokeScheduler(player, inventory);
-    }
-
-    protected InventoryContents getContents(@NotNull Player player) {
-        return this.content.get(player);
     }
 
     public class InventoryListener implements Listener {

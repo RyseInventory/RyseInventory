@@ -7,6 +7,7 @@ import com.github.rysefoxx.other.EventCreator;
 import com.github.rysefoxx.util.ReflectionUtils;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -24,14 +25,10 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 
 public class RyseInventory {
-
 
     // Classes.
     private final static Class<?> CRAFT_PLAYER_CLASS;
@@ -138,8 +135,10 @@ public class RyseInventory {
      * Closes the inventory from the player. InventoryClickEvent is no longer called here.
      *
      * @param player The player which inventory should be closed.
+     * @throws IllegalArgumentException when player is null
      */
-    public void close(@NotNull Player player) {
+    public void close(@NotNull Player player) throws IllegalArgumentException {
+        Validate.notNull(player, "Player must not be null.");
         this.manager.removeInventoryFromPlayer(player);
         player.closeInventory();
     }
@@ -149,9 +148,10 @@ public class RyseInventory {
      *
      * @param player The player where the inventory should be opened.
      * @return Returns the Bukkit Inventory object.
-     * @throws IllegalArgumentException Throws IllegalArgumentException if there is no 1 page.
+     * @throws IllegalArgumentException if there is no 1 page or when player is null.
      */
     public Inventory open(@NotNull Player player) throws IllegalArgumentException {
+        Validate.notNull(player, "Player must not be null.");
         return open(player, 1);
     }
 
@@ -161,29 +161,43 @@ public class RyseInventory {
      * @param player The player where the inventory should be opened.
      * @param page   Which page should be opened?
      * @return Returns the Bukkit Inventory object.
-     * @throws IllegalArgumentException Throws IllegalArgumentException if the page does not exist.
+     * @throws IllegalArgumentException if the page does not exist or when the player is null.
      */
     public Inventory open(@NotNull Player player, @Nonnegative int page) throws IllegalArgumentException {
-        this.manager.addInventoryToPlayer(player, this);
+        Validate.notNull(player, "Player must not be null.");
+        RyseInventory ryseInventory = this.manager.getInventory(player);
+        Inventory inventory;
 
-        Inventory inventory = Bukkit.createInventory(null, this.size == -1 ? this.rows * this.columns : this.size, Component.text(this.title));
-        InventoryContents contents = this.manager.getContents(player);
-        Pagination pagination = contents.pagination();
-        pagination.pageItems = splitInventory(contents);
-
-        if (!pagination.pageItems.containsKey(page)) {
-            close(player);
-            throw new IllegalArgumentException("§cCan not find page §9" + page);
+        if (ryseInventory != null) {
+            inventory = ryseInventory.getInventory();
+            this.manager.getContents(player).ifPresent(contents -> this.provider.init(player, contents));
+        } else {
+            this.manager.addInventoryToPlayer(player, this);
+            inventory = Bukkit.createInventory(null, this.size == -1 ? this.rows * this.columns : this.size, Component.text(this.title));
         }
 
-        if (contents.getFillBorder() != null)
-            contents.fillBorders(inventory);
+        Optional<InventoryContents> optional = this.manager.getContents(player);
 
+        optional.ifPresent(contents -> {
+            contents.pagination().setPage(page - 1);
 
-        contents.getItems().forEach((integer, item) -> inventory.setItem(integer, item.getItemStack()));
-        pagination.pageItems.get(page).forEach((integer, item) -> inventory.setItem(integer, item.getItemStack()));
+            Pagination pagination = contents.pagination();
+            pagination.pageItems = splitInventory(contents);
 
-        player.openInventory(inventory);
+            if (contents.getFillBorder() != null)
+                contents.fillBorders(inventory);
+
+            contents.getItems().forEach((integer, item) -> inventory.setItem(integer, item.getItemStack()));
+
+            if (!pagination.pageItems.containsKey(page)) {
+                close(player);
+                throw new IllegalArgumentException("There is no " + page + " side. Last page is " + pagination.lastPage());
+            }
+            pagination.pageItems.get(page).forEach((integer, item) -> inventory.setItem(integer, item.getItemStack()));
+
+            if (ryseInventory == null) player.openInventory(inventory);
+        });
+
         this.inventory = inventory;
         return this.inventory;
     }
@@ -197,7 +211,7 @@ public class RyseInventory {
     public @Nullable EventCreator<? extends Event> getEvent(Class<? extends Event> event) {
         if (this.events.isEmpty()) return null;
 
-        return this.events.stream().filter(eventOne -> event == eventOne.aClass()).findFirst().orElse(null);
+        return this.events.stream().filter(eventOne -> event == eventOne.clazz()).findFirst().orElse(null);
     }
 
     /**
@@ -206,8 +220,12 @@ public class RyseInventory {
      * @param plugin   The JavaPlugin
      * @param player   The Player
      * @param newTitle The new title
+     * @throws IllegalArgumentException when plugin, player or newTitle is null
      */
-    public void updateTitle(@NotNull JavaPlugin plugin, @NotNull Player player, @NotNull String newTitle) {
+    public void updateTitle(@NotNull JavaPlugin plugin, @NotNull Player player, @NotNull String newTitle) throws IllegalArgumentException {
+        Validate.notNull(plugin, "JavaPlugin must not be null.");
+        Validate.notNull(player, "Player must not be null.");
+        Validate.notNull(newTitle, "String must not be null.");
         try {
             // Get EntityPlayer from CraftPlayer.
             assert CRAFT_PLAYER_CLASS != null;
@@ -289,6 +307,9 @@ public class RyseInventory {
         HashMap<Integer, HashMap<Integer, IntelligentItem>> items = new HashMap<>();
         Pagination pagination = contents.pagination();
         SlotIterator iterator = contents.iterator();
+
+        if (iterator == null) return items;
+
         SlotIterator.SlotIteratorType type = iterator.getType();
         boolean useSlot = iterator.getSlot() != -1;
         int itemsSet = 0;
@@ -471,7 +492,9 @@ public class RyseInventory {
         }
     }
 
-
+    /**
+     * @return inventory title
+     */
     public String getTitle() {
         return title;
     }
@@ -555,6 +578,7 @@ public class RyseInventory {
 
         private final static char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
 
+        @Contract(pure = true)
         Containers(int containerVersion, String minecraftName, String... inventoryTypesNames) {
             this.containerVersion = containerVersion;
             this.minecraftName = minecraftName;
@@ -567,7 +591,7 @@ public class RyseInventory {
          * @param type type of inventory.
          * @return the container.
          */
-        public static Containers getType(InventoryType type, int size) {
+        public static @Nullable Containers getType(InventoryType type, int size) {
             if (type == InventoryType.CHEST) {
                 return Containers.valueOf("GENERIC_9X" + size / 9);
             }
@@ -607,6 +631,7 @@ public class RyseInventory {
          *
          * @return the version.
          */
+        @Contract(pure = true)
         public int getContainerVersion() {
             return containerVersion;
         }
@@ -616,6 +641,7 @@ public class RyseInventory {
          *
          * @return name of the inventory.
          */
+        @Contract(pure = true)
         public String getMinecraftName() {
             return minecraftName;
         }
@@ -625,6 +651,7 @@ public class RyseInventory {
          *
          * @return bukkit names.
          */
+        @Contract(pure = true)
         public String[] getInventoryTypesNames() {
             return inventoryTypesNames;
         }

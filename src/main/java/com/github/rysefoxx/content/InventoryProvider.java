@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface InventoryProvider {
 
-    void update(@NotNull Player player, @NotNull InventoryContents contents);
+   default void update(@NotNull Player player, @NotNull InventoryContents contents){}
 
     void init(@NotNull Player player, @NotNull InventoryContents contents);
 

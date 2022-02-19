@@ -9,11 +9,11 @@ import java.util.function.Consumer;
  * @author Rysefoxx | Rysefoxx#6772
  * @since 2/19/2022
  */
-public record EventCreator<T>(Class<T> aClass, Consumer<T> consumer) {
+public record EventCreator<T>(Class<T> clazz, Consumer<T> consumer) {
 
     @Contract(pure = true)
-    public EventCreator(@NotNull Class<T> aClass, @NotNull Consumer<T> consumer) {
-        this.aClass = aClass;
+    public EventCreator(@NotNull Class<T> clazz, @NotNull Consumer<T> consumer) {
+        this.clazz = clazz;
         this.consumer = consumer;
     }
 
