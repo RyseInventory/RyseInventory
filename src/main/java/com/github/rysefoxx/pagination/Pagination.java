@@ -3,7 +3,6 @@ package com.github.rysefoxx.pagination;
 import com.github.rysefoxx.SlotIterator;
 import com.github.rysefoxx.content.IntelligentItem;
 import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +21,7 @@ import java.util.List;
 
 public class Pagination implements Cloneable {
 
-    private @Setter
+    private
     @Getter
     @Nonnegative
     int itemsPerPage;
@@ -71,6 +70,15 @@ public class Pagination implements Cloneable {
         return this.page + 1;
     }
 
+
+    /**
+     * @return the last page.
+     */
+    public @Nonnegative
+    int lastPage() {
+        return (int) Math.ceil((double) this.items.size() / this.itemsPerPage);
+    }
+
     /**
      * @return the current inventory.
      */
@@ -82,7 +90,7 @@ public class Pagination implements Cloneable {
      * @return true if you are on the last page.
      */
     public boolean isLast() {
-        return (this.page + 1) == (int) Math.ceil((double) this.items.size() / this.itemsPerPage);
+        return (this.page + 1) == (int) Math.ceil((double) this.items.size() / (this.slotIterator == null ? this.itemsPerPage : this.slotIterator.getEndPosition() - (this.slotIterator.getSlot() == -1 ? 9 * this.slotIterator.getRow() + this.slotIterator.getColumn() : this.slotIterator.getSlot())));
     }
 
     /**
@@ -175,14 +183,17 @@ public class Pagination implements Cloneable {
         this.pageItems.get(this.page).put(slot, newItem);
     }
 
+    /**
+     * @param itemsPerPage How many items may be per page.
+     * @apiNote If you have set the endPosition at the SlotIterator, it will be preferred.
+     */
+    public void setItemsPerPage(@Nonnegative int itemsPerPage) {
+        this.itemsPerPage = itemsPerPage;
+    }
+
     protected @NotNull
     List<IntelligentItem> getItems() {
         return items;
-    }
-
-    protected @Nonnegative
-    int lastPage() {
-        return (int) Math.ceil((double) this.items.size() / this.itemsPerPage);
     }
 
     protected void setPage(@Nonnegative int page) {

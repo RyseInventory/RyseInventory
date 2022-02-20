@@ -11,6 +11,7 @@ import java.util.List;
 public class SlotIterator {
 
     private int slot = -1;
+    private int endPosition = -1;
     private int row;
     private int column;
     private SlotIteratorType type;
@@ -25,6 +26,7 @@ public class SlotIterator {
     public static class Builder {
 
         private int slot = -1;
+        private int endPosition = -1;
         private int row;
         private int column;
         private SlotIteratorType type;
@@ -42,17 +44,23 @@ public class SlotIterator {
             return this;
         }
 
+        public Builder endPosition(@Nonnegative int slot) {
+            this.endPosition = slot;
+            return this;
+        }
+
+        public Builder endPosition(@Nonnegative int row, @Nonnegative int column) {
+            this.endPosition = row * 9 + column;
+            return this;
+        }
+
         public Builder slot(@Nonnegative int startSlot) {
             this.slot = startSlot;
             return this;
         }
 
-        public Builder row(@Nonnegative int row) {
+        public Builder slot(@Nonnegative int row, @Nonnegative int column){
             this.row = row;
-            return this;
-        }
-
-        public Builder column(@Nonnegative int column) {
             this.column = column;
             return this;
         }
@@ -75,6 +83,11 @@ public class SlotIterator {
             slotIterator.type = this.type;
             slotIterator.override = this.override;
             slotIterator.blackList = this.blackList;
+            slotIterator.endPosition = this.endPosition;
+
+            if(this.slot >= this.endPosition){
+                throw new IllegalArgumentException("The start slot must be smaller than the end slot");
+            }
 
             return slotIterator;
         }
@@ -113,6 +126,10 @@ public class SlotIterator {
      */
     public boolean isOverride() {
         return this.override;
+    }
+
+    public int getEndPosition() {
+        return endPosition;
     }
 
     public enum SlotIteratorType {

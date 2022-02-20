@@ -7,6 +7,7 @@ import com.github.rysefoxx.pagination.InventoryManager;
 import com.github.rysefoxx.pagination.Pagination;
 import com.github.rysefoxx.pagination.RyseInventory;
 import com.github.rysefoxx.util.ItemBuilder;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -19,7 +20,8 @@ import java.util.function.Consumer;
 
 public final class RyseInventoryPlugin extends JavaPlugin {
 
-    private InventoryManager inventoryManager;
+    private @Getter
+    static InventoryManager inventoryManager;
 
     @Override
     public void onEnable() {
@@ -29,24 +31,20 @@ public final class RyseInventoryPlugin extends JavaPlugin {
         Player player = Bukkit.getPlayer("rysefoxx");
 
         RyseInventory inventory = RyseInventory.builder()
-                .manager(this.inventoryManager)
+                .manager(inventoryManager)
                 .title("Test")
-                .size(6 * 9)
+                .rows(6)
                 .identifier("CUSTOM_INVENTORY")
-                .delay(2)
-                .period(5)
+                .openDelay(2)
+                .delay(5)
                 .provider(new InventoryProvider() {
                     @Override
                     public void update(@NotNull Player player, @NotNull InventoryContents contents) {
-                        int value = contents.getData("test", 0);
-                        contents.setData("test", value+1);
-
-                        System.out.println(value);
                     }
 
                     @Override
                     public void init(@NotNull Player player, @NotNull InventoryContents contents) {
-                        contents.fillBorders(IntelligentItem.empty(new ItemBuilder(Material.BLACK_STAINED_GLASS).build()));
+                        contents.fillBorders(IntelligentItem.empty(new ItemBuilder(Material.BLACK_STAINED_GLASS).amount(50).build()));
                         Pagination pagination = contents.pagination();
 
                         contents.set(5, 3, IntelligentItem.of(new ItemBuilder(Material.ARROW).displayName(pagination.isFirst() ? "Du bist erste seite" : "klicke für seite" + pagination.copy().previous().page()).build(), new Consumer<InventoryClickEvent>() {
@@ -62,7 +60,7 @@ public final class RyseInventoryPlugin extends JavaPlugin {
                             }
                         }));
 
-                        pagination.setItemsPerPage(1);
+                        pagination.setItemsPerPage(6);
                         pagination.setItems(Arrays.asList(
                                 IntelligentItem.empty(new ItemBuilder(Material.GUNPOWDER).build()),
                                 IntelligentItem.empty(new ItemBuilder(Material.TNT).build()),
@@ -71,7 +69,7 @@ public final class RyseInventoryPlugin extends JavaPlugin {
                                 IntelligentItem.empty(new ItemBuilder(Material.SHEARS).build()),
                                 IntelligentItem.empty(new ItemBuilder(Material.WRITTEN_BOOK).build())));
 
-                        SlotIterator slotIterator = SlotIterator.builder().slot(10).type(SlotIterator.SlotIteratorType.HORIZONTAL).build();
+                        SlotIterator slotIterator = SlotIterator.builder().slot(1, 1).endPosition(13).type(SlotIterator.SlotIteratorType.HORIZONTAL).build();
                         pagination.iterator(slotIterator);
 
 
@@ -89,19 +87,8 @@ public final class RyseInventoryPlugin extends JavaPlugin {
                         }));
                     }
                 })
-                .build();
-
+                .build(this);
         inventory.open(player);
 
-        this.inventoryManager.getContents(player).ifPresent(contents -> {
-            System.out.println(contents.firstEmpty().get());
-        });
-
     }
-
-    @Override
-    public void onDisable() {
-        // Plugin shutdown logic
-    }
-
 }
