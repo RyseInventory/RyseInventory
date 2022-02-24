@@ -59,7 +59,7 @@ public class SlotIterator {
             return this;
         }
 
-        public Builder slot(@Nonnegative int row, @Nonnegative int column){
+        public Builder slot(@Nonnegative int row, @Nonnegative int column) {
             this.row = row;
             this.column = column;
             return this;
@@ -70,8 +70,8 @@ public class SlotIterator {
             return this;
         }
 
-        public Builder override(boolean bool) {
-            this.override = bool;
+        public Builder override() {
+            this.override = true;
             return this;
         }
 
@@ -85,7 +85,7 @@ public class SlotIterator {
             slotIterator.blackList = this.blackList;
             slotIterator.endPosition = this.endPosition;
 
-            if(this.slot >= this.endPosition){
+            if ((this.slot >= this.endPosition) && this.endPosition != -1) {
                 throw new IllegalArgumentException("The start slot must be smaller than the end slot");
             }
 
@@ -122,7 +122,7 @@ public class SlotIterator {
     }
 
     /**
-     * @return true if the variable is true
+     * @return true if items can be overwritten.
      */
     public boolean isOverride() {
         return this.override;

@@ -12,10 +12,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public final class RyseInventoryPlugin extends JavaPlugin {
@@ -40,6 +42,7 @@ public final class RyseInventoryPlugin extends JavaPlugin {
                 .provider(new InventoryProvider() {
                     @Override
                     public void update(@NotNull Player player, @NotNull InventoryContents contents) {
+                        contents.removeFirst(new ItemStack(Material.GUNPOWDER));
                     }
 
                     @Override
@@ -60,7 +63,9 @@ public final class RyseInventoryPlugin extends JavaPlugin {
                             }
                         }));
 
-                        pagination.setItemsPerPage(6);
+                        contents.set(12, IntelligentItem.empty(new ItemStack(Material.CREEPER_SPAWN_EGG)));
+
+                        pagination.setItemsPerPage(1);
                         pagination.setItems(Arrays.asList(
                                 IntelligentItem.empty(new ItemBuilder(Material.GUNPOWDER).build()),
                                 IntelligentItem.empty(new ItemBuilder(Material.TNT).build()),
@@ -69,7 +74,7 @@ public final class RyseInventoryPlugin extends JavaPlugin {
                                 IntelligentItem.empty(new ItemBuilder(Material.SHEARS).build()),
                                 IntelligentItem.empty(new ItemBuilder(Material.WRITTEN_BOOK).build())));
 
-                        SlotIterator slotIterator = SlotIterator.builder().slot(1, 1).endPosition(13).type(SlotIterator.SlotIteratorType.HORIZONTAL).build();
+                        SlotIterator slotIterator = SlotIterator.builder().slot(10).type(SlotIterator.SlotIteratorType.HORIZONTAL).build();
                         pagination.iterator(slotIterator);
 
 
@@ -89,6 +94,13 @@ public final class RyseInventoryPlugin extends JavaPlugin {
                 })
                 .build(this);
         inventory.open(player);
+
+        Optional<InventoryContents> contents = inventoryManager.getContents(player);
+
+        contents.ifPresent(contents1 -> {
+            System.out.println(contents1.pagination().lastPage());
+        });
+
 
     }
 }

@@ -9,7 +9,6 @@ import com.github.rysefoxx.util.ReflectionUtils;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -136,17 +135,12 @@ public class RyseInventory {
     private Object identifier;
     private JavaPlugin plugin;
 
-    protected List<Player> delayed = new ArrayList<>();
-
-
     /**
      * Closes the inventory from the player. InventoryClickEvent is no longer called here.
      *
      * @param player The player which inventory should be closed.
-     * @throws IllegalArgumentException when player is null
      */
-    public void close(@NotNull Player player) throws IllegalArgumentException {
-        Validate.notNull(player, "Player must not be null.");
+    public void close(@NotNull Player player) {
         this.manager.removeInventoryFromPlayer(player);
         player.closeInventory();
     }
@@ -156,10 +150,8 @@ public class RyseInventory {
      *
      * @param player The player where the inventory should be opened.
      * @return the Bukkit Inventory object.
-     * @throws IllegalArgumentException if there is no 1 page or when player is null.
      */
-    public @NotNull Inventory open(@NotNull Player player) throws IllegalArgumentException {
-        Validate.notNull(player, "Player must not be null.");
+    public @NotNull Inventory open(@NotNull Player player) {
         return open(player, 1);
     }
 
@@ -167,10 +159,8 @@ public class RyseInventory {
      * Opens the inventory with the first page for multiple players.
      *
      * @param players The players for whom the inventory should be opened.
-     * @throws IllegalArgumentException if players are null.
      */
-    public void open(@NotNull Player @NotNull ... players) throws IllegalArgumentException {
-        Validate.notNull(players, "Player's must not be null.");
+    public void open(Player @NotNull ... players) {
         for (Player player : players) {
             open(player, 1);
         }
@@ -182,12 +172,11 @@ public class RyseInventory {
      * @param players The players for whom the inventory should be opened.
      * @param keys    The keys
      * @param values  The values
-     * @throws IllegalArgumentException if players are null, if keys is null, if values is null, or if the two arrays do not have the same size.
+     * @throws IllegalArgumentException if the two arrays do not have the same size.
      */
-    public void open(@NotNull String[] keys, @NotNull Object[] values, @NotNull Player @NotNull ... players) throws IllegalArgumentException {
-        Validate.notNull(players, "Player's must not be null.");
-        Validate.notNull(keys, "String[] must not be null.");
-        Validate.notNull(values, "Object[] must not be null.");
+    public void open(String @NotNull [] keys, Object @NotNull [] values, @NotNull Player @NotNull ... players) throws IllegalArgumentException {
+        Preconditions.checkArgument(keys.length != values.length, "String[] and Object[] must have the same size");
+
         for (Player player : players) {
             open(player, 1, keys, values);
         }
@@ -197,10 +186,8 @@ public class RyseInventory {
      * Opens the inventory with a specific page for multiple players.
      *
      * @param players The players for whom the inventory should be opened.
-     * @throws IllegalArgumentException if players are null or page does not exist.
      */
-    public void open(@Nonnegative int page, @NotNull Player @NotNull ... players) throws IllegalArgumentException {
-        Validate.notNull(players, "Player's must not be null.");
+    public void open(@Nonnegative int page, @NotNull Player @NotNull ... players) {
         for (Player player : players) {
             open(player, page);
         }
@@ -212,66 +199,10 @@ public class RyseInventory {
      * @param player The player where the inventory should be opened.
      * @param page   Which page should be opened?
      * @return Returns the Bukkit Inventory object.
-     * @throws IllegalArgumentException if the page does not exist or when the player is null.
      */
-    public @NotNull Inventory open(@NotNull Player player, @Nonnegative int page) throws IllegalArgumentException {
-        Validate.notNull(player, "Player must not be null.");
-        this.manager.removeInventory(player);
-        Inventory inventory = Bukkit.createInventory(null, this.size == -1 ? this.rows * this.columns : this.size, Component.text(this.title));
-
-        InventoryContents contents = new InventoryContents(player, this);
-        Optional<InventoryContents> optional = this.manager.getContents(player);
-
-        if (this.transferData) {
-            optional.ifPresent(savedContents -> savedContents.transferData(contents));
-        }
-        this.manager.stopUpdate(player);
-
-        contents.pagination().setPage(page - 1);
-
-        this.manager.setContents(player, contents);
-        this.provider.init(player, contents);
-
-        Pagination pagination = contents.pagination();
-        pagination.pageItems = splitInventory(contents);
-
-        if (contents.getFillBorder() != null)
-            contents.fillBorders(inventory);
-
-        contents.getItems().forEach((integer, item) -> {
-            if (integer >= inventory.getSize()) return;
-            inventory.setItem(integer, item.getItemStack());
-        });
-
-        if (!pagination.pageItems.containsKey(page)) {
-            close(player);
-            throw new IllegalArgumentException("There is no " + page + " side. Last page is " + pagination.lastPage());
-        }
-        pagination.pageItems.get(page).forEach((integer, item) -> {
-            if (integer >= inventory.getSize()) return;
-            inventory.setItem(integer, item.getItemStack());
-        });
-
-        contents.add(inventory);
-
-        if (this.openDelay == -1 || this.delayed.contains(player)) {
-            player.openInventory(inventory);
-            this.manager.invokeScheduler(player, this);
-        } else {
-            if (!this.delayed.contains(player)) {
-                Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
-                    player.openInventory(inventory);
-                    this.manager.invokeScheduler(player, this);
-                }, this.openDelay);
-                this.delayed.add(player);
-            }
-        }
-
-        closeAfterScheduler(player);
-
-        this.inventory = inventory;
-        this.manager.setInventory(player, this);
-        return this.inventory;
+    public @NotNull Inventory open(@NotNull Player player, @Nonnegative int page) {
+        System.out.println(page);
+        return initInventory(player, page, null, null);
     }
 
     /**
@@ -282,76 +213,12 @@ public class RyseInventory {
      * @param keys   The keys
      * @param values The values
      * @return Returns the Bukkit Inventory object.
-     * @throws IllegalArgumentException if the page does not exist, if player is null, if keys is null, if values is null or if the two arrays do not have the same size.
+     * @throws IllegalArgumentException if the two arrays do not have the same size.
      */
-    public @NotNull Inventory open(@NotNull Player player, @Nonnegative int page, @NotNull String[] keys, @NotNull Object[] values) throws IllegalArgumentException {
-        Validate.notNull(player, "Player must not be null.");
-        Validate.notNull(keys, "String[] must not be null.");
-        Validate.notNull(values, "Object[] must not be null.");
+    public @NotNull Inventory open(@NotNull Player player, @Nonnegative int page, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
         Preconditions.checkArgument(keys.length != values.length, "String[] and Object[] must have the same size");
 
-        this.manager.removeInventory(player);
-        Inventory inventory = Bukkit.createInventory(null, this.size == -1 ? this.rows * this.columns : this.size, Component.text(this.title));
-
-        InventoryContents contents = new InventoryContents(player, this);
-        Optional<InventoryContents> optional = this.manager.getContents(player);
-
-        if (this.transferData) {
-            optional.ifPresent(savedContents -> savedContents.transferData(contents));
-        }
-        this.manager.stopUpdate(player);
-
-        for (String key : keys) {
-            for (Object value : values) {
-                contents.setData(key, value);
-            }
-        }
-
-        contents.pagination().setPage(page - 1);
-
-        this.manager.setContents(player, contents);
-        this.provider.init(player, contents);
-
-        Pagination pagination = contents.pagination();
-        pagination.pageItems = splitInventory(contents);
-
-        if (contents.getFillBorder() != null)
-            contents.fillBorders(inventory);
-
-        contents.getItems().forEach((integer, item) -> {
-            if (integer >= inventory.getSize()) return;
-            inventory.setItem(integer, item.getItemStack());
-        });
-
-        if (!pagination.pageItems.containsKey(page)) {
-            close(player);
-            throw new IllegalArgumentException("There is no " + page + " side. Last page is " + pagination.lastPage());
-        }
-        pagination.pageItems.get(page).forEach((integer, item) -> {
-            if (integer >= inventory.getSize()) return;
-            inventory.setItem(integer, item.getItemStack());
-        });
-
-        contents.add(inventory);
-
-        if (this.openDelay == -1 || this.delayed.contains(player)) {
-            player.openInventory(inventory);
-            this.manager.invokeScheduler(player, this);
-        } else {
-            if (!this.delayed.contains(player)) {
-                Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
-                    player.openInventory(inventory);
-                    this.manager.invokeScheduler(player, this);
-                }, this.openDelay);
-                this.delayed.add(player);
-            }
-        }
-
-        closeAfterScheduler(player);
-
-        this.inventory = inventory;
-        this.manager.setInventory(player, this);
-        return this.inventory;
+        return this.initInventory(player, page, keys, values);
     }
 
     /**
@@ -361,68 +228,64 @@ public class RyseInventory {
      * @param keys   The keys
      * @param values The values
      * @return Returns the Bukkit Inventory object.
-     * @throws IllegalArgumentException if player is null, if keys is null, if values is null or if the two arrays do not have the same size.
+     * @throws IllegalArgumentException if the two arrays do not have the same size.
      */
-    public @NotNull Inventory open(@NotNull Player player, @NotNull String[] keys, @NotNull Object[] values) throws IllegalArgumentException {
-        Validate.notNull(player, "Player must not be null.");
-        Validate.notNull(keys, "String[] must not be null.");
-        Validate.notNull(values, "Object[] must not be null.");
+    public @NotNull Inventory open(@NotNull Player player, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
         Preconditions.checkArgument(keys.length != values.length, "String[] and Object[] must have the same size");
 
+        return this.initInventory(player, 0, keys, values);
+    }
+
+    private Inventory initInventory(@NotNull Player player, @Nonnegative int page, @Nullable String[] keys, @Nullable Object[] values) {
         this.manager.removeInventory(player);
         Inventory inventory = Bukkit.createInventory(null, this.size == -1 ? this.rows * this.columns : this.size, Component.text(this.title));
 
         InventoryContents contents = new InventoryContents(player, this);
         Optional<InventoryContents> optional = this.manager.getContents(player);
+        page--;
+
+        contents.pagination().setPage(page);
+
+        this.manager.setContents(player, contents);
+        this.provider.init(player, contents);
 
         if (this.transferData) {
             optional.ifPresent(savedContents -> savedContents.transferData(contents));
         }
         this.manager.stopUpdate(player);
 
-        for (String key : keys) {
-            for (Object value : values) {
-                contents.setData(key, value);
-            }
+        if (keys != null && values != null) {
+            Arrays.stream(keys).filter(Objects::nonNull).forEach(s -> Arrays.stream(values).filter(Objects::nonNull).forEach(o -> contents.setData(s, o)));
         }
-
-        contents.pagination().setPage(0);
-
-        this.manager.setContents(player, contents);
-        this.provider.init(player, contents);
 
         Pagination pagination = contents.pagination();
-        pagination.pageItems = splitInventory(contents);
+        splitInventory(contents);
 
-        if (contents.getFillBorder() != null)
-            contents.fillBorders(inventory);
-
-        contents.getItems().forEach((integer, item) -> {
-            if (integer >= inventory.getSize()) return;
-            inventory.setItem(integer, item.getItemStack());
-        });
-
-        if (!pagination.pageItems.containsKey(1)) {
+        if (!pagination.getPageItems().containsKey(page)) {
             close(player);
-            throw new IllegalArgumentException("There is no " + 1 + " side. Last page is " + pagination.lastPage());
+            throw new IllegalArgumentException("There is no " + page + " side. Last page is " + pagination.lastPage());
         }
-        pagination.pageItems.get(1).forEach((integer, item) -> {
+
+        pagination.getPermanentItems().forEach((integer, item) -> {
+            if (integer >= inventory.getSize()) return;
+            inventory.setItem(integer, item.getItemStack());
+        });
+        pagination.getPageItems().get(page).forEach((integer, item) -> {
             if (integer >= inventory.getSize()) return;
             inventory.setItem(integer, item.getItemStack());
         });
 
-        contents.add(inventory);
 
-        if (this.openDelay == -1 || this.delayed.contains(player)) {
+        if (this.openDelay == -1 || this.manager.delayed.contains(player)) {
             player.openInventory(inventory);
             this.manager.invokeScheduler(player, this);
         } else {
-            if (!this.delayed.contains(player)) {
+            if (!this.manager.delayed.contains(player)) {
                 Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
                     player.openInventory(inventory);
                     this.manager.invokeScheduler(player, this);
                 }, this.openDelay);
-                this.delayed.add(player);
+                this.manager.delayed.add(player);
             }
         }
 
@@ -456,12 +319,9 @@ public class RyseInventory {
      * @param plugin   The JavaPlugin
      * @param player   The Player
      * @param newTitle The new title
-     * @throws IllegalArgumentException when plugin, player or newTitle is null
+     * @apiNote https://www.spigotmc.org/threads/change-inventory-title-reflection-1-8-1-18.489966/
      */
-    public void updateTitle(@NotNull JavaPlugin plugin, @NotNull Player player, @NotNull String newTitle) throws IllegalArgumentException {
-        Validate.notNull(plugin, "JavaPlugin must not be null.");
-        Validate.notNull(player, "Player must not be null.");
-        Validate.notNull(newTitle, "String must not be null.");
+    public void updateTitle(@NotNull JavaPlugin plugin, @NotNull Player player, @NotNull String newTitle) {
         try {
             // Get EntityPlayer from CraftPlayer.
             assert CRAFT_PLAYER_CLASS != null;
@@ -539,25 +399,25 @@ public class RyseInventory {
         return this.size == -1 ? this.rows * this.columns : this.size;
     }
 
-    private @NotNull HashMap<Integer, HashMap<Integer, IntelligentItem>> splitInventory(@NotNull InventoryContents contents) {
-        HashMap<Integer, HashMap<Integer, IntelligentItem>> items = new HashMap<>();
+    private void splitInventory(@NotNull InventoryContents contents) {
         Pagination pagination = contents.pagination();
         SlotIterator iterator = contents.iterator();
 
-        if (iterator == null) return items;
+        if (iterator == null) return;
 
         SlotIterator.SlotIteratorType type = iterator.getType();
         boolean useSlot = iterator.getSlot() != -1;
         int itemsSet = 0;
-        int page = 1;
+        int page = 0;
         int startSlot = iterator.getSlot();
         int startRow = iterator.getRow();
         int startColumn = iterator.getColumn();
         int slot = startSlot;
         int calculatedSlot = startRow * 9 + startColumn;
+        HashMap<Integer, HashMap<Integer, IntelligentItem>> items = contents.pagination().getPageItems();
 
         for (IntelligentItem item : pagination.getItems()) {
-            if (itemsSet >= pagination.getItemsPerPage() || slot >= iterator.getEndPosition() || calculatedSlot >= iterator.getEndPosition()) {
+            if (itemsSet >= pagination.getItemsPerPage() || ((slot >= iterator.getEndPosition() || calculatedSlot >= iterator.getEndPosition()) && iterator.getEndPosition() != -1)) {
                 itemsSet = 0;
                 page++;
             }
@@ -568,29 +428,25 @@ public class RyseInventory {
                 calculatedSlot = startRow * 9 + startColumn;
             }
 
-
-            if (useSlot) {
-                if (!iterator.isOverride()) {
-                    slot = nextSlotAlgorithm(contents, type, slot, startSlot);
-                }
-
-                items.get(page).put(slot, item);
-                itemsSet++;
-                slot = updateForNextSlot(type, slot, startSlot);
-                continue;
-            }
-
             if (!iterator.isOverride()) {
-                calculatedSlot = nextSlotAlgorithm(contents, type, calculatedSlot, startRow * 9 + startColumn);
+                if (useSlot) {
+                    slot = nextSlotAlgorithm(contents, type, slot, startSlot);
+                } else {
+                    calculatedSlot = nextSlotAlgorithm(contents, type, calculatedSlot, startRow * 9 + startColumn);
+                }
             }
 
-            items.get(page).put(calculatedSlot, item);
+            items.get(page).put(useSlot ? slot : calculatedSlot, item);
             itemsSet++;
 
-            calculatedSlot = updateForNextSlot(type, calculatedSlot, startRow * 9 + startColumn);
+            if (useSlot) {
+                slot = updateForNextSlot(type, slot, startSlot);
+            } else {
+                calculatedSlot = updateForNextSlot(type, calculatedSlot, startRow * 9 + startColumn);
+            }
         }
 
-        return items;
+        contents.pagination().setPageItems(items);
     }
 
     private int updateForNextSlot(@NotNull SlotIterator.SlotIteratorType type, @Nonnegative int slot, @Nonnegative int startSlot) {
@@ -620,6 +476,7 @@ public class RyseInventory {
         }
         return calculatedSlot;
     }
+
 
     /**
      * Builder to create an inventory.
@@ -691,10 +548,8 @@ public class RyseInventory {
          *
          * @param identifier The ID through which you can get the inventory
          * @return The Inventory Builder to set additional options.
-         * @throws IllegalArgumentException if identifier is null
          */
-        public Builder identifier(@NotNull Object identifier) throws IllegalArgumentException {
-            Validate.notNull(identifier, "Object must be not null");
+        public Builder identifier(@NotNull Object identifier) {
             this.identifier = identifier;
             return this;
         }
@@ -704,10 +559,8 @@ public class RyseInventory {
          *
          * @param provider Implement with new InventoryProvider()
          * @return The Inventory Builder to set additional options.
-         * @throws IllegalArgumentException if provider is null
          */
-        public Builder provider(@NotNull InventoryProvider provider) throws IllegalArgumentException {
-            Validate.notNull(provider, "InventoryProvider must be not null");
+        public Builder provider(@NotNull InventoryProvider provider) {
             this.provider = provider;
             return this;
         }
@@ -789,11 +642,9 @@ public class RyseInventory {
          *
          * @param title The title
          * @return The Inventory Builder to set additional options.
-         * @throws IllegalArgumentException if title is null
          * @apiNote The title can also be changed later when the inventory is open.
          */
-        public Builder title(@NotNull String title) throws IllegalArgumentException {
-            Validate.notNull(title, "String must not be null.");
+        public Builder title(@NotNull String title) {
             this.title = title;
             return this;
         }
@@ -803,10 +654,8 @@ public class RyseInventory {
          *
          * @param event What kind of event
          * @return The Inventory Builder to set additional options.
-         * @throws IllegalArgumentException if event is null
          */
-        public Builder listener(@NotNull EventCreator<? extends Event> event) throws IllegalArgumentException {
-            Validate.notNull(event, "EventCreator<? extends Event> must not be null.");
+        public Builder listener(@NotNull EventCreator<? extends Event> event) {
             this.events.add(event);
             return this;
         }

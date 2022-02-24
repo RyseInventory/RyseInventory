@@ -33,7 +33,9 @@ public class Pagination implements Cloneable {
 
     private int page;
     private final RyseInventory inventory;
-    protected HashMap<Integer, HashMap<Integer, IntelligentItem>> pageItems;
+
+    private HashMap<Integer, HashMap<Integer, IntelligentItem>> pageItems;
+    private HashMap<Integer, IntelligentItem> permanentItems;
 
     /**
      * Pagination constructor with a default size of 1 element per page.
@@ -44,8 +46,9 @@ public class Pagination implements Cloneable {
         this.itemsPerPage = 1;
         this.page = 0;
         this.items = new ArrayList<>();
+        this.permanentItems = new HashMap<>();
         this.pageItems = new HashMap<>();
-        this.pageItems.put(page(), new HashMap<>());
+        this.pageItems.put(this.page, new HashMap<>());
     }
 
     /**
@@ -76,7 +79,14 @@ public class Pagination implements Cloneable {
      */
     public @Nonnegative
     int lastPage() {
-        return (int) Math.ceil((double) this.items.size() / this.itemsPerPage);
+        int value;
+
+        if (this.slotIterator == null || this.slotIterator.getEndPosition() == -1) {
+            value = this.itemsPerPage;
+        } else {
+            value = this.slotIterator.getEndPosition() - (this.slotIterator.getSlot() == -1 ? 9 * this.slotIterator.getRow() + this.slotIterator.getColumn() : this.slotIterator.getSlot());
+        }
+        return (int) Math.ceil((double) this.items.size() / value);
     }
 
     /**
@@ -90,7 +100,15 @@ public class Pagination implements Cloneable {
      * @return true if you are on the last page.
      */
     public boolean isLast() {
-        return (this.page + 1) == (int) Math.ceil((double) this.items.size() / (this.slotIterator == null ? this.itemsPerPage : this.slotIterator.getEndPosition() - (this.slotIterator.getSlot() == -1 ? 9 * this.slotIterator.getRow() + this.slotIterator.getColumn() : this.slotIterator.getSlot())));
+        int value;
+
+        if (this.slotIterator == null || this.slotIterator.getEndPosition() == -1) {
+            value = this.itemsPerPage;
+        } else {
+            value = this.slotIterator.getEndPosition() - (this.slotIterator.getSlot() == -1 ? 9 * this.slotIterator.getRow() + this.slotIterator.getColumn() : this.slotIterator.getSlot());
+        }
+
+        return this.page == (int) Math.ceil((double) this.items.size() / value) - 1;
     }
 
     /**
@@ -130,7 +148,7 @@ public class Pagination implements Cloneable {
      */
     public void setItems(@NotNull List<IntelligentItem> items) throws IllegalArgumentException {
         Validate.notNull(items, "List<IntelligentItem> must not be null.");
-        this.items = items;
+        this.items = new ArrayList<>(items);
     }
 
     /**
@@ -152,7 +170,8 @@ public class Pagination implements Cloneable {
      */
     public void addItem(@NotNull IntelligentItem item) throws IllegalArgumentException {
         Validate.notNull(item, "IntelligentItem must not be null.");
-        this.items.add(item);
+        //Todo: test
+        this.permanentItems.put(this.permanentItems.size(), item);
     }
 
     /**
@@ -171,16 +190,25 @@ public class Pagination implements Cloneable {
      *
      * @param slot    The slot
      * @param newItem The Item
-     * @throws IllegalArgumentException when item is null or slot > 53
+     * @throws IllegalArgumentException if slot > 53
      */
-    public void setItem(@Nonnegative int slot, @NotNull IntelligentItem newItem) throws IllegalArgumentException {
-        Validate.notNull(newItem, "SlotIterator must not be null.");
-
+    protected void setItem(@Nonnegative int slot, @NotNull IntelligentItem newItem) throws IllegalArgumentException {
         if (slot > 53) {
             throw new IllegalArgumentException("The slot must not be larger than 53.");
         }
+        this.permanentItems.put(slot, newItem);
+    }
 
-        this.pageItems.get(this.page).put(slot, newItem);
+    protected HashMap<Integer, HashMap<Integer, IntelligentItem>> getPageItems() {
+        return pageItems;
+    }
+
+    protected void setPageItems(@NotNull HashMap<Integer, HashMap<Integer, IntelligentItem>> items) {
+        this.pageItems = items;
+    }
+
+    protected HashMap<Integer, IntelligentItem> getPermanentItems() {
+        return permanentItems;
     }
 
     /**

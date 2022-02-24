@@ -2,7 +2,7 @@ package com.github.rysefoxx.pagination;
 
 import com.github.rysefoxx.SlotIterator;
 import com.github.rysefoxx.content.IntelligentItem;
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -26,38 +26,36 @@ public class InventoryContents {
 
     private final Player player;
     private final Pagination pagination;
-    private final HashMap<Integer, IntelligentItem> items;
     private final HashMap<String, Object> data;
     private final RyseInventory inventory;
 
     private IntelligentItem fillBorder;
-    private final List<IntelligentItem> addList;
 
     @Contract(pure = true)
     public InventoryContents(@NotNull Player player, @NotNull RyseInventory inventory) {
         this.player = player;
         this.inventory = inventory;
         this.pagination = new Pagination(inventory);
-        this.items = new HashMap<>();
         this.data = new HashMap<>();
-        this.addList = new ArrayList<>();
     }
 
     /**
      * Removes the first item that matches the parameter.
      *
      * @param item The item to filter for.
-     * @throws IllegalArgumentException if item is null
      */
-    public void removeFirst(@NotNull ItemStack item) throws IllegalArgumentException {
-        Validate.notNull(item, "ItemStack must not be null.");
-        Inventory inventory = this.inventory.getInventory();
+    public void removeFirst(@NotNull ItemStack item) {
+        for (int i = 0; i < this.inventory.size(); i++) {
+            Optional<IntelligentItem> optional = get(i);
+            if (optional.isEmpty()) continue;
 
-        for (int i = 0; i < inventory.getSize(); i++) {
-            ItemStack itemStack = inventory.getItem(i);
+            ItemStack itemStack = optional.get().getItemStack();
             if (itemStack == null || itemStack.getType().isAir()) continue;
             if (!itemStack.isSimilar(item)) continue;
 
+            remove(i);
+
+            if (this.inventory.getInventory() == null) break;
             this.inventory.getInventory().setItem(i, null);
             break;
         }
@@ -67,16 +65,19 @@ public class InventoryContents {
      * Removes the first item that matches the parameter.
      *
      * @param material The material to filter for.
-     * @throws IllegalArgumentException if material is null
      */
-    public void removeFirst(@NotNull Material material) throws IllegalArgumentException {
-        Validate.notNull(material, "Material must not be null.");
-        Inventory inventory = this.inventory.getInventory();
+    public void removeFirst(@NotNull Material material) {
+        for (int i = 0; i < this.inventory.size(); i++) {
+            Optional<IntelligentItem> optional = get(i);
+            if (optional.isEmpty()) continue;
 
-        for (int i = 0; i < inventory.getSize(); i++) {
-            ItemStack itemStack = inventory.getItem(i);
+            ItemStack itemStack = optional.get().getItemStack();
             if (itemStack == null || itemStack.getType().isAir()) continue;
             if (itemStack.getType() != material) continue;
+
+            remove(i);
+
+            if (this.inventory.getInventory() == null) break;
             this.inventory.getInventory().setItem(i, null);
             break;
         }
@@ -87,27 +88,29 @@ public class InventoryContents {
      *
      * @param item   The itemstack what should be reduced.
      * @param amount How much to remove.
-     * @throws IllegalArgumentException if item is null or if amount > 64
+     * @throws IllegalArgumentException if amount > 64
      * @apiNote If the itemstack Amount is < 1, the ItemStack will be deleted from the inventory.
      */
     public void subtractFirst(@NotNull ItemStack item, @Nonnegative int amount) throws IllegalArgumentException {
-        Validate.notNull(item, "ItemStack must not be null.");
-
         if (amount > 64) {
             throw new IllegalArgumentException("Amount must not be larger than 64.");
         }
 
-        Inventory inventory = this.inventory.getInventory();
+        for (int i = 0; i < this.inventory.size(); i++) {
+            Optional<IntelligentItem> optional = get(i);
+            if (optional.isEmpty()) continue;
 
-        for (int i = 0; i < inventory.getSize(); i++) {
-            ItemStack itemStack = inventory.getItem(i);
+            ItemStack itemStack = optional.get().getItemStack();
             if (itemStack == null || itemStack.getType().isAir()) continue;
             if (!itemStack.isSimilar(item)) continue;
 
             if (itemStack.getAmount() - amount < 1) {
+                remove(i);
+                if (this.inventory.getInventory() == null) continue;
                 this.inventory.getInventory().setItem(i, null);
                 continue;
             }
+            if (this.inventory.getInventory() == null) break;
             itemStack.setAmount(itemStack.getAmount() - amount);
             this.inventory.getInventory().setItem(i, itemStack);
             break;
@@ -118,17 +121,19 @@ public class InventoryContents {
      * Removes all items that match the parameter.
      *
      * @param item The item to filter for.
-     * @throws IllegalArgumentException if item is null
      */
-    public void removeAll(@NotNull ItemStack item) throws IllegalArgumentException {
-        Validate.notNull(item, "ItemStack must not be null");
-        Inventory inventory = this.inventory.getInventory();
+    public void removeAll(@NotNull ItemStack item) {
+        for (int i = 0; i < this.inventory.size(); i++) {
+            Optional<IntelligentItem> optional = get(i);
+            if (optional.isEmpty()) continue;
 
-        for (int i = 0; i < inventory.getSize(); i++) {
-            ItemStack itemStack = inventory.getItem(i);
+            ItemStack itemStack = optional.get().getItemStack();
             if (itemStack == null || itemStack.getType().isAir()) continue;
             if (!itemStack.isSimilar(item)) continue;
 
+            remove(i);
+
+            if (this.inventory.getInventory() == null) break;
             this.inventory.getInventory().setItem(i, null);
         }
     }
@@ -138,26 +143,30 @@ public class InventoryContents {
      *
      * @param item   The item to filter for.
      * @param amount How much to remove.
-     * @throws IllegalArgumentException if item is null or amount > 64
+     * @throws IllegalArgumentException if amount > 64
      */
     public void removeAll(@NotNull ItemStack item, @Nonnegative int amount) throws IllegalArgumentException {
-        Validate.notNull(item, "ItemStack must not be null.");
-
         if (amount > 64) {
             throw new IllegalArgumentException("Amount must not be larger than 64.");
         }
-        Inventory inventory = this.inventory.getInventory();
 
-        for (int i = 0; i < inventory.getSize(); i++) {
-            ItemStack itemStack = inventory.getItem(i);
+        for (int i = 0; i < this.inventory.size(); i++) {
+            Optional<IntelligentItem> optional = get(i);
+            if (optional.isEmpty()) continue;
+
+            ItemStack itemStack = optional.get().getItemStack();
             if (itemStack == null || itemStack.getType().isAir()) continue;
             if (!itemStack.isSimilar(item)) continue;
 
             if (itemStack.getAmount() - amount < 1) {
+                remove(i);
+                if (this.inventory.getInventory() == null) continue;
                 this.inventory.getInventory().setItem(i, null);
                 continue;
             }
+            if (this.inventory.getInventory() == null) continue;
             itemStack.setAmount(itemStack.getAmount() - amount);
+            this.inventory.getInventory().setItem(i, itemStack);
         }
     }
 
@@ -165,11 +174,16 @@ public class InventoryContents {
      * Removes the very first item that can be found.
      */
     public void removeFirst() {
-        Inventory inventory = this.inventory.getInventory();
-        for (int i = 0; i < inventory.getSize(); i++) {
-            ItemStack itemStack = inventory.getItem(i);
+        for (int i = 0; i < this.inventory.size(); i++) {
+            Optional<IntelligentItem> optional = get(i);
+            if (optional.isEmpty()) continue;
+
+            ItemStack itemStack = optional.get().getItemStack();
             if (itemStack == null || itemStack.getType().isAir()) continue;
 
+            remove(i);
+
+            if (this.inventory.getInventory() == null) break;
             this.inventory.getInventory().setItem(i, null);
             break;
         }
@@ -179,18 +193,28 @@ public class InventoryContents {
      * Removes the very first item that can be found.
      *
      * @param amount How much to remove
+     * @throws IllegalArgumentException if amount > 64
      */
-    public void removeFirst(@Nonnegative int amount) {
-        Inventory inventory = this.inventory.getInventory();
-        for (int i = 0; i < inventory.getSize(); i++) {
-            ItemStack itemStack = inventory.getItem(i);
+    public void removeFirst(@Nonnegative int amount) throws IllegalArgumentException {
+        if (amount > 64) {
+            throw new IllegalArgumentException("Amount must not be larger than 64.");
+        }
+        for (int i = 0; i < this.inventory.size(); i++) {
+            Optional<IntelligentItem> optional = get(i);
+            if (optional.isEmpty()) continue;
+
+            ItemStack itemStack = optional.get().getItemStack();
             if (itemStack == null || itemStack.getType().isAir()) continue;
 
             if (itemStack.getAmount() - amount < 1) {
+                remove(i);
+                if (this.inventory.getInventory() == null) break;
                 this.inventory.getInventory().setItem(i, null);
                 break;
             }
+            if (this.inventory.getInventory() == null) break;
             itemStack.setAmount(itemStack.getAmount() - amount);
+            this.inventory.getInventory().setItem(i, itemStack);
             break;
         }
     }
@@ -213,7 +237,6 @@ public class InventoryContents {
      *
      * @param plugin   The JavaPlugin
      * @param newTitle The new title
-     * @throws IllegalArgumentException when plugin, player or newTitle is null
      */
     public void updateTitle(@NotNull JavaPlugin plugin, @NotNull String newTitle) {
         this.inventory.updateTitle(plugin, this.player, newTitle);
@@ -223,11 +246,19 @@ public class InventoryContents {
      * Fills the Border with a intelligent ItemStack regardless of inventory size.
      *
      * @param item The ItemStack which should represent the border
-     * @throws IllegalArgumentException when item is null
      */
-    public void fillBorders(@NotNull IntelligentItem item) throws IllegalArgumentException {
-        Validate.notNull(item, "IntelligentItem must not be null.");
-        this.fillBorder = item;
+    public void fillBorders(@NotNull IntelligentItem item) {
+        int size = this.inventory.size();
+        int rows = (size + 1) / 9;
+
+        for (int i = 0; i < rows * 9; i++) {
+            if ((i <= 8) || (i >= (rows * 9) - 9)
+                    || i == 9 || i == 18
+                    || i == 27 || i == 36
+                    || i == 17 || i == 26
+                    || i == 35 || i == 44)
+                set(i, item);
+        }
     }
 
     /**
@@ -235,11 +266,8 @@ public class InventoryContents {
      *
      * @param key
      * @param value
-     * @throws IllegalArgumentException if key or value is null
      */
-    public <T> void setData(@NotNull String key, @NotNull T value) throws IllegalArgumentException {
-        Validate.notNull(key, "String must not be null.");
-        Validate.notNull(value, "Object must not be null.");
+    public <T> void setData(@NotNull String key, @NotNull T value) {
         this.data.put(key, value);
     }
 
@@ -248,10 +276,8 @@ public class InventoryContents {
      *
      * @param key
      * @return The cached value
-     * @throws IllegalArgumentException when key is null
      */
-    public @Nullable Object getData(@NotNull String key) throws IllegalArgumentException {
-        Validate.notNull(key, "String must not be null.");
+    public @Nullable Object getData(@NotNull String key) {
         if (!this.data.containsKey(key)) return null;
 
         return this.data.get(key);
@@ -263,12 +289,9 @@ public class InventoryContents {
      * @param key
      * @param defaultValue value when key is invalid
      * @return The cached value
-     * @throws IllegalArgumentException when key or defaultValue is null
      */
     @SuppressWarnings("unchecked")
-    public @NotNull <T> T getData(@NotNull String key, @NotNull Object defaultValue) throws IllegalArgumentException {
-        Validate.notNull(key, "String must not be null.");
-        Validate.notNull(defaultValue, "Object must not be null.");
+    public @NotNull <T> T getData(@NotNull String key, @NotNull Object defaultValue) {
         if (!this.data.containsKey(key)) return (T) defaultValue;
 
         return (T) this.data.get(key);
@@ -278,65 +301,51 @@ public class InventoryContents {
      * @return The first slot that is empty.
      */
     public Optional<Integer> firstEmpty() {
-        int nextSlot = 0;
-        Inventory inventory = this.inventory.getInventory();
+        for (int i = 0; i < this.inventory.size(); i++) {
+            Optional<IntelligentItem> item = get(i);
 
-        for (int i = 0; i < inventory.getSize(); i++) {
-            ItemStack itemStack = inventory.getItem(i);
-            if (itemStack != null && !itemStack.getType().isAir()) continue;
-            nextSlot = i;
-            break;
+            if (item.isPresent()) continue;
+            return Optional.of(i);
         }
-        return Optional.of(nextSlot);
+        return Optional.empty();
     }
 
     /**
      * @return The last slot that is empty.
      */
     public Optional<Integer> lastEmpty() {
-        int nextSlot = 0;
-        Inventory inventory = this.player.getOpenInventory().getTopInventory();
+        int nextSlot = -1;
 
-        for (int i = 0; i < inventory.getSize(); i++) {
-            ItemStack itemStack = inventory.getItem(i);
-            if (itemStack != null && !itemStack.getType().isAir()) continue;
+        for (int i = 0; i < this.inventory.size(); i++) {
+            Optional<IntelligentItem> item = get(i);
+
+            if (item.isPresent()) continue;
             nextSlot = i;
         }
         return Optional.of(nextSlot);
     }
 
-    /**
-     * Sets a fixed intelligent ItemStack in the inventory.
-     *
-     * @param slot Where should the item be placed?
-     * @param item The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException when item is null
-     */
-    public void set(@Nonnegative int slot, @NotNull IntelligentItem item) throws IllegalArgumentException {
-        Validate.notNull(item, "IntelligentItem must not be null.");
-        if (slot > 53) {
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
-        }
-        this.items.put(slot, item);
-    }
 
     /**
      * Adds an item to the inventory in the first free place.
      *
      * @param item The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException when item is null
      */
-    public void add(@NotNull IntelligentItem item) throws IllegalArgumentException {
-        this.addList.add(item);
+    public void add(@NotNull IntelligentItem item) {
+        firstEmpty().ifPresent(integer -> {
+            this.pagination.setItem(integer, item);
+            if (this.inventory.getInventory() == null)
+                return;
+            this.inventory.getInventory().setItem(integer, item.getItemStack());
+        });
     }
 
     /**
      * Add multiple items to the inventory in the first free place.
      *
      * @param items The ItemStacks to be displayed in the inventory
-     * @throws IllegalArgumentException when one element is null
      */
-    public void add(@NotNull IntelligentItem @NotNull ... items) throws IllegalArgumentException {
+    public void add(IntelligentItem @NotNull ... items) {
         for (IntelligentItem item : items) {
             add(item);
         }
@@ -345,13 +354,39 @@ public class InventoryContents {
     /**
      * Sets a fixed intelligent ItemStack in the inventory.
      *
+     * @param slot Where should the item be placed?
+     * @param item The ItemStack to be displayed in the inventory
+     * @throws IllegalArgumentException when slot > 53
+     */
+    public void set(@Nonnegative int slot, @NotNull IntelligentItem item) throws IllegalArgumentException {
+        if (slot > 53) {
+            throw new IllegalArgumentException("The slot must not be larger than 53.");
+        }
+        this.pagination.setItem(slot, item);
+        if (this.inventory.getInventory() == null)
+            return;
+        this.inventory.getInventory().setItem(slot, item.getItemStack());
+    }
+
+    /**
+     * Sets a fixed intelligent ItemStack in the inventory.
+     *
+     * @param slots Where should the item be placed everywhere?
+     * @param item  The ItemStack to be displayed in the inventory
+     */
+    public void set(@NotNull List<Integer> slots, @NotNull IntelligentItem item) {
+        slots.forEach(slot -> set(slot, item));
+    }
+
+    /**
+     * Sets a fixed intelligent ItemStack in the inventory.
+     *
      * @param row    The row
      * @param column The column
      * @param item   The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException when item is null or row > 5 or column > 8
+     * @throws IllegalArgumentException if row > 5 or column > 8
      */
     public void set(@Nonnegative int row, @Nonnegative int column, @NotNull IntelligentItem item) throws IllegalArgumentException {
-        Validate.notNull(item, "IntelligentItem must not be null.");
         if (row > 5) {
             throw new IllegalArgumentException("The row must not be larger than 5.");
         }
@@ -363,19 +398,24 @@ public class InventoryContents {
     }
 
     /**
-     * Get a intelligent ItemStack based on the slot.
+     * Fetches a intelligent ItemStack based on the slot.
      *
      * @param slot The slot
      * @return The intelligent ItemStack or an empty Optional instance.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53
      */
     public Optional<IntelligentItem> get(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53) {
             throw new IllegalArgumentException("The slot must not be larger than 53.");
         }
+        if (this.pagination.getPermanentItems().containsKey(slot))
+            return Optional.ofNullable(this.pagination.getPermanentItems().get(slot));
 
-        if (!this.items.containsKey(slot)) return Optional.empty();
-        return Optional.ofNullable(this.items.get(slot));
+
+        int page = this.pagination.page() - 1;
+
+        if (!this.pagination.getPageItems().containsKey(page)) return Optional.empty();
+        return Optional.ofNullable(this.pagination.getPageItems().get(page).get(slot));
     }
 
     /**
@@ -384,7 +424,7 @@ public class InventoryContents {
      * @param row    The row
      * @param column The column
      * @return The intelligent ItemStack or an empty Optional instance.
-     * @throws IllegalArgumentException when row > 5 or column > 8
+     * @throws IllegalArgumentException if row > 5 or column > 8
      */
     public Optional<IntelligentItem> get(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
         if (row > 5) {
@@ -396,15 +436,52 @@ public class InventoryContents {
         return get(row * 9 + column);
     }
 
+
+    /**
+     * Get all intelligent ItemStacks.
+     *
+     * @param slots All slots where you want to watch.
+     * @return All intelligent ItemStacks that could be found.
+     */
+    public @NotNull List<IntelligentItem> get(@NotNull List<Integer> slots) {
+        List<IntelligentItem> items = new ArrayList<>();
+        slots.forEach(slot -> get(slot).ifPresent(items::add));
+        return items;
+    }
+
+    /**
+     * Get multiple Intelligent ItemStacks within the specified range.
+     *
+     * @param areaStart The start slot
+     * @param areaStop  The end slot
+     * @return All intelligent ItemStacks that could be found.
+     * @throws IllegalArgumentException if areaStart, areaStop > 53
+     */
+    public @NotNull List<IntelligentItem> getInArea(@Nonnegative int areaStart, @Nonnegative int areaStop) throws IllegalArgumentException {
+        if (areaStart > 53) {
+            throw new IllegalArgumentException("The areaStart must not be larger than 53.");
+        }
+        if (areaStop > 53) {
+            throw new IllegalArgumentException("The areaStop must not be larger than 53.");
+        }
+
+        Preconditions.checkArgument(areaStart >= areaStop, "areaStop must be at least 1 greater than areaStart.");
+
+        List<IntelligentItem> items = new ArrayList<>();
+        for (int i = areaStart; i <= areaStop; i++) {
+            get(i).ifPresent(items::add);
+        }
+        return items;
+    }
+
     /**
      * Updates the ItemStack in the same place with a new ItemStack.
      *
      * @param slot      The slot
      * @param itemStack The new ItemStack what should be displayed.
-     * @throws IllegalArgumentException when item is null or slot > 53
+     * @throws IllegalArgumentException if slot > 53
      */
     public void update(@Nonnegative int slot, @NotNull ItemStack itemStack) throws IllegalArgumentException {
-        Validate.notNull(itemStack, "ItemStack must not be null.");
         if (slot > 53) {
             throw new IllegalArgumentException("The slot must not be larger than 53.");
         }
@@ -413,8 +490,40 @@ public class InventoryContents {
 
         IntelligentItem item = itemOptional.get();
         IntelligentItem newItem = item.update(itemStack);
-        this.pagination.setItem(slot, newItem);
-        this.player.getOpenInventory().getTopInventory().setItem(slot, newItem.getItemStack());
+
+        if (this.pagination.getPageItems().get(this.pagination.page() - 1).containsKey(slot)) {
+            this.pagination.getPageItems().get(this.pagination.page() - 1).put(slot, newItem);
+        } else {
+            set(slot, newItem);
+        }
+
+        if (this.inventory.getInventory() == null) return;
+        this.inventory.getInventory().setItem(slot, newItem.getItemStack());
+    }
+
+    /**
+     * Updates the ItemStack in the same place with a new ItemStack.
+     *
+     * @param slots     The slots
+     * @param itemStack The new ItemStack what should be displayed.
+     */
+    public void update(@NotNull List<Integer> slots, @NotNull ItemStack itemStack) {
+        slots.forEach(slot -> {
+            Optional<IntelligentItem> itemOptional = get(slot);
+            if (itemOptional.isEmpty()) return;
+
+            IntelligentItem item = itemOptional.get();
+            IntelligentItem newItem = item.update(itemStack);
+
+            if (this.pagination.getPageItems().get(this.pagination.page() - 1).containsKey(slot)) {
+                this.pagination.getPageItems().get(this.pagination.page() - 1).put(slot, newItem);
+            } else {
+                set(slot, newItem);
+            }
+
+            if (this.inventory.getInventory() == null) return;
+            this.inventory.getInventory().setItem(slot, newItem.getItemStack());
+        });
     }
 
     /**
@@ -423,10 +532,9 @@ public class InventoryContents {
      * @param itemSlot  The slot from the old ItemStack
      * @param newSlot   The slot where the new ItemStack will be placed.
      * @param itemStack The new ItemStack what should be displayed.
-     * @throws IllegalArgumentException when item is null or itemSlot > 53 or newSlot > 53
+     * @throws IllegalArgumentException if itemSlot > 53 or newSlot > 53
      */
     public void update(@Nonnegative int itemSlot, @Nonnegative int newSlot, @NotNull ItemStack itemStack) throws IllegalArgumentException {
-        Validate.notNull(itemStack, "ItemStack must not be null.");
         if (itemSlot > 53) {
             throw new IllegalArgumentException("The itemSlot must not be larger than 53.");
         }
@@ -439,12 +547,18 @@ public class InventoryContents {
 
         IntelligentItem item = itemOptional.get();
         IntelligentItem newItem = item.update(itemStack);
-        this.items.put(newSlot, newItem);
 
-        Inventory inventory = this.player.getOpenInventory().getTopInventory();
+        if (this.pagination.getPageItems().get(this.pagination.page() - 1).containsKey(itemSlot)) {
+            this.pagination.getPageItems().get(this.pagination.page() - 1).put(newSlot, newItem);
+        } else {
+            set(newSlot, newItem);
+        }
 
-        inventory.setItem(itemSlot, null);
-        inventory.setItem(newSlot, newItem.getItemStack());
+
+        if (this.inventory.getInventory() == null) return;
+
+        this.inventory.getInventory().setItem(itemSlot, null);
+        this.inventory.getInventory().setItem(newSlot, newItem.getItemStack());
     }
 
     /**
@@ -465,10 +579,6 @@ public class InventoryContents {
         return this.pagination.getSlotIterator();
     }
 
-    protected HashMap<Integer, IntelligentItem> getItems() {
-        return this.items;
-    }
-
     protected @Nullable IntelligentItem getFillBorder() {
         return fillBorder;
     }
@@ -479,26 +589,9 @@ public class InventoryContents {
         this.data.forEach(transferTo::setData);
     }
 
-    protected void fillBorders(@NotNull Inventory inventory) throws IllegalArgumentException {
-        Validate.notNull(inventory, "Inventory must not be null.");
-        int size = inventory.getSize();
-        int rows = (size + 1) / 9;
-
-        for (int i = 0; i < rows * 9; i++) {
-            if ((i <= 8) || (i >= (rows * 9) - 9)
-                    || i == 9 || i == 18
-                    || i == 27 || i == 36
-                    || i == 17 || i == 26
-                    || i == 35 || i == 44)
-                inventory.setItem(i, this.fillBorder.getItemStack());
-        }
+    private void remove(@Nonnegative int i) {
+        this.pagination.getPermanentItems().remove(i);
+        this.pagination.getPageItems().get(this.pagination.page() - 1).remove(i);
     }
 
-    protected void add(@NotNull Inventory inventory) throws IllegalArgumentException {
-        Validate.notNull(inventory, "Inventory must not be null.");
-
-        for (IntelligentItem item : addList) {
-            inventory.addItem(item.getItemStack());
-        }
-    }
 }

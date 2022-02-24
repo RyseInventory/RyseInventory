@@ -19,10 +19,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author Rysefoxx | Rysefoxx#6772
@@ -36,6 +33,7 @@ public class InventoryManager {
     private final HashMap<Player, InventoryContents> content;
     private final HashMap<Player, BukkitTask> updaterTask;
     private final HashMap<UUID, RyseInventory> lastInventories;
+    protected final List<Player> delayed;
 
     @Contract(pure = true)
     public InventoryManager(@NotNull JavaPlugin plugin) {
@@ -44,6 +42,7 @@ public class InventoryManager {
         this.content = new HashMap<>();
         this.updaterTask = new HashMap<>();
         this.lastInventories = new HashMap<>();
+        this.delayed = new ArrayList<>();
     }
 
     /**
@@ -59,6 +58,7 @@ public class InventoryManager {
 
     /**
      * Get the last inventory that the player had open.
+     *
      * @param uuid Player UUID
      * @return null if there is no final inventory.
      */
@@ -72,11 +72,9 @@ public class InventoryManager {
      *
      * @param identifier The ID to identify
      * @return null if no inventory with the ID could be found.
-     * @throws IllegalArgumentException when identifier is null
      * @implNote Only works if the inventory has also been assigned an identifier.
      */
-    public @Nullable RyseInventory getInventory(@NotNull Object identifier) throws IllegalArgumentException {
-        Validate.notNull(identifier, "Object must not be null.");
+    public @Nullable RyseInventory getInventory(@NotNull Object identifier) {
         return this.inventories.values().stream().filter(inventory -> Objects.equals(inventory.getIdentifier(), identifier)).findFirst().orElse(null);
     }
 
@@ -85,10 +83,8 @@ public class InventoryManager {
      *
      * @param player
      * @return the player inventory content.
-     * @throws IllegalArgumentException when player is null
      */
-    public Optional<InventoryContents> getContents(@NotNull Player player) throws IllegalArgumentException {
-        Validate.notNull(player, "Player must not be null.");
+    public Optional<InventoryContents> getContents(@NotNull Player player) {
         if (!this.content.containsKey(player)) return Optional.empty();
         return Optional.ofNullable(this.content.get(player));
     }
@@ -139,6 +135,14 @@ public class InventoryManager {
         task.cancel();
     }
 
+    private void clearData(@NotNull Player player, @NotNull RyseInventory inventory) {
+        this.lastInventories.put(player.getUniqueId(), inventory);
+        this.inventories.remove(player);
+        this.content.remove(player);
+        this.updaterTask.remove(player).cancel();
+        this.delayed.remove(player);
+    }
+
     protected void invokeScheduler(@NotNull Player player, @NotNull RyseInventory inventory) throws IllegalArgumentException {
         Validate.notNull(player, "Player must not be null.");
         Validate.notNull(inventory, "RyseInventory must not be null.");
@@ -172,8 +176,9 @@ public class InventoryManager {
             if (!(event.getWhoClicked() instanceof Player player)) return;
             if (event.getClickedInventory() == null) return;
 
-            if (!hasInventory(player))
+            if (!hasInventory(player)) {
                 return;
+            }
 
             RyseInventory mainInventory = inventories.get(player);
             InventoryAction action = event.getAction();
@@ -243,13 +248,13 @@ public class InventoryManager {
             if (!(event.getPlayer() instanceof Player player)) return;
             if (!hasInventory(player))
                 return;
-            RyseInventory mainInventory = inventories.get(player);
+            RyseInventory mainInventory = inventories.remove(player);
+            clearData(player, mainInventory);
+
 
             if (!mainInventory.isCloseAble()) {
                 Bukkit.getScheduler().runTask(plugin, () -> player.openInventory(event.getInventory()));
             }
-
-            lastInventories.put(player.getUniqueId(), mainInventory);
 
             EventCreator<InventoryCloseEvent> customEvent = (EventCreator<InventoryCloseEvent>) mainInventory.getEvent(InventoryCloseEvent.class);
             if (customEvent != null) {
