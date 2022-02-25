@@ -1,5 +1,43 @@
 # RyseInventory
-Inventory System based on SmartInventory[https://github.com/MinusKube/SmartInvs]. This project exists only to constantly develop my programming experience.
+Inventory System based on [SmartInventory](https://github.com/MinusKube/SmartInvs)!
+
+__Tested in version: 1.18__
+
+# Features
+ - You can change the inventory title during operation.
+ - You can select 18 different inventory types.
+ - You can prevent the inventory from being closed.
+ - Own events based on the inventory.
+ - You can adjust the delay of the scheduler.
+ - You can adjust the period of the scheduler.
+ - You can set after how many seconds the inventory should be closed automatically.
+ - You can set after how many seconds the inventory should be opened.
+ - You can set that cached data is transferred to the next page.
+ - You can set whether the inventory should be split or not.
+ - You can set options. e.g. No damage when the player has the inventory open. Or you can e.g. not remove the block under the player when the player has the inventory open (...)
+ - You can directly specify on the Intelligent Item whether the player can interact with the item and look at it.
+ - You can set some items to be visible only on certain pages.
+ - Page system
+ - ...
+
+# Install
+Install as plugin:
+ - Put the plugin in the plugins folder. In your plugin.yml add `depend: [RyseInventory]` and add the dependency
+ 
+Install without plugin:
+ - Register the `InventoryManager` in the onEnable. After that execute `#invoke()`. In the inventory pass at `#manager(InventoryManager)` the manager from your main class.
+
+# Dependency
+## Gradle (Soon)
+## Maven (Soon)
+
+# Found a issue?
+ - Create a new issue with a detailed description.
+
+# Todo
+ - Documentation
+
+
 
 # License
 This template is licensed under the MIT License.
