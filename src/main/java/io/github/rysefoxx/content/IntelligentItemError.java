@@ -1,4 +1,4 @@
-package com.github.rysefoxx.content;
+package io.github.rysefoxx.content;
 
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

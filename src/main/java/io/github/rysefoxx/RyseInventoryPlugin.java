@@ -1,6 +1,6 @@
-package com.github.rysefoxx;
+package io.github.rysefoxx;
 
-import com.github.rysefoxx.pagination.InventoryManager;
+import io.github.rysefoxx.pagination.InventoryManager;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
 

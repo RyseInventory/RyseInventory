@@ -1,4 +1,4 @@
-package com.github.rysefoxx.other;
+package io.github.rysefoxx.other;
 
 /**
  * @author Rysefoxx | Rysefoxx#6772

@@ -1,4 +1,4 @@
-package com.github.rysefoxx.opener;
+package io.github.rysefoxx.opener;
 
 import lombok.Getter;
 import org.bukkit.event.inventory.InventoryType;

@@ -1,13 +1,13 @@
-package com.github.rysefoxx.pagination;
+package io.github.rysefoxx.pagination;
 
-import com.github.rysefoxx.RyseInventoryPlugin;
-import com.github.rysefoxx.SlotIterator;
-import com.github.rysefoxx.content.IntelligentItem;
-import com.github.rysefoxx.content.InventoryProvider;
-import com.github.rysefoxx.opener.InventoryOpenerType;
-import com.github.rysefoxx.other.EventCreator;
-import com.github.rysefoxx.other.InventoryOptions;
-import com.github.rysefoxx.util.ReflectionUtils;
+import io.github.rysefoxx.RyseInventoryPlugin;
+import io.github.rysefoxx.SlotIterator;
+import io.github.rysefoxx.content.IntelligentItem;
+import io.github.rysefoxx.content.InventoryProvider;
+import io.github.rysefoxx.opener.InventoryOpenerType;
+import io.github.rysefoxx.other.EventCreator;
+import io.github.rysefoxx.other.InventoryOptions;
+import io.github.rysefoxx.util.ReflectionUtils;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;

@@ -1,7 +1,7 @@
-package com.github.rysefoxx.pagination;
+package io.github.rysefoxx.pagination;
 
-import com.github.rysefoxx.SlotIterator;
-import com.github.rysefoxx.content.IntelligentItem;
+import io.github.rysefoxx.SlotIterator;
+import io.github.rysefoxx.content.IntelligentItem;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

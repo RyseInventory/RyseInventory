@@ -1,4 +1,4 @@
-package com.github.rysefoxx.content;
+package io.github.rysefoxx.content;
 
 import lombok.Getter;
 import org.bukkit.event.inventory.InventoryClickEvent;

@@ -1,6 +1,6 @@
-package com.github.rysefoxx;
+package io.github.rysefoxx;
 
-import com.github.rysefoxx.pagination.Pagination;
+import io.github.rysefoxx.pagination.Pagination;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 

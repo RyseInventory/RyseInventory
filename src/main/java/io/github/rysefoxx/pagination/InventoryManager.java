@@ -1,8 +1,8 @@
-package com.github.rysefoxx.pagination;
+package io.github.rysefoxx.pagination;
 
-import com.github.rysefoxx.opener.InventoryOpenerType;
-import com.github.rysefoxx.other.EventCreator;
-import com.github.rysefoxx.other.InventoryOptions;
+import io.github.rysefoxx.opener.InventoryOpenerType;
+import io.github.rysefoxx.other.EventCreator;
+import io.github.rysefoxx.other.InventoryOptions;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;

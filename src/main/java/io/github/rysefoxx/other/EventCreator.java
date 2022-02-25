@@ -1,4 +1,4 @@
-package com.github.rysefoxx.other;
+package io.github.rysefoxx.other;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

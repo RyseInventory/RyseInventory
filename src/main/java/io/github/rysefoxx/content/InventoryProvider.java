@@ -1,6 +1,6 @@
-package com.github.rysefoxx.content;
+package io.github.rysefoxx.content;
 
-import com.github.rysefoxx.pagination.InventoryContents;
+import io.github.rysefoxx.pagination.InventoryContents;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
