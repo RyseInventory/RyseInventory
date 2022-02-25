@@ -40,7 +40,7 @@ Install without plugin:
 
 
 # License
-This template is licensed under the MIT License.
+This template is licensed under the MIT [License](https://github.com/Rysefoxx/RyseInventory/blob/master/LICENSE).
 See **LICENSE**
 
 Copyright (c) 2022 Rysefoxx
