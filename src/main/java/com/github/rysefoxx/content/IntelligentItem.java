@@ -1,7 +1,6 @@
 package com.github.rysefoxx.content;
 
 import lombok.Getter;
-import org.apache.commons.lang.Validate;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Contract;
@@ -27,7 +26,7 @@ public class IntelligentItem {
     }
 
     /**
-     * Creates a intelligent ItemStack with an InventoryClickEvent
+     * Creates a intelligent ItemStack with a InventoryClickEvent
      *
      * @param itemStack     The ItemStack to be displayed in the inventory.
      * @param eventConsumer The InventoryClickEvent, which is performed when the player clicks on the item.

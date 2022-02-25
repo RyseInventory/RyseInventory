@@ -3,7 +3,6 @@ package com.github.rysefoxx.pagination;
 import com.github.rysefoxx.SlotIterator;
 import com.github.rysefoxx.content.IntelligentItem;
 import lombok.Getter;
-import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +34,7 @@ public class Pagination implements Cloneable {
     private final RyseInventory inventory;
 
     private HashMap<Integer, HashMap<Integer, IntelligentItem>> pageItems;
-    private HashMap<Integer, IntelligentItem> permanentItems;
+    private final HashMap<Integer, IntelligentItem> permanentItems;
 
     /**
      * Pagination constructor with a default size of 1 element per page.
@@ -144,10 +143,8 @@ public class Pagination implements Cloneable {
      * Sets a complete list of smart ItemStacks
      *
      * @param items A list of intelligent ItemStacks
-     * @throws IllegalArgumentException when items is null
      */
-    public void setItems(@NotNull List<IntelligentItem> items) throws IllegalArgumentException {
-        Validate.notNull(items, "List<IntelligentItem> must not be null.");
+    public void setItems(@NotNull List<IntelligentItem> items) {
         this.items = new ArrayList<>(items);
     }
 
@@ -155,10 +152,8 @@ public class Pagination implements Cloneable {
      * Sets a complete list of smart ItemStacks
      *
      * @param items An array of smart ItemStacks
-     * @throws IllegalArgumentException when items is null
      */
-    public void setItems(@NotNull IntelligentItem[] items) throws IllegalArgumentException {
-        Validate.notNull(items, "IntelligentItem[] must not be null.");
+    public void setItems(@NotNull IntelligentItem[] items)  {
         this.items = new ArrayList<>(Arrays.stream(items).toList());
     }
 
@@ -166,11 +161,8 @@ public class Pagination implements Cloneable {
      * Adds a single intelligent ItemStack.
      *
      * @param item the intelligent ItemStack
-     * @throws IllegalArgumentException when item is null
      */
-    public void addItem(@NotNull IntelligentItem item) throws IllegalArgumentException {
-        Validate.notNull(item, "IntelligentItem must not be null.");
-        //Todo: test
+    public void addItem(@NotNull IntelligentItem item) {
         this.permanentItems.put(this.permanentItems.size(), item);
     }
 
@@ -178,10 +170,8 @@ public class Pagination implements Cloneable {
      * Sets the SlotIterator for the pagination
      *
      * @param slotIterator the SlotIterator
-     * @throws IllegalArgumentException when item is null
      */
-    public void iterator(@NotNull SlotIterator slotIterator) throws IllegalArgumentException {
-        Validate.notNull(slotIterator, "SlotIterator must not be null.");
+    public void iterator(@NotNull SlotIterator slotIterator) {
         this.slotIterator = slotIterator;
     }
 
@@ -199,6 +189,33 @@ public class Pagination implements Cloneable {
         this.permanentItems.put(slot, newItem);
     }
 
+    /**
+     * Sets a new item at a slot with defined a page.
+     *
+     * @param slot    The slot
+     * @param page    The page
+     * @param newItem The Item
+     * @throws IllegalArgumentException if slot > 53
+     */
+    protected void setItem(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem newItem) throws IllegalArgumentException {
+        if (slot > 53) {
+            throw new IllegalArgumentException("The slot must not be larger than 53.");
+        }
+        page--;
+        if(!this.pageItems.containsKey(page))
+            this.pageItems.put(page, new HashMap<>());
+
+        this.pageItems.get(page).put(slot, newItem);
+    }
+
+    /**
+     * @param itemsPerPage How many items may be per page.
+     * @apiNote If you have set the endPosition at the SlotIterator, it will be preferred.
+     */
+    public void setItemsPerPage(@Nonnegative int itemsPerPage) {
+        this.itemsPerPage = itemsPerPage;
+    }
+
     protected HashMap<Integer, HashMap<Integer, IntelligentItem>> getPageItems() {
         return pageItems;
     }
@@ -209,14 +226,6 @@ public class Pagination implements Cloneable {
 
     protected HashMap<Integer, IntelligentItem> getPermanentItems() {
         return permanentItems;
-    }
-
-    /**
-     * @param itemsPerPage How many items may be per page.
-     * @apiNote If you have set the endPosition at the SlotIterator, it will be preferred.
-     */
-    public void setItemsPerPage(@Nonnegative int itemsPerPage) {
-        this.itemsPerPage = itemsPerPage;
     }
 
     protected @NotNull

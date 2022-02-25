@@ -4,7 +4,9 @@ import com.github.rysefoxx.RyseInventoryPlugin;
 import com.github.rysefoxx.SlotIterator;
 import com.github.rysefoxx.content.IntelligentItem;
 import com.github.rysefoxx.content.InventoryProvider;
+import com.github.rysefoxx.opener.InventoryOpenerType;
 import com.github.rysefoxx.other.EventCreator;
+import com.github.rysefoxx.other.InventoryOptions;
 import com.github.rysefoxx.util.ReflectionUtils;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
@@ -15,6 +17,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -124,7 +127,7 @@ public class RyseInventory {
     int columns = 9;
     private String title;
     private @Getter
-    Inventory inventory;
+    Inventory sharedInventory;
     private int delay = 0;
     private int openDelay = -1;
     private int period = 20;
@@ -132,8 +135,15 @@ public class RyseInventory {
     private boolean ignoreClickEvent;
     private boolean closeAble = true;
     private boolean transferData = true;
+    private boolean share;
+    private boolean clearAndSafe;
+    private List<InventoryOptions> options = new ArrayList<>();
     private Object identifier;
     private JavaPlugin plugin;
+    private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
+    private final HashMap<UUID, Inventory> privateInventory = new HashMap<>();
+    private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
+    protected final List<Player> delayed = new ArrayList<>();
 
     /**
      * Closes the inventory from the player. InventoryClickEvent is no longer called here.
@@ -141,8 +151,47 @@ public class RyseInventory {
      * @param player The player which inventory should be closed.
      */
     public void close(@NotNull Player player) {
-        this.manager.removeInventoryFromPlayer(player);
+        if (this.playerInventory.containsKey(player.getUniqueId())) {
+            player.getInventory().setContents(this.playerInventory.remove(player.getUniqueId()));
+        }
+
+        this.delayed.remove(player);
+        this.privateInventory.remove(player.getUniqueId());
+        this.manager.removeInventoryFromPlayer(player.getUniqueId());
         player.closeInventory();
+    }
+
+
+    /**
+     * Get all players who have a certain inventory open
+     *
+     * @return The list with all found players.
+     */
+    public List<UUID> getOpenedPlayers() {
+        List<UUID> players = new ArrayList<>();
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            Optional<RyseInventory> optional = this.manager.getInventory(player.getUniqueId());
+
+            optional.ifPresent(savedInventory -> {
+                if (this != savedInventory) return;
+                players.add(player.getUniqueId());
+            });
+        });
+        return players;
+    }
+
+    /**
+     * Closes the inventory for all players.
+     */
+    public void closeAll() {
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            Optional<RyseInventory> inventory = this.manager.getInventory(player.getUniqueId());
+
+            inventory.ifPresent(mainInventory -> {
+                if (mainInventory != this) return;
+                mainInventory.close(player);
+            });
+        });
     }
 
     /**
@@ -201,7 +250,6 @@ public class RyseInventory {
      * @return Returns the Bukkit Inventory object.
      */
     public @NotNull Inventory open(@NotNull Player player, @Nonnegative int page) {
-        System.out.println(page);
         return initInventory(player, page, null, null);
     }
 
@@ -237,22 +285,47 @@ public class RyseInventory {
     }
 
     private Inventory initInventory(@NotNull Player player, @Nonnegative int page, @Nullable String[] keys, @Nullable Object[] values) {
-        this.manager.removeInventory(player);
-        Inventory inventory = Bukkit.createInventory(null, this.size == -1 ? this.rows * this.columns : this.size, Component.text(this.title));
+        Optional<RyseInventory> savedInventory = this.manager.getInventory(player.getUniqueId());
+
+        savedInventory.ifPresent(mainInventory -> {
+            this.manager.setLastInventory(player.getUniqueId(), mainInventory);
+            this.manager.removeInventory(player.getUniqueId());
+
+            if (mainInventory.playerInventory.containsKey(player.getUniqueId())) {
+                player.getInventory().setContents(mainInventory.playerInventory.remove(player.getUniqueId()));
+            }
+        });
+
+        if (this.clearAndSafe) {
+            this.playerInventory.put(player.getUniqueId(), player.getInventory().getContents());
+            player.getInventory().clear();
+        }
+
+        Inventory inventory;
+
+        if (this.inventoryOpenerType == InventoryOpenerType.CHEST) {
+            inventory = Bukkit.createInventory(null, this.size == -1 ? this.rows * this.columns : this.size, Component.text(this.title));
+        } else {
+            inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), Component.text(this.title));
+        }
+
 
         InventoryContents contents = new InventoryContents(player, this);
-        Optional<InventoryContents> optional = this.manager.getContents(player);
+        Optional<InventoryContents> optional = this.manager.getContents(player.getUniqueId());
         page--;
 
         contents.pagination().setPage(page);
 
-        this.manager.setContents(player, contents);
+        this.manager.setContents(player.getUniqueId(), contents);
         this.provider.init(player, contents);
+
+
+        if (optional.isPresent() && optional.get().equals(contents)) return inventory;
 
         if (this.transferData) {
             optional.ifPresent(savedContents -> savedContents.transferData(contents));
         }
-        this.manager.stopUpdate(player);
+        this.manager.stopUpdate(player.getUniqueId());
 
         if (keys != null && values != null) {
             Arrays.stream(keys).filter(Objects::nonNull).forEach(s -> Arrays.stream(values).filter(Objects::nonNull).forEach(o -> contents.setData(s, o)));
@@ -275,25 +348,29 @@ public class RyseInventory {
             inventory.setItem(integer, item.getItemStack());
         });
 
+        closeAfterScheduler(player);
 
-        if (this.openDelay == -1 || this.manager.delayed.contains(player)) {
+        if (this.openDelay == -1 || this.delayed.contains(player)) {
             player.openInventory(inventory);
             this.manager.invokeScheduler(player, this);
+            this.manager.setInventory(player.getUniqueId(), this);
         } else {
-            if (!this.manager.delayed.contains(player)) {
+            if (!this.delayed.contains(player)) {
                 Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
                     player.openInventory(inventory);
                     this.manager.invokeScheduler(player, this);
+                    this.manager.setInventory(player.getUniqueId(), this);
                 }, this.openDelay);
-                this.manager.delayed.add(player);
+                this.delayed.add(player);
             }
         }
 
-        closeAfterScheduler(player);
-
-        this.inventory = inventory;
-        this.manager.setInventory(player, this);
-        return this.inventory;
+        if (this.share) {
+            this.sharedInventory = inventory;
+        } else {
+            this.privateInventory.put(player.getUniqueId(), inventory);
+        }
+        return this.sharedInventory;
     }
 
     private void closeAfterScheduler(@NotNull Player player) {
@@ -348,7 +425,8 @@ public class RyseInventory {
             InventoryType type = view.getTopInventory().getType();
 
             // Workbenchs and anvils can change their title since 1.14.
-            if ((type == InventoryType.WORKBENCH || type == InventoryType.ANVIL) && !useContainers()) return;
+            if ((type == InventoryType.WORKBENCH || type == InventoryType.ANVIL) && !useContainers())
+                return;
 
             // You can't reopen crafting, creative and player inventory.
             if (Arrays.asList("CRAFTING", "CREATIVE", "PLAYER").contains(type.name())) return;
@@ -463,7 +541,9 @@ public class RyseInventory {
     }
 
     private int nextSlotAlgorithm(@NotNull InventoryContents contents, @NotNull SlotIterator.SlotIteratorType type, @Nonnegative int calculatedSlot, @Nonnegative int startSlot) {
-        while (contents.get(calculatedSlot).isPresent()) {
+        SlotIterator iterator = contents.iterator();
+
+        while (contents.get(calculatedSlot).isPresent() || (iterator != null && iterator.getBlackList().contains(calculatedSlot))) {
             if (type == SlotIterator.SlotIteratorType.HORIZONTAL) {
                 calculatedSlot++;
             } else {
@@ -488,6 +568,7 @@ public class RyseInventory {
         return new Builder();
     }
 
+
     /**
      * Builder to create an inventory.
      */
@@ -500,12 +581,16 @@ public class RyseInventory {
         private boolean ignoreClickEvent;
         private boolean closeAble = true;
         private boolean transferData = true;
+        private boolean share;
+        private boolean clearAndSafe;
+        private final List<InventoryOptions> options = new ArrayList<>();
         private InventoryProvider provider;
         private int delay = 0;
         private int openDelay = -1;
         private int period = 20;
         private int closeAfter = -1;
         private Object identifier;
+        private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
 
         /**
          * Adds a manager to the inventory.
@@ -520,6 +605,17 @@ public class RyseInventory {
         }
 
         /**
+         * Settings to help ensure that the player is not disturbed while he has the inventory open.
+         *
+         * @param options All setting options for the inventory
+         * @return The Inventory Builder to set additional options.
+         */
+        public Builder options(@NotNull InventoryOptions @NotNull ... options) {
+            this.options.addAll(new ArrayList<>(Arrays.asList(options)));
+            return this;
+        }
+
+        /**
          * With this method you can automatically set when to close the inventory.
          *
          * @param time The time in seconds
@@ -527,6 +623,40 @@ public class RyseInventory {
          */
         public Builder closeAfter(@Nonnegative int time) {
             this.closeAfter = time * 20;
+            return this;
+        }
+
+        /**
+         * Modifies the inventory type.
+         *
+         * @param type What type of inventory should it be.
+         * @return The Inventory Builder to set additional options.
+         * @apiNote By default, the type is CHEST
+         */
+        public Builder type(@NotNull InventoryOpenerType type) {
+            this.inventoryOpenerType = type;
+            return this;
+        }
+
+        /**
+         * Changes within the inventory are the same for all players if share is true.
+         *
+         * @return The Inventory Builder to set additional options.
+         * @apiNote By default, the inventory is not shared.
+         */
+        public Builder share() {
+            this.share = true;
+            return this;
+        }
+
+        /**
+         * When the inventory is opened, the inventory is emptied and saved. When closing the inventory, the inventory will be reloaded.
+         *
+         * @return The Inventory Builder to set additional options.
+         * @apiNote By default, the inventory is not emptied and saved.
+         */
+        public Builder clearAndSafe() {
+            this.clearAndSafe = true;
             return this;
         }
 
@@ -700,6 +830,10 @@ public class RyseInventory {
             inventory.identifier = this.identifier;
             inventory.closeAfter = this.closeAfter;
             inventory.transferData = this.transferData;
+            inventory.inventoryOpenerType = this.inventoryOpenerType;
+            inventory.share = this.share;
+            inventory.clearAndSafe = this.clearAndSafe;
+            inventory.options = this.options;
             return inventory;
         }
     }
@@ -708,48 +842,82 @@ public class RyseInventory {
      * @return inventory title
      */
     public String getTitle() {
-        return title;
+        return this.title;
     }
 
     /**
      * @return how much later the scheduler starts (in milliseconds)
      */
     public int getDelay() {
-        return delay;
+        return this.delay;
     }
 
     /**
      * @return how often the scheduler ticks (in milliseconds)
      */
     public int getPeriod() {
-        return period;
+        return this.period;
     }
 
     /**
      * @return if the inventory can be closed
      */
     public boolean isCloseAble() {
-        return closeAble;
+        return this.closeAble;
     }
 
     /**
      * @return if the InventoryClickEvent should be ignored
      */
     public boolean isIgnoreClickEvent() {
-        return ignoreClickEvent;
+        return this.ignoreClickEvent;
     }
 
     /**
      * @return the ID from the inventory
-     * @apiNote You have to give the inventory itself an ID with #identifier(Object)
+     * @apiNote You have to give the inventory itself an ID with {@link Builder#identifier(Object)}
      */
     public Object getIdentifier() {
-        return identifier;
+        return this.identifier;
+    }
+
+    /**
+     * @return the type.
+     */
+    public InventoryOpenerType getInventoryOpenerType() {
+        return this.inventoryOpenerType;
+    }
+
+    /**
+     * @return true if the {@link Builder#clearAndSafe()} method was called.
+     */
+    public boolean isClearAndSafe() {
+        return this.clearAndSafe;
+    }
+
+    /**
+     * @return All the setting options that have been set.
+     */
+    public List<InventoryOptions> getOptions() {
+        return options;
     }
 
     @Contract(pure = true)
     private static boolean useContainers() {
         return ReflectionUtils.VER > 13;
+    }
+
+
+    /**
+     * @param uuid Player's uuid
+     * @return the correct inventory based on whether it is split or not.
+     */
+    protected Optional<Inventory> inventoryBasedOnOption(@Nullable UUID uuid) {
+        if (this.share) return Optional.ofNullable(this.sharedInventory);
+
+        if (uuid == null) return Optional.empty();
+        if (!this.privateInventory.containsKey(uuid)) return Optional.empty();
+        return Optional.ofNullable(this.privateInventory.get(uuid));
     }
 
     private enum Containers {

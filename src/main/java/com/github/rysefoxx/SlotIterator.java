@@ -1,5 +1,6 @@
 package com.github.rysefoxx;
 
+import com.github.rysefoxx.pagination.Pagination;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,14 +34,13 @@ public class SlotIterator {
         private boolean override;
         private List<Integer> blackList = new ArrayList<>();
 
-        //Todo:
         public Builder addBlackList(@Nonnegative int slot) {
             this.blackList.add(slot);
             return this;
         }
 
         public Builder blackList(@NotNull List<Integer> slots) {
-            this.blackList = slots;
+            this.blackList = new ArrayList<>(slots);
             return this;
         }
 
@@ -128,8 +128,20 @@ public class SlotIterator {
         return this.override;
     }
 
+    /**
+     * @return where the last item should be placed.
+     * @apiNote If the endPosition was set, the {@link Pagination#setItemsPerPage(int)} specification is ignored.
+     */
     public int getEndPosition() {
-        return endPosition;
+        return this.endPosition;
+    }
+
+    /**
+     *
+     * @return all slots where no items should be placed.
+     */
+    public List<Integer> getBlackList() {
+        return this.blackList;
     }
 
     public enum SlotIteratorType {
