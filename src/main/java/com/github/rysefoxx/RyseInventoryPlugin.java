@@ -17,7 +17,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 public final class RyseInventoryPlugin extends JavaPlugin {
@@ -50,26 +49,29 @@ public final class RyseInventoryPlugin extends JavaPlugin {
                         contents.set(21, IntelligentItem.empty(new ItemStack(Material.EMERALD)));
                     }
 
+
                     @Override
                     public void init(@NotNull Player player, @NotNull InventoryContents contents) {
                         contents.fillBorders(IntelligentItem.empty(new ItemStack(Material.BLACK_STAINED_GLASS, 50)));
                         Pagination pagination = contents.pagination();
 
+                        contents.set(23, IntelligentItem.empty(new ItemStack(Material.DIAMOND)));
 
                         contents.set(5, 3, IntelligentItem.of(new ItemStack(Material.ARROW), new Consumer<InventoryClickEvent>() {
-                            @Override
-                            public void accept(InventoryClickEvent event) {
-                                if (pagination.isFirst()) {
-                                    player.sendMessage("DU BIST AUF ERSTE SEITE");
-                                    return;
-                                }
+                                    @Override
+                                    public void accept(InventoryClickEvent event) {
+                                        if (pagination.isFirst()) {
+                                            player.sendMessage("DU BIST AUF ERSTE SEITE");
+                                            return;
+                                        }
 
-                                RyseInventory inventory = pagination.inventory();
-                                inventory.open(player, pagination.previous().page());
-                            }
-                        }));
+                                        RyseInventory inventory = pagination.inventory();
+                                        inventory.open(player, pagination.previous().page());
+                                    }
+                                })
+                                .canSee(() -> player.hasPermission("test.test.test"))
+                                .canClick(() -> player.hasPermission("")));
 
-                        contents.setWithinPage(23, 2, IntelligentItem.empty(new ItemStack(Material.DIAMOND)));
 
                         pagination.setItemsPerPage(1);
                         pagination.setItems(Arrays.asList(
@@ -100,6 +102,6 @@ public final class RyseInventoryPlugin extends JavaPlugin {
                 })
                 .build(this);
 
-        inventory.open(player, Bukkit.getPlayer("ostdeutschland65"));
+        inventory.open(player);
     }
 }

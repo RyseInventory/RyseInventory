@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 /**
@@ -18,11 +19,28 @@ public class IntelligentItem {
 
     private final ItemStack itemStack;
     private final Consumer<InventoryClickEvent> consumer;
+    private final IntelligentItemError error;
+    private boolean canClick = true;
+    private boolean canSee = true;
 
     @Contract(pure = true)
-    public IntelligentItem(@NotNull ItemStack itemStack, @Nullable Consumer<InventoryClickEvent> eventConsumer) {
+    public IntelligentItem(@NotNull ItemStack itemStack, @Nullable Consumer<InventoryClickEvent> eventConsumer, @Nullable IntelligentItemError error) {
         this.itemStack = itemStack;
         this.consumer = eventConsumer;
+        this.error = error;
+    }
+
+    /**
+     * Creates a intelligent ItemStack with a InventoryClickEvent
+     *
+     * @param itemStack     The ItemStack to be displayed in the inventory.
+     * @param eventConsumer The InventoryClickEvent, which is performed when the player clicks on the item.
+     * @param error         The error interface
+     * @return An intelligent ItemStack
+     */
+    @Contract(pure = true)
+    public static @NotNull IntelligentItem of(@NotNull ItemStack itemStack, @NotNull IntelligentItemError error, @NotNull Consumer<InventoryClickEvent> eventConsumer) {
+        return new IntelligentItem(itemStack, eventConsumer, error);
     }
 
     /**
@@ -34,7 +52,7 @@ public class IntelligentItem {
      */
     @Contract(pure = true)
     public static @NotNull IntelligentItem of(@NotNull ItemStack itemStack, @NotNull Consumer<InventoryClickEvent> eventConsumer) {
-        return new IntelligentItem(itemStack, eventConsumer);
+        return new IntelligentItem(itemStack, eventConsumer, null);
     }
 
     /**
@@ -46,7 +64,30 @@ public class IntelligentItem {
     @Contract(pure = true)
     public static @NotNull IntelligentItem empty(@NotNull ItemStack itemStack) {
         return new IntelligentItem(itemStack, event -> {
-        });
+        }, null);
+    }
+
+    /**
+     * Creates a intelligent ItemStack without a InventoryClickEvent
+     *
+     * @param itemStack The itemStack to be displayed in the inventory.
+     * @param error     The error interface
+     * @return An intelligent ItemStack
+     */
+    @Contract(pure = true)
+    public static @NotNull IntelligentItem empty(@NotNull ItemStack itemStack, @NotNull IntelligentItemError error) {
+        return new IntelligentItem(itemStack, event -> {
+        }, error);
+    }
+
+    public IntelligentItem canClick(@NotNull BooleanSupplier supplier) {
+        this.canClick = supplier.getAsBoolean();
+        return this;
+    }
+
+    public IntelligentItem canSee(@NotNull BooleanSupplier supplier) {
+        this.canSee = supplier.getAsBoolean();
+        return this;
     }
 
 
@@ -57,6 +98,6 @@ public class IntelligentItem {
      * @return The new intelligent ItemStack
      */
     public @NotNull IntelligentItem update(@NotNull ItemStack newItemStack) {
-        return new IntelligentItem(newItemStack, this.consumer);
+        return new IntelligentItem(newItemStack, this.consumer, this.error);
     }
 }

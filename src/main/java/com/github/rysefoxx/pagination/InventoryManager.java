@@ -312,7 +312,13 @@ public class InventoryManager {
 
                 InventoryContents contents = content.get(player.getUniqueId());
 
-                contents.get(slot).ifPresent(item -> item.getConsumer().accept(event));
+                contents.get(slot).ifPresent(item -> {
+                    if(!item.isCanClick()){
+                        item.getError().cantClick(player, item);
+                        return;
+                    }
+                    item.getConsumer().accept(event);
+                });
                 player.updateInventory();
             }
 
