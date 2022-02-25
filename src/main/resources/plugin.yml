@@ -4,6 +4,3 @@ main: com.github.rysefoxx.RyseInventoryPlugin
 api-version: 1.18
 authors: [ Rysefoxx ]
 description: Inventory System
-commands:
-  test:
-  testtwo:

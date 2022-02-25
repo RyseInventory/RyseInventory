@@ -17,6 +17,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://github.com/Rysefoxx/RyseInventory/blob/master/LICENSE</url>
+        </license>
+    </licenses>
+
     <build>
         <plugins>
             <plugin>
