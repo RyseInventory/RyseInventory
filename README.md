@@ -50,7 +50,8 @@ dependencies {
 ```
 
 # Found a issue?
- - Create a new issue with a detailed description.
+ - Create a new issue with a detailed description. Use label **bug**
+ - You have an idea for a feature? Use label **enhancement**
 
 # Todo
  - Documentation
