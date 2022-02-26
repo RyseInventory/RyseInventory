@@ -51,7 +51,7 @@ dependencies {
 </dependency>
 ```
 
-# Found a issue?
+# Found an issue?
  - Create a new issue with a detailed description. Use label **bug**
  - You have an idea for a feature? Use label **enhancement**
 
