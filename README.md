@@ -28,8 +28,26 @@ Install without plugin:
  - Register the `InventoryManager` in the onEnable. After that execute `#invoke()`. In the inventory pass at `#manager(InventoryManager)` the manager from your main class.
 
 # Dependency
-## Gradle (Soon)
-## Maven (Soon)
+_Make sure you shade the API._
+
+### Gradle 
+```
+repositories {
+    mavenLocal()
+}
+dependencies {
+    implementation 'io.github.rysefoxx:RyseInventory:1.1-SNAPSHOT'
+}
+```
+
+### Maven
+```xml
+<dependency>
+  <groupId>io.github.rysefoxx</groupId>
+  <artifactId>RyseInventory</artifactId>
+  <version>1.1-SNAPSHOT</version>
+</dependency>
+```
 
 # Found a issue?
  - Create a new issue with a detailed description.
