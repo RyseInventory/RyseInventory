@@ -1,6 +1,6 @@
 name: RyseInventory
 version: '${project.version}'
-main: com.github.rysefoxx.RyseInventoryPlugin
+main: io.github.rysefoxx.RyseInventoryPlugin
 api-version: 1.18
 authors: [ Rysefoxx ]
 description: Inventory System

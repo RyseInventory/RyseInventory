@@ -163,7 +163,7 @@ public class Pagination implements Cloneable {
      * @param item the intelligent ItemStack
      */
     public void addItem(@NotNull IntelligentItem item) {
-        this.permanentItems.put(this.permanentItems.size(), item);
+        this.items.add(item);
     }
 
     /**
