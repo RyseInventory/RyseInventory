@@ -3,6 +3,8 @@ Inventory System based on [SmartInventory](https://github.com/MinusKube/SmartInv
 
 __Tested in version: 1.18__
 
+This API is used to create and manage inventories in Minecraft more easily. Across many methods, the inventory can be managed easily. Besides, you don't have to worry about the pages, because they are managed automatically. Moreover, many things can be done with the inventory. More about this under the point [Features](https://github.com/Rysefoxx/RyseInventory#features)
+
 # Features
  - You can change the inventory title during operation.
  - You can select 18 different inventory types.
@@ -15,7 +17,7 @@ __Tested in version: 1.18__
  - You can set that cached data is transferred to the next page.
  - You can set whether the inventory should be split or not.
  - You can set options. e.g. No damage when the player has the inventory open. Or you can e.g. not remove the block under the player when the player has the inventory open (...)
- - You can directly specify on the Intelligent Item whether the player can interact with the item and look at it.
+ - You can directly specify on the Intelligent Item whether the player can interact with the item and look at it. [What do you mean?](https://github.com/Rysefoxx/RyseInventory/wiki/IntelligentItem)
  - You can set some items to be visible only on certain pages.
  - Page system
  - ...
@@ -28,19 +30,41 @@ Install without plugin:
  - Register the `InventoryManager` in the onEnable. After that execute `#invoke()`. In the inventory pass at `#manager(InventoryManager)` the manager from your main class.
 
 # Dependency
-## Gradle (Soon)
-## Maven (Soon)
+_Make sure you shade the API._
+
+### Gradle 
+```
+repositories {
+    mavenLocal()
+}
+dependencies {
+    implementation 'io.github.rysefoxx:RyseInventory:1.1-SNAPSHOT'
+}
+```
+
+### Maven
+```xml
+<dependency>
+  <groupId>io.github.rysefoxx</groupId>
+  <artifactId>RyseInventory</artifactId>
+  <version>1.1-SNAPSHOT</version>
+</dependency>
+```
 
 # Found a issue?
- - Create a new issue with a detailed description.
+ - Create a new issue with a detailed description. Use label **bug**
+ - You have an idea for a feature? Use label **enhancement**
+
+# You need help?
+* Everything important is described in the wiki. [Click here](https://github.com/Rysefoxx/RyseInventory/wiki)
 
 # Todo
- - Documentation
+ - Wiki
 
 
 
 # License
-This template is licensed under the MIT [License](https://github.com/Rysefoxx/RyseInventory/blob/master/LICENSE).
-See **LICENSE**
+This template is licensed under the MIT License.
+See [**LICENSE**](https://github.com/Rysefoxx/RyseInventory/blob/master/LICENSE)
 
 Copyright (c) 2022 Rysefoxx
