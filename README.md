@@ -55,8 +55,11 @@ dependencies {
  - Create a new issue with a detailed description. Use label **bug**
  - You have an idea for a feature? Use label **enhancement**
 
+# You need help?
+* Everything important is described in the wiki. [Click here](https://github.com/Rysefoxx/RyseInventory/wiki)
+
 # Todo
- - Documentation
+ - Wiki
 
 
 
