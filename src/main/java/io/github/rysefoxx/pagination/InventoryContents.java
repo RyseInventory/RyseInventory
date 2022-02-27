@@ -1,8 +1,8 @@
 package io.github.rysefoxx.pagination;
 
+import com.google.common.base.Preconditions;
 import io.github.rysefoxx.SlotIterator;
 import io.github.rysefoxx.content.IntelligentItem;
-import com.google.common.base.Preconditions;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -37,6 +37,13 @@ public class InventoryContents {
         this.data = new HashMap<>();
     }
 
+    /**
+     * With this method you can see if a slot exists in the inventory.
+     *
+     * @param slot Which slot to look for.
+     * @return true if the slot exists in the inventory.
+     * @throws IllegalArgumentException if slot > 53
+     */
     public boolean hasSlot(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53) {
             throw new IllegalArgumentException("The slot must not be larger than 53.");
@@ -381,7 +388,7 @@ public class InventoryContents {
         }
         this.pagination.setItem(slot, page, item);
 
-        if (this.pagination.page() != page) return;
+        if (page > this.pagination.lastPage()) return;
 
         Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
         inventoryOptional.ifPresent(savedInventory -> savedInventory.setItem(slot, item.getItemStack()));
@@ -409,6 +416,20 @@ public class InventoryContents {
      */
     public void setWithinPage(@NotNull List<Integer> slots, List<Integer> pages, @NotNull IntelligentItem item) {
         slots.forEach(slot -> pages.forEach(page -> setWithinPage(slot, page, item)));
+    }
+
+    /**
+     * Fills the whole inventory with an ItemStack.
+     *
+     * @param item The item with which the inventory should be filled.
+     */
+    public void fill(@NotNull IntelligentItem item) {
+        Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
+        for (int i = 0; i < this.inventory.size(); i++) {
+            this.pagination.setItem(i, item);
+            int finalI = i;
+            inventoryOptional.ifPresent(savedInventory -> savedInventory.setItem(finalI, item.getItemStack()));
+        }
     }
 
 

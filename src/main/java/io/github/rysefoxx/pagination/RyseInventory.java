@@ -1,5 +1,6 @@
 package io.github.rysefoxx.pagination;
 
+import com.google.common.base.Preconditions;
 import io.github.rysefoxx.RyseInventoryPlugin;
 import io.github.rysefoxx.SlotIterator;
 import io.github.rysefoxx.content.IntelligentItem;
@@ -8,7 +9,6 @@ import io.github.rysefoxx.opener.InventoryOpenerType;
 import io.github.rysefoxx.other.EventCreator;
 import io.github.rysefoxx.other.InventoryOptions;
 import io.github.rysefoxx.util.ReflectionUtils;
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -130,7 +130,7 @@ public class RyseInventory {
     Inventory sharedInventory;
     private int delay = 0;
     private int openDelay = -1;
-    private int period = 20;
+    private int period = 1;
     private int closeAfter = -1;
     private boolean ignoreClickEvent;
     private boolean closeAble = true;
@@ -592,7 +592,7 @@ public class RyseInventory {
         private InventoryProvider provider;
         private int delay = 0;
         private int openDelay = -1;
-        private int period = 20;
+        private int period = 1;
         private int closeAfter = -1;
         private Object identifier;
         private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
@@ -625,9 +625,22 @@ public class RyseInventory {
          *
          * @param time The time in seconds
          * @return The Inventory Builder to set additional options.
+         * @deprecated You should now use the {@link #closeAfter(int, TimeSetting)} method.
          */
         public Builder closeAfter(@Nonnegative int time) {
             this.closeAfter = time * 20;
+            return this;
+        }
+
+        /**
+         * With this method you can automatically set when to close the inventory.
+         *
+         * @param time    Time
+         * @param setting Set your own time type.
+         * @return The Inventory Builder to set additional options.
+         */
+        public Builder closeAfter(@Nonnegative int time, @NotNull TimeSetting setting) {
+            this.closeAfter = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
 
@@ -727,9 +740,22 @@ public class RyseInventory {
          *
          * @param seconds Time in seconds
          * @return The Inventory Builder to set additional options.
+         * @deprecated You should now use the {@link #delay(int, TimeSetting)} method.
          */
         public Builder delay(@Nonnegative int seconds) {
             this.delay = seconds * 20;
+            return this;
+        }
+
+        /**
+         * Adjusts the delay of the scheduler.
+         *
+         * @param time    Time
+         * @param setting Set your own time type.
+         * @return The Inventory Builder to set additional options.
+         */
+        public Builder delay(@Nonnegative int time, @NotNull TimeSetting setting) {
+            this.delay = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
 
@@ -738,9 +764,22 @@ public class RyseInventory {
          *
          * @param seconds Time in seconds
          * @return The Inventory Builder to set additional options.
+         * @deprecated You should now use the {@link #openDelay(int, TimeSetting)} method.
          */
         public Builder openDelay(@Nonnegative int seconds) {
             this.openDelay = seconds * 20;
+            return this;
+        }
+
+        /**
+         * Adjusts the delay before the inventory is opened.
+         *
+         * @param time    Time
+         * @param setting Set your own time type.
+         * @return The Inventory Builder to set additional options.
+         */
+        public Builder openDelay(@Nonnegative int time, @NotNull TimeSetting setting) {
+            this.openDelay = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
 
@@ -749,9 +788,23 @@ public class RyseInventory {
          *
          * @param seconds Time in seconds
          * @return The Inventory Builder to set additional options.
+         * @deprecated You should now use the {@link #period(int, TimeSetting)} method.
          */
+        @Deprecated
         public Builder period(@Nonnegative int seconds) {
             this.period = seconds * 20;
+            return this;
+        }
+
+        /**
+         * Adjusts the period of the scheduler.
+         *
+         * @param time    Time
+         * @param setting Set your own time type.
+         * @return The Inventory Builder to set additional options.
+         */
+        public Builder period(@Nonnegative int time, @NotNull TimeSetting setting) {
+            this.period = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
 

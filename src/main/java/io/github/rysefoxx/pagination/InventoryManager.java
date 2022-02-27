@@ -267,7 +267,7 @@ public class InventoryManager {
             }
         }
 
-        @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+        @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
         @SuppressWarnings("unchecked")
         public void onInventoryClick(@NotNull InventoryClickEvent event) {
             if (!(event.getWhoClicked() instanceof Player player)) return;
@@ -278,6 +278,9 @@ public class InventoryManager {
 
 
             RyseInventory mainInventory = inventories.get(player.getUniqueId());
+
+            if (mainInventory.isIgnoreClickEvent()) return;
+
             InventoryAction action = event.getAction();
             Inventory clickedInventory = event.getClickedInventory();
             Inventory bottomInventory = player.getOpenInventory().getBottomInventory();
@@ -304,7 +307,6 @@ public class InventoryManager {
                     return;
                 }
 
-                if (mainInventory.isIgnoreClickEvent()) return;
                 if (!hasContents(player.getUniqueId())) return;
                 if (slot < 0 || (mainInventory.getInventoryOpenerType() == InventoryOpenerType.CHEST && slot > mainInventory.size()))
                     return;
