@@ -60,9 +60,6 @@ dependencies {
 * Everything important is described in the wiki. [Click here](https://github.com/Rysefoxx/RyseInventory/wiki)
 
 # Todo
- - #fill() Method
- - #period() and #delay() should also work for milliseconds.
-
 
 
 # License
