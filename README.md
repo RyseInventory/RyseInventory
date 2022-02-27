@@ -61,6 +61,7 @@ dependencies {
 
 # Todo
  - #fill() Method
+ - #period() and #delay() should also work for milliseconds.
 
 
 
