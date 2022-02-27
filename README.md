@@ -1,4 +1,5 @@
-# RyseInventory
+# RyseInventory ![](https://i.imgur.com/BS3gwxL.png)
+
 Inventory System based on [SmartInventory](https://github.com/MinusKube/SmartInvs)!
 
 __Tested in version: 1.18__
@@ -38,7 +39,7 @@ repositories {
     mavenLocal()
 }
 dependencies {
-    implementation 'io.github.rysefoxx:RyseInventory:1.1-SNAPSHOT'
+    implementation 'io.github.rysefoxx:RyseInventory:1.1.1-SNAPSHOT'
 }
 ```
 
@@ -47,11 +48,11 @@ dependencies {
 <dependency>
   <groupId>io.github.rysefoxx</groupId>
   <artifactId>RyseInventory</artifactId>
-  <version>1.1-SNAPSHOT</version>
+  <version>1.1.1-SNAPSHOT</version>
 </dependency>
 ```
 
-# Found a issue?
+# Found an issue?
  - Create a new issue with a detailed description. Use label **bug**
  - You have an idea for a feature? Use label **enhancement**
 
@@ -59,7 +60,8 @@ dependencies {
 * Everything important is described in the wiki. [Click here](https://github.com/Rysefoxx/RyseInventory/wiki)
 
 # Todo
- - Wiki
+ - #fill() Method
+ - #period() and #delay() should also work for milliseconds.
 
 
 
