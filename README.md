@@ -39,7 +39,7 @@ repositories {
     mavenLocal()
 }
 dependencies {
-    implementation 'io.github.rysefoxx:RyseInventory:1.1.1-SNAPSHOT'
+    implementation 'io.github.rysefoxx:RyseInventory:1.1.2-SNAPSHOT'
 }
 ```
 
@@ -48,7 +48,7 @@ dependencies {
 <dependency>
   <groupId>io.github.rysefoxx</groupId>
   <artifactId>RyseInventory</artifactId>
-  <version>1.1.1-SNAPSHOT</version>
+  <version>1.1.2-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -60,9 +60,6 @@ dependencies {
 * Everything important is described in the wiki. [Click here](https://github.com/Rysefoxx/RyseInventory/wiki)
 
 # Todo
- - #fill() Method
- - #period() and #delay() should also work for milliseconds.
-
 
 
 # License
