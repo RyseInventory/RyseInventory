@@ -681,4 +681,16 @@ public class InventoryContents {
         this.pagination.getPageItems().get(this.pagination.page() - 1).remove(i);
     }
 
+    protected Optional<IntelligentItem> getInPage(@Nonnegative int page,@Nonnegative int slot) throws IllegalArgumentException {
+        if (slot > 53) {
+            throw new IllegalArgumentException("The slot must not be larger than 53.");
+        }
+        if (this.pagination.getPermanentItems().containsKey(slot))
+            return Optional.ofNullable(this.pagination.getPermanentItems().get(slot));
+
+
+        if (!this.pagination.getPageItems().containsKey(page)) return Optional.empty();
+        return Optional.ofNullable(this.pagination.getPageItems().get(page).get(slot));
+    }
+
 }

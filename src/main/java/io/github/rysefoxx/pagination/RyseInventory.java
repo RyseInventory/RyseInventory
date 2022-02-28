@@ -340,7 +340,7 @@ public class RyseInventory {
         }
 
         pagination.getPermanentItems().forEach((integer, item) -> {
-            if (integer >= inventory.getSize()) return;
+            if (integer > inventory.getSize()) return;
             if (!item.isCanSee()) {
                 item.getError().cantSee(player, item);
                 return;
@@ -348,8 +348,11 @@ public class RyseInventory {
             inventory.setItem(integer, item.getItemStack());
         });
         pagination.getPageItems().get(page).forEach((integer, item) -> {
-            if (integer >= inventory.getSize()) return;
-            if (!item.isCanSee()) return;
+            if (integer > inventory.getSize()) return;
+            if (!item.isCanSee()) {
+                item.getError().cantSee(player, item);
+                return;
+            }
             inventory.setItem(integer, item.getItemStack());
         });
 
@@ -502,21 +505,27 @@ public class RyseInventory {
         for (IntelligentItem item : pagination.getItems()) {
             if (itemsSet >= pagination.getItemsPerPage() || ((slot >= iterator.getEndPosition() || calculatedSlot >= iterator.getEndPosition()) && iterator.getEndPosition() != -1)) {
                 itemsSet = 0;
-                page++;
-            }
-
-            if (!items.containsKey(page)) {
-                items.put(page, new HashMap<>());
                 slot = startSlot;
                 calculatedSlot = startRow * 9 + startColumn;
             }
 
+            if (!items.containsKey(page)) {
+                items.put(page, new HashMap<>());
+            }
+
             if (!iterator.isOverride()) {
+                int[] dataArray;
                 if (useSlot) {
-                    slot = nextSlotAlgorithm(contents, type, slot, startSlot);
+                    dataArray = nextSlotAlgorithm(contents, type, page, slot, startSlot);
                 } else {
-                    calculatedSlot = nextSlotAlgorithm(contents, type, calculatedSlot, startRow * 9 + startColumn);
+                    dataArray = nextSlotAlgorithm(contents, type, page, calculatedSlot, startRow * 9 + startColumn);
                 }
+                slot = dataArray[1];
+                page = dataArray[0];
+            }
+
+            if (!items.containsKey(page)) {
+                items.put(page, new HashMap<>());
             }
 
             items.get(page).put(useSlot ? slot : calculatedSlot, item);
@@ -545,21 +554,29 @@ public class RyseInventory {
         return slot;
     }
 
-    private int nextSlotAlgorithm(@NotNull InventoryContents contents, @NotNull SlotIterator.SlotIteratorType type, @Nonnegative int calculatedSlot, @Nonnegative int startSlot) {
-        SlotIterator iterator = contents.iterator();
+    @Contract("_, _, _, _, _ -> new")
+    private int @NotNull [] nextSlotAlgorithm(@NotNull InventoryContents contents, @NotNull SlotIterator.SlotIteratorType type, @Nonnegative int page, @Nonnegative int calculatedSlot, @Nonnegative int startSlot) {
+        SlotIterator iterator = Objects.requireNonNull(contents.iterator());
 
-        while (contents.get(calculatedSlot).isPresent() || (iterator != null && iterator.getBlackList().contains(calculatedSlot))) {
+        int toAdd = 0;
+        while (contents.getInPage(page, calculatedSlot).isPresent() || iterator.getBlackList().contains(calculatedSlot)) {
+            if (calculatedSlot >= 53) {
+                calculatedSlot = startSlot;
+                page++;
+            }
+
             if (type == SlotIterator.SlotIteratorType.HORIZONTAL) {
                 calculatedSlot++;
             } else {
                 if ((calculatedSlot + 9) > size()) {
-                    calculatedSlot = startSlot + 1;
+                    toAdd++;
+                    calculatedSlot = startSlot + toAdd;
                 } else {
                     calculatedSlot += 9;
                 }
             }
         }
-        return calculatedSlot;
+        return new int[]{page, calculatedSlot};
     }
 
 
