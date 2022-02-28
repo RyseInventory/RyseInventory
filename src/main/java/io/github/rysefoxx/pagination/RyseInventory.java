@@ -340,7 +340,7 @@ public class RyseInventory {
         }
 
         pagination.getPermanentItems().forEach((integer, item) -> {
-            if (integer > inventory.getSize()) return;
+            if (integer >= inventory.getSize()) return;
             if (!item.isCanSee()) {
                 item.getError().cantSee(player, item);
                 return;
@@ -348,7 +348,7 @@ public class RyseInventory {
             inventory.setItem(integer, item.getItemStack());
         });
         pagination.getPageItems().get(page).forEach((integer, item) -> {
-            if (integer > inventory.getSize()) return;
+            if (integer >= inventory.getSize()) return;
             if (!item.isCanSee()) {
                 item.getError().cantSee(player, item);
                 return;
@@ -507,6 +507,7 @@ public class RyseInventory {
                 itemsSet = 0;
                 slot = startSlot;
                 calculatedSlot = startRow * 9 + startColumn;
+                page++;
             }
 
             if (!items.containsKey(page)) {
