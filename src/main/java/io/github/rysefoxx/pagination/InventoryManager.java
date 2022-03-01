@@ -267,7 +267,7 @@ public class InventoryManager {
             }
         }
 
-        @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
+        @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
         @SuppressWarnings("unchecked")
         public void onInventoryClick(@NotNull InventoryClickEvent event) {
             if (!(event.getWhoClicked() instanceof Player player)) return;
@@ -307,15 +307,17 @@ public class InventoryManager {
                     return;
                 }
 
-                if (!hasContents(player.getUniqueId())) return;
+                if (!hasContents(player.getUniqueId()))
+                    return;
                 if (slot < 0 || (mainInventory.getInventoryOpenerType() == InventoryOpenerType.CHEST && slot > mainInventory.size()))
                     return;
+
                 event.setCancelled(true);
 
                 InventoryContents contents = content.get(player.getUniqueId());
 
                 contents.get(slot).ifPresent(item -> {
-                    if(!item.isCanClick()){
+                    if (!item.isCanClick()) {
                         item.getError().cantClick(player, item);
                         return;
                     }
@@ -354,11 +356,14 @@ public class InventoryManager {
             if (!(event.getPlayer() instanceof Player player)) return;
             if (!hasInventory(player.getUniqueId()))
                 return;
+
             RyseInventory mainInventory = inventories.get(player.getUniqueId());
 
             if (!mainInventory.isCloseAble()) {
                 Bukkit.getScheduler().runTask(plugin, () -> player.openInventory(event.getInventory()));
             }
+
+            mainInventory.clearData(player);
 
             EventCreator<InventoryCloseEvent> customEvent = (EventCreator<InventoryCloseEvent>) mainInventory.getEvent(InventoryCloseEvent.class);
             if (customEvent != null) {

@@ -359,13 +359,21 @@ public class RyseInventory {
         closeAfterScheduler(player);
 
         if (this.openDelay == -1 || this.delayed.contains(player)) {
-            player.openInventory(inventory);
+            if (savedInventory.isPresent() && savedInventory.get() == this) {
+                Bukkit.getScheduler().runTask(plugin, () -> player.openInventory(inventory));
+            } else {
+                player.openInventory(inventory);
+            }
             this.manager.invokeScheduler(player, this);
             this.manager.setInventory(player.getUniqueId(), this);
         } else {
             if (!this.delayed.contains(player)) {
                 Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
-                    player.openInventory(inventory);
+                    if (savedInventory.isPresent() && savedInventory.get() == this) {
+                        Bukkit.getScheduler().runTask(plugin, () -> player.openInventory(inventory));
+                    } else {
+                        player.openInventory(inventory);
+                    }
                     this.manager.invokeScheduler(player, this);
                     this.manager.setInventory(player.getUniqueId(), this);
                 }, this.openDelay);
@@ -580,6 +588,16 @@ public class RyseInventory {
         return new int[]{page, calculatedSlot};
     }
 
+    protected void clearData(@NotNull Player player) {
+        if (this.playerInventory.containsKey(player.getUniqueId())) {
+            player.getInventory().setContents(this.playerInventory.remove(player.getUniqueId()));
+        }
+
+        this.delayed.remove(player);
+        this.privateInventory.remove(player.getUniqueId());
+        this.manager.removeInventoryFromPlayer(player.getUniqueId());
+    }
+
 
     /**
      * Builder to create an inventory.
@@ -590,7 +608,6 @@ public class RyseInventory {
     public static @NotNull Builder builder() {
         return new Builder();
     }
-
 
     /**
      * Builder to create an inventory.
