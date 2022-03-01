@@ -358,28 +358,22 @@ public class RyseInventory {
 
         closeAfterScheduler(player);
 
-        if (this.openDelay == -1 || this.delayed.contains(player)) {
-            if (savedInventory.isPresent() && savedInventory.get() == this) {
-                Bukkit.getScheduler().runTask(plugin, () -> player.openInventory(inventory));
-            } else {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (this.openDelay == -1 || this.delayed.contains(player)) {
                 player.openInventory(inventory);
-            }
-            this.manager.invokeScheduler(player, this);
-            this.manager.setInventory(player.getUniqueId(), this);
-        } else {
-            if (!this.delayed.contains(player)) {
-                Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
-                    if (savedInventory.isPresent() && savedInventory.get() == this) {
-                        Bukkit.getScheduler().runTask(plugin, () -> player.openInventory(inventory));
-                    } else {
+                this.manager.invokeScheduler(player, this);
+                this.manager.setInventory(player.getUniqueId(), this);
+            } else {
+                if (!this.delayed.contains(player)) {
+                    Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
                         player.openInventory(inventory);
-                    }
-                    this.manager.invokeScheduler(player, this);
-                    this.manager.setInventory(player.getUniqueId(), this);
-                }, this.openDelay);
-                this.delayed.add(player);
+                        this.manager.invokeScheduler(player, this);
+                        this.manager.setInventory(player.getUniqueId(), this);
+                    }, this.openDelay);
+                    this.delayed.add(player);
+                }
             }
-        }
+        });
 
         if (this.share) {
             this.sharedInventory = inventory;
