@@ -126,12 +126,15 @@ public class RyseInventory {
     private @Getter
     int columns = 9;
     private String title;
+    private String titleHolder = "§e§oLoading§8...";
     private @Getter
     Inventory sharedInventory;
     private int delay = 0;
     private int openDelay = -1;
     private int period = 1;
     private int closeAfter = -1;
+    private int loadDelay = -1;
+    private int loadTitle = -1;
     private boolean ignoreClickEvent;
     private boolean closeAble = true;
     private boolean transferData = true;
@@ -304,9 +307,9 @@ public class RyseInventory {
         Inventory inventory;
 
         if (this.inventoryOpenerType == InventoryOpenerType.CHEST) {
-            inventory = Bukkit.createInventory(null, this.size == -1 ? this.rows * this.columns : this.size, Component.text(this.title));
+            inventory = Bukkit.createInventory(null, this.size == -1 ? this.rows * this.columns : this.size, Component.text(this.loadTitle == -1 ? this.title : this.titleHolder));
         } else {
-            inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), Component.text(this.title));
+            inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), Component.text(this.loadTitle == -1 ? this.title : this.titleHolder));
         }
 
 
@@ -339,26 +342,20 @@ public class RyseInventory {
             throw new IllegalArgumentException("There is no " + page + " side. Last page is " + pagination.lastPage());
         }
 
-        pagination.getPermanentItems().forEach((integer, item) -> {
-            if (integer >= inventory.getSize()) return;
-            if (!item.isCanSee()) {
-                item.getError().cantSee(player, item);
-                return;
-            }
-            inventory.setItem(integer, item.getItemStack());
-        });
-        pagination.getPageItems().get(page).forEach((integer, item) -> {
-            if (integer >= inventory.getSize()) return;
-            if (!item.isCanSee()) {
-                item.getError().cantSee(player, item);
-                return;
-            }
-            inventory.setItem(integer, item.getItemStack());
-        });
+        if (this.loadDelay != -1) {
+            int finalPage = page;
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> load(pagination, inventory, player, finalPage), this.loadDelay);
+        } else {
+            load(pagination, inventory, player, page);
+        }
+
+        if (this.loadTitle != -1) {
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> updateTitle(this.plugin, player, this.title), this.loadTitle);
+        }
 
         closeAfterScheduler(player);
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        Bukkit.getScheduler().runTask(this.plugin, () -> {
             if (this.openDelay == -1 || this.delayed.contains(player)) {
                 player.openInventory(inventory);
                 this.manager.invokeScheduler(player, this);
@@ -381,6 +378,25 @@ public class RyseInventory {
             this.privateInventory.put(player.getUniqueId(), inventory);
         }
         return this.sharedInventory;
+    }
+
+    private void load(@NotNull Pagination pagination, @NotNull Inventory inventory, @NotNull Player player, @Nonnegative int page) {
+        pagination.getPermanentItems().forEach((integer, item) -> {
+            if (integer >= inventory.getSize()) return;
+            if (!item.isCanSee()) {
+                item.getError().cantSee(player, item);
+                return;
+            }
+            inventory.setItem(integer, item.getItemStack());
+        });
+        pagination.getPageItems().get(page).forEach((integer, item) -> {
+            if (integer >= inventory.getSize()) return;
+            if (!item.isCanSee()) {
+                item.getError().cantSee(player, item);
+                return;
+            }
+            inventory.setItem(integer, item.getItemStack());
+        });
     }
 
     private void closeAfterScheduler(@NotNull Player player) {
@@ -520,10 +536,11 @@ public class RyseInventory {
                 int[] dataArray;
                 if (useSlot) {
                     dataArray = nextSlotAlgorithm(contents, type, page, slot, startSlot);
+                    slot = dataArray[1];
                 } else {
                     dataArray = nextSlotAlgorithm(contents, type, page, calculatedSlot, startRow * 9 + startColumn);
+                    calculatedSlot = dataArray[1];
                 }
-                slot = dataArray[1];
                 page = dataArray[0];
             }
 
@@ -611,6 +628,7 @@ public class RyseInventory {
         private int size = -1;
         private int rows;
         private String title;
+        private String titleHolder = "§e§oLoading§8...";
         private final List<EventCreator<? extends Event>> events = new ArrayList<>();
         private boolean ignoreClickEvent;
         private boolean closeAble = true;
@@ -623,6 +641,8 @@ public class RyseInventory {
         private int openDelay = -1;
         private int period = 1;
         private int closeAfter = -1;
+        private int loadDelay = -1;
+        private int loadTitle = -1;
         private Object identifier;
         private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
 
@@ -670,6 +690,30 @@ public class RyseInventory {
          */
         public Builder closeAfter(@Nonnegative int time, @NotNull TimeSetting setting) {
             this.closeAfter = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
+            return this;
+        }
+
+        /**
+         * With this method, the content of the inventory is loaded later.
+         *
+         * @param time    Time
+         * @param setting Set your own time type.
+         * @return The Inventory Builder to set additional options.
+         */
+        public Builder loadDelay(@Nonnegative int time, @NotNull TimeSetting setting) {
+            this.loadDelay = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
+            return this;
+        }
+
+        /**
+         * With this method the title will be loaded later.
+         *
+         * @param time    Time
+         * @param setting Set your own time type.
+         * @return The Inventory Builder to set additional options.
+         */
+        public Builder loadTitle(@Nonnegative int time, @NotNull TimeSetting setting) {
+            this.loadTitle = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
 
@@ -867,6 +911,18 @@ public class RyseInventory {
         }
 
         /**
+         * Adds a temporary title to the inventory.
+         *
+         * @param title The temp title
+         * @return The Inventory Builder to set additional options.
+         * @apiNote This title is used when the {@link Builder#loadTitle(int, TimeSetting)} method is used.
+         */
+        public Builder titleHolder(@NotNull String title) {
+            this.titleHolder = title;
+            return this;
+        }
+
+        /**
          * Adds its own event to the inventory.
          *
          * @param event What kind of event
@@ -909,6 +965,7 @@ public class RyseInventory {
             inventory.columns = 9;
             inventory.title = this.title;
             inventory.events = this.events;
+            inventory.loadTitle = this.loadTitle;
             inventory.ignoreClickEvent = this.ignoreClickEvent;
             inventory.provider = this.provider;
             inventory.delay = this.delay;
@@ -916,8 +973,10 @@ public class RyseInventory {
             inventory.period = this.period;
             inventory.identifier = this.identifier;
             inventory.closeAfter = this.closeAfter;
+            inventory.loadDelay = this.loadDelay;
             inventory.transferData = this.transferData;
             inventory.inventoryOpenerType = this.inventoryOpenerType;
+            inventory.titleHolder = this.titleHolder;
             inventory.share = this.share;
             inventory.clearAndSafe = this.clearAndSafe;
             inventory.options = this.options;
@@ -987,6 +1046,13 @@ public class RyseInventory {
      */
     public List<InventoryOptions> getOptions() {
         return options;
+    }
+
+    /**
+     * @return the load delay
+     */
+    public int getLoadDelay() {
+        return loadDelay;
     }
 
     @Contract(pure = true)
