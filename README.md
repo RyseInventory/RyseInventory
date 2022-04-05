@@ -39,7 +39,7 @@ repositories {
     mavenLocal()
 }
 dependencies {
-    implementation 'io.github.rysefoxx:RyseInventory:1.1.4-SNAPSHOT'
+    implementation 'io.github.rysefoxx:RyseInventory:1.1.6-SNAPSHOT'
 }
 ```
 
@@ -48,7 +48,7 @@ dependencies {
 <dependency>
   <groupId>io.github.rysefoxx</groupId>
   <artifactId>RyseInventory</artifactId>
-  <version>1.1.4-SNAPSHOT</version>
+  <version>1.1.6-SNAPSHOT</version>
 </dependency>
 ```
 
