@@ -52,6 +52,21 @@ public class InventoryContents {
     }
 
     /**
+     * Removes the item from the inventory and the associated consumer.
+     * @param slot Which slot should be removed?
+     * @throws IllegalArgumentException When slot is greater than 53
+     */
+    public void removeItemWithConsumer(@Nonnegative int slot) throws IllegalArgumentException {
+        if (slot > 53) {
+            throw new IllegalArgumentException("The slot must not be larger than 53.");
+        }
+        get(slot).ifPresent(IntelligentItem::clearConsumer);
+        Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
+        if (inventoryOptional.isEmpty()) return;
+        inventoryOptional.get().setItem(slot, null);
+    }
+
+    /**
      * Removes the first item that matches the parameter.
      *
      * @param item The item to filter for.
@@ -70,6 +85,7 @@ public class InventoryContents {
             Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
             if (inventoryOptional.isEmpty()) break;
             inventoryOptional.get().setItem(i, null);
+            optional.get().clearConsumer();
             break;
         }
     }
@@ -93,6 +109,7 @@ public class InventoryContents {
             Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
             if (inventoryOptional.isEmpty()) break;
             inventoryOptional.get().setItem(i, null);
+            optional.get().clearConsumer();
             break;
         }
     }
@@ -151,6 +168,7 @@ public class InventoryContents {
             Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
             if (inventoryOptional.isEmpty()) break;
             inventoryOptional.get().setItem(i, null);
+            optional.get().clearConsumer();
         }
     }
 
@@ -179,6 +197,7 @@ public class InventoryContents {
                 remove(i);
                 if (inventoryOptional.isEmpty()) continue;
                 inventoryOptional.get().setItem(i, null);
+                optional.get().clearConsumer();
                 continue;
             }
             if (inventoryOptional.isEmpty()) continue;
@@ -203,6 +222,7 @@ public class InventoryContents {
             Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
             if (inventoryOptional.isEmpty()) break;
             inventoryOptional.get().setItem(i, null);
+            optional.get().clearConsumer();
             break;
         }
     }
@@ -229,6 +249,7 @@ public class InventoryContents {
                 remove(i);
                 if (inventoryOptional.isEmpty()) break;
                 inventoryOptional.get().setItem(i, null);
+                optional.get().clearConsumer();
                 break;
             }
             if (inventoryOptional.isEmpty()) break;
@@ -296,10 +317,10 @@ public class InventoryContents {
      * @param key
      * @return The cached value
      */
-    public @Nullable Object getData(@NotNull String key) {
+    public @Nullable <T> T getData(@NotNull String key) {
         if (!this.data.containsKey(key)) return null;
 
-        return this.data.get(key);
+        return (T) this.data.get(key);
     }
 
     /**
@@ -556,7 +577,7 @@ public class InventoryContents {
             throw new IllegalArgumentException("The areaStop must not be larger than 53.");
         }
 
-        Preconditions.checkArgument(areaStart >= areaStop, "areaStop must be at least 1 greater than areaStart.");
+        Preconditions.checkArgument(areaStart <= areaStop, "areaStop must be at least 1 greater than areaStart.");
 
         List<IntelligentItem> items = new ArrayList<>();
         for (int i = areaStart; i <= areaStop; i++) {
@@ -681,7 +702,7 @@ public class InventoryContents {
         this.pagination.getPageItems().get(this.pagination.page() - 1).remove(i);
     }
 
-    protected Optional<IntelligentItem> getInPage(@Nonnegative int page,@Nonnegative int slot) throws IllegalArgumentException {
+    protected Optional<IntelligentItem> getInPage(@Nonnegative int page, @Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53) {
             throw new IllegalArgumentException("The slot must not be larger than 53.");
         }

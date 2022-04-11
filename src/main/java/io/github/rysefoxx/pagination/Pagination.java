@@ -107,7 +107,9 @@ public class Pagination implements Cloneable {
             value = this.slotIterator.getEndPosition() - (this.slotIterator.getSlot() == -1 ? 9 * this.slotIterator.getRow() + this.slotIterator.getColumn() : this.slotIterator.getSlot());
         }
 
-        return this.page == (int) Math.ceil((double) this.items.size() / value) - 1;
+        int slide = (int) Math.ceil((double) this.items.size() / value);
+
+        return this.page == (slide != 0 ? slide - 1 : 0);
     }
 
     /**
@@ -153,7 +155,7 @@ public class Pagination implements Cloneable {
      *
      * @param items An array of smart ItemStacks
      */
-    public void setItems(@NotNull IntelligentItem[] items)  {
+    public void setItems(@NotNull IntelligentItem[] items) {
         this.items = new ArrayList<>(Arrays.stream(items).toList());
     }
 
@@ -202,7 +204,7 @@ public class Pagination implements Cloneable {
             throw new IllegalArgumentException("The slot must not be larger than 53.");
         }
         page--;
-        if(!this.pageItems.containsKey(page))
+        if (!this.pageItems.containsKey(page))
             this.pageItems.put(page, new HashMap<>());
 
         this.pageItems.get(page).put(slot, newItem);

@@ -227,7 +227,7 @@ public class RyseInventory {
      * @throws IllegalArgumentException if the two arrays do not have the same size.
      */
     public void open(String @NotNull [] keys, Object @NotNull [] values, @NotNull Player @NotNull ... players) throws IllegalArgumentException {
-        Preconditions.checkArgument(keys.length != values.length, "String[] and Object[] must have the same size");
+        Preconditions.checkArgument(keys.length == values.length, "String[] and Object[] must have the same size");
 
         for (Player player : players) {
             open(player, 1, keys, values);
@@ -267,7 +267,7 @@ public class RyseInventory {
      * @throws IllegalArgumentException if the two arrays do not have the same size.
      */
     public @NotNull Inventory open(@NotNull Player player, @Nonnegative int page, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
-        Preconditions.checkArgument(keys.length != values.length, "String[] and Object[] must have the same size");
+        Preconditions.checkArgument(keys.length == values.length, "String[] and Object[] must have the same size");
 
         return this.initInventory(player, page, keys, values);
     }
@@ -282,9 +282,9 @@ public class RyseInventory {
      * @throws IllegalArgumentException if the two arrays do not have the same size.
      */
     public @NotNull Inventory open(@NotNull Player player, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
-        Preconditions.checkArgument(keys.length != values.length, "String[] and Object[] must have the same size");
+        Preconditions.checkArgument(keys.length == values.length, "String[] and Object[] must have the same size");
 
-        return this.initInventory(player, 0, keys, values);
+        return this.initInventory(player, 1, keys, values);
     }
 
     private Inventory initInventory(@NotNull Player player, @Nonnegative int page, @Nullable String[] keys, @Nullable Object[] values) {
@@ -319,20 +319,21 @@ public class RyseInventory {
 
         contents.pagination().setPage(page);
 
+        if (this.transferData) {
+            optional.ifPresent(savedContents -> savedContents.transferData(contents));
+        }
+        if (keys != null && values != null) {
+            Arrays.stream(keys).filter(Objects::nonNull).forEach(s -> Arrays.stream(values).filter(Objects::nonNull).forEach(o -> contents.setData(s, o)));
+        }
+
         this.manager.setContents(player.getUniqueId(), contents);
         this.provider.init(player, contents);
 
 
         if (optional.isPresent() && optional.get().equals(contents)) return inventory;
 
-        if (this.transferData) {
-            optional.ifPresent(savedContents -> savedContents.transferData(contents));
-        }
         this.manager.stopUpdate(player.getUniqueId());
 
-        if (keys != null && values != null) {
-            Arrays.stream(keys).filter(Objects::nonNull).forEach(s -> Arrays.stream(values).filter(Objects::nonNull).forEach(o -> contents.setData(s, o)));
-        }
 
         Pagination pagination = contents.pagination();
         splitInventory(contents);

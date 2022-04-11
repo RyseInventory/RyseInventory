@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 public class IntelligentItem {
 
     private final ItemStack itemStack;
-    private final Consumer<InventoryClickEvent> consumer;
+    private Consumer<InventoryClickEvent> consumer;
     private final IntelligentItemError error;
     private boolean canClick = true;
     private boolean canSee = true;
@@ -78,6 +78,14 @@ public class IntelligentItem {
     public static @NotNull IntelligentItem empty(@NotNull ItemStack itemStack, @NotNull IntelligentItemError error) {
         return new IntelligentItem(itemStack, event -> {
         }, error);
+    }
+
+    /**
+     * Removes the consumer from an IntelligentItem
+     */
+    public void clearConsumer() {
+        this.consumer = event -> {
+        };
     }
 
     public IntelligentItem canClick(@NotNull BooleanSupplier supplier) {
