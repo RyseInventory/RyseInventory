@@ -7,6 +7,7 @@ __Tested in version: 1.18__
 This API is used to create and manage inventories in Minecraft more easily. Across many methods, the inventory can be managed easily. Besides, you don't have to worry about the pages, because they are managed automatically. Moreover, many things can be done with the inventory. More about this under the point [Features](https://github.com/Rysefoxx/RyseInventory#features)
 
 # Features
+ - Update 1.18 now has an integrated animation system.
  - You can change the inventory title during operation.
  - You can select 18 different inventory types.
  - You can prevent the inventory from being closed.
