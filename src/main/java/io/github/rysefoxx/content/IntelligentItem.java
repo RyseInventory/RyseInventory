@@ -81,6 +81,29 @@ public class IntelligentItem {
     }
 
     /**
+     * Creates an Intelligent ItemStack where the player can take the item from the inventory.
+     *
+     * @param itemStack The item that can be removed.
+     * @return An intelligent ItemStack
+     */
+    @Contract(value = "_ -> new", pure = true)
+    public static @NotNull IntelligentItem ignored(@NotNull ItemStack itemStack) {
+        return new IntelligentItem(itemStack, null, null);
+    }
+
+    /**
+     * Creates an Intelligent ItemStack where the player can take the item from the inventory.
+     *
+     * @param itemStack The item that can be removed.
+     * @param error     The error interface
+     * @return An intelligent ItemStack
+     */
+    @Contract(value = "_, _ -> new", pure = true)
+    public static @NotNull IntelligentItem ignored(@NotNull ItemStack itemStack, @NotNull IntelligentItemError error) {
+        return new IntelligentItem(itemStack, null, error);
+    }
+
+    /**
      * Removes the consumer from an IntelligentItem
      */
     public void clearConsumer() {
@@ -107,5 +130,15 @@ public class IntelligentItem {
      */
     public @NotNull IntelligentItem update(@NotNull ItemStack newItemStack) {
         return new IntelligentItem(newItemStack, this.consumer, this.error);
+    }
+
+    /**
+     * Changes the ItemStack of an existing Intelligent with changing the consumer.
+     *
+     * @param newIntelligentItem The new IntelligentItem
+     * @return The new intelligent ItemStack
+     */
+    public @NotNull IntelligentItem update(@NotNull IntelligentItem newIntelligentItem) {
+        return new IntelligentItem(newIntelligentItem.getItemStack(), newIntelligentItem.getConsumer(), this.error);
     }
 }

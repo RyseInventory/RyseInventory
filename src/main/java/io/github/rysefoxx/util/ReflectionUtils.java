@@ -21,6 +21,10 @@
  */
 package io.github.rysefoxx.util;
 
+import com.google.gson.Gson;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -28,6 +32,7 @@ import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -100,6 +105,7 @@ public final class ReflectionUtils {
      * Mojang remapped their NMS in 1.17 https://www.spigotmc.org/threads/spigot-bungeecord-1-17.510208/#post-4184317
      */
     public static final String
+            STRING = "net.minecraft.server." + VERSION + '.',
             CRAFTBUKKIT = "org.bukkit.craftbukkit." + VERSION + '.',
             NMS = v(17, "net.minecraft.").orElse("net.minecraft.server." + VERSION + '.');
     /**
@@ -146,6 +152,39 @@ public final class ReflectionUtils {
     }
 
     private ReflectionUtils() {
+    }
+
+    public static Method getMethod(final Class<?> clazz, final String methodName, final Class<?>... args) {
+        for (final Method method : clazz.getMethods())
+            if (method.getName().equals(methodName) && isClassListEqual(args, method.getParameterTypes())) {
+                method.setAccessible(true);
+
+                return method;
+            }
+
+        return null;
+    }
+
+    public static <T> T invoke(final Method method, final Object instance, final Object... params) {
+
+        try {
+            return (T) method.invoke(instance, params);
+
+        } catch (final ReflectiveOperationException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    private static boolean isClassListEqual(final Class<?>[] first, final Class<?>[] second) {
+        if (first.length != second.length)
+            return false;
+
+        for (int i = 0; i < first.length; i++)
+            if (first[i] != second[i])
+                return false;
+
+        return true;
     }
 
     /**
@@ -202,6 +241,15 @@ public final class ReflectionUtils {
             ex.printStackTrace();
             return null;
         }
+    }@Nullable
+
+    public static Class<?> getNMSClassWithFixed(@Nonnull String name) {
+        try {
+            return Class.forName(STRING + name);
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -254,6 +302,48 @@ public final class ReflectionUtils {
             throwable.printStackTrace();
             return null;
         }
+    }
+
+
+    /**
+     * @apiNote https://github.com/kangarko/Foundation
+     */
+    public static Object toIChatBaseComponentPlain(String text) {
+        return toIChatBaseComponent(TextComponent.fromLegacyText(text));
+    }
+
+    /**
+     * @apiNote https://github.com/kangarko/Foundation
+     */
+    public static Object toIChatBaseComponent(BaseComponent[] baseComponents) {
+        return toIChatBaseComponent(toJson(baseComponents));
+    }
+
+    /**
+     * @apiNote https://github.com/kangarko/Foundation
+     */
+    public static String toJson(final BaseComponent... comps) {
+        String json;
+
+        try {
+            json = ComponentSerializer.toString(comps);
+
+        } catch (final Throwable t) {
+            json = new Gson().toJson(new TextComponent(comps).toLegacyText());
+        }
+
+        return json;
+    }
+
+    /**
+     * @apiNote https://github.com/kangarko/Foundation
+     */
+    public static Object toIChatBaseComponent(String json) {
+
+        final Class<?> chatSerializer = ReflectionUtils.getNMSClass("network.chat","IChatBaseComponent$ChatSerializer");
+        final Method a = ReflectionUtils.getMethod(chatSerializer, "a", String.class);
+
+        return ReflectionUtils.invoke(a, null, json);
     }
 
     @Nullable

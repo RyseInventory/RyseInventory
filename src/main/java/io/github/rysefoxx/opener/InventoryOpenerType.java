@@ -12,7 +12,7 @@ public enum InventoryOpenerType {
     DROPPER(InventoryType.DROPPER),
     BLAST_FURNACE(InventoryType.BLAST_FURNACE),
     BREWING_STAND(InventoryType.BREWING),
-    CRAFTING_TABLE(InventoryType.CRAFTING),
+    CRAFTING_TABLE(InventoryType.WORKBENCH),
     ENCHANTMENT_TABLE(InventoryType.ENCHANTING),
     FURNACE(InventoryType.FURNACE),
     GRINDSTONE(InventoryType.GRINDSTONE),

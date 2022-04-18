@@ -34,42 +34,93 @@ public class SlotIterator {
         private boolean override;
         private List<Integer> blackList = new ArrayList<>();
 
+        /**
+         * Adds a slot to the blacklist.
+         *
+         * @param slot The slot to add to the blacklist.
+         * @return The builder object itself.
+         */
         public Builder addBlackList(@Nonnegative int slot) {
             this.blackList.add(slot);
             return this;
         }
 
+        /**
+         * This can be used to block multiple slots.
+         *
+         * @param slots The slots to be used for the inventory.
+         * @return The builder object itself.
+         */
         public Builder blackList(@NotNull List<Integer> slots) {
             this.blackList = new ArrayList<>(slots);
             return this;
         }
 
+        /**
+         * This tells us where the item should stop.
+         *
+         * @param slot
+         * @return The Builder object itself.
+         * @apiNote If this method is used, {@link Pagination#setItemsPerPage(int)} is ignored.
+         */
         public Builder endPosition(@Nonnegative int slot) {
             this.endPosition = slot;
             return this;
         }
 
+        /**
+         * This tells us where the item should stop.
+         *
+         * @param row
+         * @param column
+         * @return The Builder object itself.
+         * @apiNote If this method is used, {@link Pagination#setItemsPerPage(int)} is ignored.
+         */
         public Builder endPosition(@Nonnegative int row, @Nonnegative int column) {
             this.endPosition = row * 9 + column;
             return this;
         }
 
+        /**
+         * Sets the slot to start at.
+         *
+         * @param startSlot The slot to start at.
+         * @return The Builder object itself.
+         */
         public Builder slot(@Nonnegative int startSlot) {
             this.slot = startSlot;
             return this;
         }
 
+        /**
+         * Sets the slot to start at.
+         *
+         * @param row
+         * @param column
+         * @return The Builder object itself.
+         */
         public Builder slot(@Nonnegative int row, @Nonnegative int column) {
             this.row = row;
             this.column = column;
             return this;
         }
 
+        /**
+         * This tells us whether the items should be placed vertically or horizontally.
+         *
+         * @param type
+         * @return The builder object itself.
+         */
         public Builder type(@NotNull SlotIteratorType type) {
             this.type = type;
             return this;
         }
 
+        /**
+         * This is used to overwrite items.
+         *
+         * @return The Builder object itself.
+         */
         public Builder override() {
             this.override = true;
             return this;
@@ -137,7 +188,6 @@ public class SlotIterator {
     }
 
     /**
-     *
      * @return all slots where no items should be placed.
      */
     public List<Integer> getBlackList() {

@@ -276,7 +276,6 @@ public class InventoryManager {
             if (!hasInventory(player.getUniqueId()))
                 return;
 
-
             RyseInventory mainInventory = inventories.get(player.getUniqueId());
 
             if (mainInventory.isIgnoreClickEvent()) return;
@@ -312,18 +311,29 @@ public class InventoryManager {
                 if (slot < 0 || (mainInventory.getInventoryOpenerType() == InventoryOpenerType.CHEST && slot > mainInventory.size()))
                     return;
 
-                event.setCancelled(true);
-
                 InventoryContents contents = content.get(player.getUniqueId());
 
+                SlideAnimation animation = mainInventory.getSlideAnimator();
+
+                if (animation != null && mainInventory.activeSlideAnimatorTasks() > 0 && animation.isBlockClickEvent()) {
+                    event.setCancelled(true);
+                    return;
+                }
+
                 contents.get(slot).ifPresent(item -> {
+                    if (item.getConsumer() == null)
+                        return;
+
+
+                    event.setCancelled(true);
+
                     if (!item.isCanClick()) {
                         item.getError().cantClick(player, item);
                         return;
                     }
                     item.getConsumer().accept(event);
+                    player.updateInventory();
                 });
-                player.updateInventory();
             }
 
         }

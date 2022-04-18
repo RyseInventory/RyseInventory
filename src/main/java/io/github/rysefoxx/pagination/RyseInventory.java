@@ -8,15 +8,13 @@ import io.github.rysefoxx.content.InventoryProvider;
 import io.github.rysefoxx.opener.InventoryOpenerType;
 import io.github.rysefoxx.other.EventCreator;
 import io.github.rysefoxx.other.InventoryOptions;
-import io.github.rysefoxx.util.ReflectionUtils;
+import io.github.rysefoxx.util.TitleUpdater;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Contract;
@@ -24,96 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.util.*;
-
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RyseInventory {
-
-    // Classes.
-    private final static Class<?> CRAFT_PLAYER_CLASS;
-    private final static Class<?> CHAT_MESSAGE_CLASS;
-    private final static Class<?> PACKET_PLAY_OUT_OPEN_WINDOW_CLASS;
-    private final static Class<?> I_CHAT_BASE_COMPONENT_CLASS;
-    private final static Class<?> CONTAINERS_CLASS;
-    private final static Class<?> ENTITY_PLAYER_CLASS;
-    private final static Class<?> CONTAINER_CLASS;
-
-    // Methods.
-    private final static MethodHandle getHandle;
-    private final static MethodHandle getBukkitView;
-
-    // Constructors.
-    private static Constructor<?> chatMessageConstructor;
-    private static Constructor<?> packetPlayOutOpenWindowConstructor;
-
-    // Fields.
-    private static Field activeContainerField;
-    private static Field windowIdField;
-
-    static {
-        // Initialize classes.
-        CRAFT_PLAYER_CLASS = ReflectionUtils.getCraftClass("entity.CraftPlayer");
-        CHAT_MESSAGE_CLASS = ReflectionUtils.getNMSClass("network.chat", "ChatMessage");
-        PACKET_PLAY_OUT_OPEN_WINDOW_CLASS = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutOpenWindow");
-        I_CHAT_BASE_COMPONENT_CLASS = ReflectionUtils.getNMSClass("network.chat", "IChatBaseComponent");
-        // Check if we use containers, otherwise, can throw errors on older versions.
-        CONTAINERS_CLASS = useContainers() ? ReflectionUtils.getNMSClass("world.inventory", "Containers") : null;
-        ENTITY_PLAYER_CLASS = ReflectionUtils.getNMSClass("server.level", "EntityPlayer");
-        CONTAINER_CLASS = ReflectionUtils.getNMSClass("world.inventory", "Container");
-
-        MethodHandle handle = null, bukkitView = null;
-
-        try {
-            int version = ReflectionUtils.VER;
-            MethodHandles.Lookup lookup = MethodHandles.lookup();
-
-            // Initialize methods.
-            handle = lookup.findVirtual(CRAFT_PLAYER_CLASS, "getHandle", MethodType.methodType(ENTITY_PLAYER_CLASS));
-            bukkitView = lookup.findVirtual(CONTAINER_CLASS, "getBukkitView", MethodType.methodType(InventoryView.class));
-
-            // Initialize constructors.
-            assert CHAT_MESSAGE_CLASS != null;
-            chatMessageConstructor = CHAT_MESSAGE_CLASS.getConstructor(String.class, Object[].class);
-            // Older versions use Strings instead of containers, and require an int for the inventory size.
-            assert PACKET_PLAY_OUT_OPEN_WINDOW_CLASS != null;
-            if ((useContainers())) {
-                packetPlayOutOpenWindowConstructor =
-                        PACKET_PLAY_OUT_OPEN_WINDOW_CLASS.getConstructor(int.class, CONTAINERS_CLASS, I_CHAT_BASE_COMPONENT_CLASS);
-            } else {
-                packetPlayOutOpenWindowConstructor =
-                        PACKET_PLAY_OUT_OPEN_WINDOW_CLASS.getConstructor(int.class, String.class, I_CHAT_BASE_COMPONENT_CLASS, int.class);
-            }
-
-            // Initialize fields.
-            assert ENTITY_PLAYER_CLASS != null;
-            if ((version == 17)) {
-                activeContainerField = ENTITY_PLAYER_CLASS.getField("bV");
-            } else {
-                if ((version == 18)) {
-                    activeContainerField = ENTITY_PLAYER_CLASS.getField("bW");
-                } else {
-                    activeContainerField = ENTITY_PLAYER_CLASS.getField("activeContainer");
-                }
-            }
-            assert CONTAINER_CLASS != null;
-            if ((version > 16)) {
-                windowIdField = CONTAINER_CLASS.getField("j");
-            } else {
-                windowIdField = CONTAINER_CLASS.getField("windowId");
-            }
-        } catch (ReflectiveOperationException exception) {
-            exception.printStackTrace();
-        }
-
-        getHandle = handle;
-        getBukkitView = bukkitView;
-    }
-
 
     private List<EventCreator<? extends Event>> events = new ArrayList<>();
     private InventoryManager manager;
@@ -141,12 +53,50 @@ public class RyseInventory {
     private boolean share;
     private boolean clearAndSafe;
     private List<InventoryOptions> options = new ArrayList<>();
+    private final List<IntelligentItemNameAnimator> itemAnimator = new ArrayList<>();
+    private final List<IntelligentTitleAnimator> titleAnimator = new ArrayList<>();
+    private final List<IntelligentItemLoreAnimator> loreAnimator = new ArrayList<>();
+    private @Nullable SlideAnimation slideAnimator = null;
     private Object identifier;
     private JavaPlugin plugin;
     private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
     private final HashMap<UUID, Inventory> privateInventory = new HashMap<>();
     private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
     protected final List<Player> delayed = new ArrayList<>();
+
+
+    /**
+     * This method allows you to retrieve the animation using the animation identifier.
+     *
+     * @param identifier The ID to identify
+     * @return null if no animation with the ID could be found.
+     * @implNote Only works if the animation has also been assigned an identifier.
+     */
+    public Optional<IntelligentItemLoreAnimator> getLoreAnimation(@NotNull Object identifier) {
+        return this.loreAnimator.stream().filter(animator -> Objects.equals(animator.getIdentifier(), identifier)).findFirst();
+    }
+
+    /**
+     * This method allows you to retrieve the animation using the animation identifier.
+     *
+     * @param identifier The ID to identify
+     * @return null if no animation with the ID could be found.
+     * @implNote Only works if the animation has also been assigned an identifier.
+     */
+    public Optional<IntelligentItemNameAnimator> getNameAnimation(@NotNull Object identifier) {
+        return this.itemAnimator.stream().filter(animator -> Objects.equals(animator.getIdentifier(), identifier)).findFirst();
+    }
+
+    /**
+     * This method allows you to retrieve the animation using the animation identifier.
+     *
+     * @param identifier The ID to identify
+     * @return null if no animation with the ID could be found.
+     * @implNote Only works if the animation has also been assigned an identifier.
+     */
+    public Optional<IntelligentTitleAnimator> getTitleAnimation(@NotNull Object identifier) {
+        return this.titleAnimator.stream().filter(animator -> Objects.equals(animator.getIdentifier(), identifier)).findFirst();
+    }
 
     /**
      * Closes the inventory from the player. InventoryClickEvent is no longer called here.
@@ -158,12 +108,13 @@ public class RyseInventory {
             player.getInventory().setContents(this.playerInventory.remove(player.getUniqueId()));
         }
 
+        removeActiveAnimations();
+
         this.delayed.remove(player);
         this.privateInventory.remove(player.getUniqueId());
         this.manager.removeInventoryFromPlayer(player.getUniqueId());
         player.closeInventory();
     }
-
 
     /**
      * Get all players who have a certain inventory open
@@ -299,6 +250,8 @@ public class RyseInventory {
             }
         });
 
+        removeActiveAnimations();
+
         if (this.clearAndSafe) {
             this.playerInventory.put(player.getUniqueId(), player.getInventory().getContents());
             player.getInventory().clear();
@@ -327,7 +280,12 @@ public class RyseInventory {
         }
 
         this.manager.setContents(player.getUniqueId(), contents);
-        this.provider.init(player, contents);
+
+        if (this.slideAnimator == null) {
+            this.provider.init(player, contents);
+        } else {
+            this.provider.init(player, contents, this.slideAnimator);
+        }
 
 
         if (optional.isPresent() && optional.get().equals(contents)) return inventory;
@@ -351,7 +309,7 @@ public class RyseInventory {
         }
 
         if (this.loadTitle != -1) {
-            Bukkit.getScheduler().runTaskLater(this.plugin, () -> updateTitle(this.plugin, player, this.title), this.loadTitle);
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> updateTitle(player, this.title), this.loadTitle);
         }
 
         closeAfterScheduler(player);
@@ -381,30 +339,6 @@ public class RyseInventory {
         return this.sharedInventory;
     }
 
-    private void load(@NotNull Pagination pagination, @NotNull Inventory inventory, @NotNull Player player, @Nonnegative int page) {
-        pagination.getPermanentItems().forEach((integer, item) -> {
-            if (integer >= inventory.getSize()) return;
-            if (!item.isCanSee()) {
-                item.getError().cantSee(player, item);
-                return;
-            }
-            inventory.setItem(integer, item.getItemStack());
-        });
-        pagination.getPageItems().get(page).forEach((integer, item) -> {
-            if (integer >= inventory.getSize()) return;
-            if (!item.isCanSee()) {
-                item.getError().cantSee(player, item);
-                return;
-            }
-            inventory.setItem(integer, item.getItemStack());
-        });
-    }
-
-    private void closeAfterScheduler(@NotNull Player player) {
-        if (this.closeAfter == -1) return;
-        Bukkit.getScheduler().runTaskLater(this.plugin, () -> close(player), this.closeAfter);
-    }
-
     /**
      * Get an EventCreator object based on the Event class.
      *
@@ -420,80 +354,12 @@ public class RyseInventory {
     /**
      * With this method you can update the inventory title.
      *
-     * @param plugin   The JavaPlugin
      * @param player   The Player
      * @param newTitle The new title
      * @apiNote https://www.spigotmc.org/threads/change-inventory-title-reflection-1-8-1-18.489966/
      */
-    public void updateTitle(@NotNull JavaPlugin plugin, @NotNull Player player, @NotNull String newTitle) {
-        try {
-            // Get EntityPlayer from CraftPlayer.
-            assert CRAFT_PLAYER_CLASS != null;
-            Object craftPlayer = CRAFT_PLAYER_CLASS.cast(player);
-            Object entityPlayer = getHandle.invoke(craftPlayer);
-
-            if (newTitle.length() > 32) {
-                newTitle = newTitle.substring(0, 32);
-            }
-
-            // Create new title.
-            Object title = chatMessageConstructor.newInstance(newTitle, new Object[]{});
-
-            // Get activeContainer from EntityPlayer.
-            Object activeContainer = activeContainerField.get(entityPlayer);
-
-            // Get windowId from activeContainer.
-            Integer windowId = (Integer) windowIdField.get(activeContainer);
-
-            // Get InventoryView from activeContainer.
-            Object bukkitView = getBukkitView.invoke(activeContainer);
-            if (!(bukkitView instanceof InventoryView view)) return;
-
-            InventoryType type = view.getTopInventory().getType();
-
-            // Workbenchs and anvils can change their title since 1.14.
-            if ((type == InventoryType.WORKBENCH || type == InventoryType.ANVIL) && !useContainers())
-                return;
-
-            // You can't reopen crafting, creative and player inventory.
-            if (Arrays.asList("CRAFTING", "CREATIVE", "PLAYER").contains(type.name())) return;
-
-            int size = view.getTopInventory().getSize();
-
-            // Get container, check is not null.
-            Containers container = Containers.getType(type, size);
-            if (container == null) return;
-
-            // If the container was added in a newer versions than the current, return.
-            if (container.getContainerVersion() > ReflectionUtils.VER && useContainers()) {
-                Bukkit.getLogger().warning(String.format(
-                        "[%s] This container doesn't work on your current version.",
-                        plugin.getDescription().getName()));
-                return;
-            }
-
-            Object object;
-            // Dispensers and droppers use the same container, but in previous versions, use a diferrent minecraft name.
-            if (!useContainers() && container == Containers.GENERIC_3X3) {
-                object = "minecraft:" + type.name().toLowerCase();
-            } else {
-                object = container.getObject();
-            }
-
-            // Create packet.
-            Object packet =
-                    (useContainers()) ?
-                            packetPlayOutOpenWindowConstructor.newInstance(windowId, object, title) :
-                            packetPlayOutOpenWindowConstructor.newInstance(windowId, object, title, size);
-
-            // Send packet sync.
-            ReflectionUtils.sendPacketSync(player, packet);
-
-            // Update inventory.
-            player.updateInventory();
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
+    public void updateTitle(@NotNull Player player, @NotNull String newTitle) {
+        TitleUpdater.updateTitle(player, newTitle);
     }
 
     /**
@@ -610,6 +476,64 @@ public class RyseInventory {
         this.manager.removeInventoryFromPlayer(player.getUniqueId());
     }
 
+    protected void addItemAnimator(@NotNull IntelligentItemNameAnimator animator) {
+        this.itemAnimator.add(animator);
+    }
+
+    protected void removeItemAnimator(@NotNull IntelligentItemNameAnimator animator) {
+        this.itemAnimator.remove(animator);
+
+        if (animator.getTask().isCancelled()) return;
+        animator.getTask().cancel();
+    }
+
+    protected void addTitleAnimator(@NotNull IntelligentTitleAnimator animator) {
+        this.titleAnimator.add(animator);
+    }
+
+    protected void removeTitleAnimator(@NotNull IntelligentTitleAnimator animator) {
+        this.titleAnimator.remove(animator);
+
+        if (animator.getTask().isCancelled()) return;
+        animator.getTask().cancel();
+    }
+
+    protected void addLoreAnimator(@NotNull IntelligentItemLoreAnimator animator) {
+        this.loreAnimator.add(animator);
+    }
+
+    protected void removeLoreAnimator(@NotNull IntelligentItemLoreAnimator animator) {
+        this.loreAnimator.remove(animator);
+
+        animator.getTasks().forEach(bukkitTask -> {
+            if (bukkitTask.isCancelled()) return;
+            bukkitTask.cancel();
+        });
+    }
+
+    protected void removeSlideAnimator() {
+        if (this.slideAnimator == null) return;
+
+        this.slideAnimator.getTasks().forEach(bukkitTask -> {
+            if (bukkitTask.isCancelled()) return;
+            bukkitTask.cancel();
+        });
+    }
+
+    protected @Nullable SlideAnimation getSlideAnimator() {
+        return this.slideAnimator;
+    }
+
+    protected @Nonnegative int activeSlideAnimatorTasks() {
+        if (this.slideAnimator == null) return 0;
+        AtomicInteger counter = new AtomicInteger();
+
+        this.slideAnimator.getTasks().forEach(task -> {
+            if (task.isCancelled()) return;
+            counter.getAndIncrement();
+        });
+        return counter.get();
+    }
 
     /**
      * Builder to create an inventory.
@@ -625,27 +549,29 @@ public class RyseInventory {
      * Builder to create an inventory.
      */
     public static class Builder {
-        private InventoryManager manager;
-        private int size = -1;
-        private int rows;
-        private String title;
         private String titleHolder = "§e§oLoading§8...";
+        private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
+        private final List<InventoryOptions> options = new ArrayList<>();
         private final List<EventCreator<? extends Event>> events = new ArrayList<>();
-        private boolean ignoreClickEvent;
         private boolean closeAble = true;
         private boolean transferData = true;
-        private boolean share;
-        private boolean clearAndSafe;
-        private final List<InventoryOptions> options = new ArrayList<>();
-        private InventoryProvider provider;
+        private int size = -1;
         private int delay = 0;
         private int openDelay = -1;
         private int period = 1;
         private int closeAfter = -1;
         private int loadDelay = -1;
         private int loadTitle = -1;
+
+        private SlideAnimation slideAnimation;
+        private InventoryManager manager;
+        private String title;
+        private InventoryProvider provider;
         private Object identifier;
-        private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
+        private int rows;
+        private boolean ignoreClickEvent;
+        private boolean share;
+        private boolean clearAndSafe;
 
         /**
          * Adds a manager to the inventory.
@@ -912,6 +838,17 @@ public class RyseInventory {
         }
 
         /**
+         * Based on this animation, the items can appear animated when opening the inventory.
+         *
+         * @param animation {@link  SlideAnimation#builder(JavaPlugin)}
+         * @return The Inventory Builder to set additional options.
+         */
+        public Builder animation(@NotNull SlideAnimation animation) {
+            this.slideAnimation = animation;
+            return this;
+        }
+
+        /**
          * Adds a temporary title to the inventory.
          *
          * @param title The temp title
@@ -981,6 +918,7 @@ public class RyseInventory {
             inventory.share = this.share;
             inventory.clearAndSafe = this.clearAndSafe;
             inventory.options = this.options;
+            inventory.slideAnimator = this.slideAnimation;
             return inventory;
         }
     }
@@ -1056,11 +994,6 @@ public class RyseInventory {
         return loadDelay;
     }
 
-    @Contract(pure = true)
-    private static boolean useContainers() {
-        return ReflectionUtils.VER > 13;
-    }
-
 
     /**
      * @param uuid Player's uuid
@@ -1074,120 +1007,43 @@ public class RyseInventory {
         return Optional.ofNullable(this.privateInventory.get(uuid));
     }
 
-    private enum Containers {
-        GENERIC_9X1(14, "minecraft:chest", "CHEST"),
-        GENERIC_9X2(14, "minecraft:chest", "CHEST"),
-        GENERIC_9X3(14, "minecraft:chest", "CHEST", "ENDER_CHEST", "BARREL"),
-        GENERIC_9X4(14, "minecraft:chest", "CHEST"),
-        GENERIC_9X5(14, "minecraft:chest", "CHEST"),
-        GENERIC_9X6(14, "minecraft:chest", "CHEST"),
-        GENERIC_3X3(14, null, "DISPENSER", "DROPPER"),
-        ANVIL(14, "minecraft:anvil", "ANVIL"),
-        BEACON(14, "minecraft:beacon", "BEACON"),
-        BREWING_STAND(14, "minecraft:brewing_stand", "BREWING"),
-        ENCHANTMENT(14, "minecraft:enchanting_table", "ENCHANTING"),
-        FURNACE(14, "minecraft:furnace", "FURNACE"),
-        HOPPER(14, "minecraft:hopper", "HOPPER"),
-        MERCHANT(14, "minecraft:villager", "MERCHANT"),
-        // For an unknown reason, when updating a shulker box, the size of the inventory get a little bigger.
-        SHULKER_BOX(14, "minecraft:blue_shulker_box", "SHULKER_BOX"),
-
-        // Added in 1.14, so only works with containers.
-        BLAST_FURNACE(14, null, "BLAST_FURNACE"),
-        CRAFTING(14, null, "WORKBENCH"),
-        GRINDSTONE(14, null, "GRINDSTONE"),
-        LECTERN(14, null, "LECTERN"),
-        LOOM(14, null, "LOOM"),
-        SMOKER(14, null, "SMOKER"),
-        // CARTOGRAPHY in 1.14, CARTOGRAPHY_TABLE in 1.15 & 1.16 (container), handle in getObject().
-        CARTOGRAPHY_TABLE(14, null, "CARTOGRAPHY"),
-        STONECUTTER(14, null, "STONECUTTER"),
-
-        // Added in 1.14, functional since 1.16.
-        SMITHING(16, null, "SMITHING");
-
-        private final int containerVersion;
-        private final String minecraftName;
-        private final String[] inventoryTypesNames;
-
-        private final static char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
-
-        @Contract(pure = true)
-        Containers(int containerVersion, String minecraftName, String... inventoryTypesNames) {
-            this.containerVersion = containerVersion;
-            this.minecraftName = minecraftName;
-            this.inventoryTypesNames = inventoryTypesNames;
-        }
-
-        /**
-         * Get the container based on the current open inventory of the player.
-         *
-         * @param type type of inventory.
-         * @return the container.
-         */
-        public static @Nullable Containers getType(InventoryType type, int size) {
-            if (type == InventoryType.CHEST) {
-                return Containers.valueOf("GENERIC_9X" + size / 9);
+    private void load(@NotNull Pagination pagination, @NotNull Inventory inventory, @NotNull Player player, @Nonnegative int page) {
+        pagination.getPermanentItems().forEach((integer, item) -> {
+            if (integer >= inventory.getSize()) return;
+            if (!item.isCanSee()) {
+                item.getError().cantSee(player, item);
+                return;
             }
-            for (Containers container : Containers.values()) {
-                for (String bukkitName : container.getInventoryTypesNames()) {
-                    if (bukkitName.equalsIgnoreCase(type.toString())) {
-                        return container;
-                    }
-                }
+            inventory.setItem(integer, item.getItemStack());
+        });
+        pagination.getPageItems().get(page).forEach((integer, item) -> {
+            if (integer >= inventory.getSize()) return;
+            if (!item.isCanSee()) {
+                item.getError().cantSee(player, item);
+                return;
             }
-            return null;
-        }
+            inventory.setItem(integer, item.getItemStack());
+        });
+    }
 
-        /**
-         * Get the object from the container enum.
-         *
-         * @return a Containers object if 1.14+, otherwise, a String.
-         */
-        public @Nullable Object getObject() {
-            try {
-                if (!useContainers()) return getMinecraftName();
-                int version = ReflectionUtils.VER;
-                String name = (version == 14 && this == CARTOGRAPHY_TABLE) ? "CARTOGRAPHY" : name();
-                // Since 1.17, containers go from "a" to "x".
-                if (version > 16) name = String.valueOf(alphabet[ordinal()]);
-                assert CONTAINERS_CLASS != null;
-                Field field = CONTAINERS_CLASS.getField(name);
-                return field.get(null);
-            } catch (ReflectiveOperationException exception) {
-                exception.printStackTrace();
-            }
-            return null;
-        }
+    private void closeAfterScheduler(@NotNull Player player) {
+        if (this.closeAfter == -1) return;
+        Bukkit.getScheduler().runTaskLater(this.plugin, () -> close(player), this.closeAfter);
+    }
 
-        /**
-         * Get the version in which the inventory container was added.
-         *
-         * @return the version.
-         */
-        @Contract(pure = true)
-        public int getContainerVersion() {
-            return containerVersion;
+    private void removeActiveAnimations() {
+        for (int i = 0; i < this.itemAnimator.size(); i++) {
+            IntelligentItemNameAnimator animator = this.itemAnimator.remove(i);
+            removeItemAnimator(animator);
         }
-
-        /**
-         * Get the name of the inventory from Minecraft for older versions.
-         *
-         * @return name of the inventory.
-         */
-        @Contract(pure = true)
-        public String getMinecraftName() {
-            return minecraftName;
+        for (int i = 0; i < this.titleAnimator.size(); i++) {
+            IntelligentTitleAnimator animator = this.titleAnimator.remove(i);
+            removeTitleAnimator(animator);
         }
-
-        /**
-         * Get inventory types names of the inventory.
-         *
-         * @return bukkit names.
-         */
-        @Contract(pure = true)
-        public String[] getInventoryTypesNames() {
-            return inventoryTypesNames;
+        for (int i = 0; i < this.loreAnimator.size(); i++) {
+            IntelligentItemLoreAnimator animator = this.loreAnimator.remove(i);
+            removeLoreAnimator(animator);
         }
+        removeSlideAnimator();
     }
 }

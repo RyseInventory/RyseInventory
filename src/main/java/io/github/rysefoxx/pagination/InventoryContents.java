@@ -53,6 +53,7 @@ public class InventoryContents {
 
     /**
      * Removes the item from the inventory and the associated consumer.
+     *
      * @param slot Which slot should be removed?
      * @throws IllegalArgumentException When slot is greater than 53
      */
@@ -60,6 +61,9 @@ public class InventoryContents {
         if (slot > 53) {
             throw new IllegalArgumentException("The slot must not be larger than 53.");
         }
+
+        this.pagination.getPermanentItems().remove(slot);
+
         get(slot).ifPresent(IntelligentItem::clearConsumer);
         Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
         if (inventoryOptional.isEmpty()) return;
@@ -279,8 +283,9 @@ public class InventoryContents {
      * @param newTitle The new title
      */
     public void updateTitle(@NotNull JavaPlugin plugin, @NotNull String newTitle) {
-        this.inventory.updateTitle(plugin, this.player, newTitle);
+        this.inventory.updateTitle(this.player, newTitle);
     }
+
 
     /**
      * Fills the Border with a intelligent ItemStack regardless of inventory size.
@@ -613,6 +618,32 @@ public class InventoryContents {
     }
 
     /**
+     * Updates the ItemStack in the same place with a new IntelligentItem.
+     *
+     * @param slot      The slot
+     * @param intelligentItem The new IntelligentItem what should be displayed.
+     * @throws IllegalArgumentException if slot > 53
+     */
+    public void update(@Nonnegative int slot, @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
+        if (slot > 53) {
+            throw new IllegalArgumentException("The slot must not be larger than 53.");
+        }
+        Optional<IntelligentItem> itemOptional = get(slot);
+        if (itemOptional.isEmpty()) return;
+
+        IntelligentItem item = itemOptional.get();
+        IntelligentItem newItem = item.update(intelligentItem);
+
+        if (this.pagination.getPageItems().get(this.pagination.page() - 1).containsKey(slot)) {
+            this.pagination.getPageItems().get(this.pagination.page() - 1).put(slot, newItem);
+        } else {
+            set(slot, newItem);
+        }
+        Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
+        inventoryOptional.ifPresent(savedInventory -> savedInventory.setItem(slot, newItem.getItemStack()));
+    }
+
+    /**
      * Updates the ItemStack in the same place with a new ItemStack.
      *
      * @param slots     The slots
@@ -625,6 +656,7 @@ public class InventoryContents {
 
             IntelligentItem item = itemOptional.get();
             IntelligentItem newItem = item.update(itemStack);
+
 
             if (this.pagination.getPageItems().get(this.pagination.page() - 1).containsKey(slot)) {
                 this.pagination.getPageItems().get(this.pagination.page() - 1).put(slot, newItem);
