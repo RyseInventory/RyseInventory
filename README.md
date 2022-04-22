@@ -20,7 +20,6 @@ This API is used to create and manage inventories in Minecraft more easily. Acro
  - You can directly specify on the Intelligent Item whether the player can interact with the item and look at it. [What do you mean?](https://github.com/Rysefoxx/RyseInventory/wiki/IntelligentItem)
  - You can set some items to be visible only on certain pages.
  - Page system
- - ...
 
 # Install
 
