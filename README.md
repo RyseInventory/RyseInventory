@@ -1,4 +1,4 @@
-# RyseInventory ![](https://i.imgur.com/BS3gwxL.png)
+# RyseInventory 1.8-1.18 ![](https://i.imgur.com/BS3gwxL.png)
 
 Inventory System inspired by [SmartInventory](https://github.com/MinusKube/SmartInvs)!
 
