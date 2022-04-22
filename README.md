@@ -1,6 +1,6 @@
 # RyseInventory ![](https://i.imgur.com/BS3gwxL.png)
 
-Inventory System based on [SmartInventory](https://github.com/MinusKube/SmartInvs)!
+Inventory System inspired by [SmartInventory](https://github.com/MinusKube/SmartInvs)!
 
 __Tested in version: 1.18__
 
