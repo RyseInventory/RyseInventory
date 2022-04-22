@@ -2,8 +2,6 @@
 
 Inventory System inspired by [SmartInventory](https://github.com/MinusKube/SmartInvs)!
 
-__Tested in version: 1.18__
-
 This API is used to create and manage inventories in Minecraft more easily. Across many methods, the inventory can be managed easily. Besides, you don't have to worry about the pages, because they are managed automatically. Moreover, many things can be done with the inventory. More about this under the point [Features](https://github.com/Rysefoxx/RyseInventory#features)
 
 # Features
@@ -37,7 +35,7 @@ repositories {
     mavenLocal()
 }
 dependencies {
-    implementation 'io.github.rysefoxx:RyseInventory:1.1.8-SNAPSHOT'
+    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.1.9-SNAPSHOT'
 }
 ```
 ### Gradle (Kotlin) 
@@ -46,7 +44,7 @@ repositories {
     mavenLocal()
 }
 dependencies {
-    implementation("io.github.rysefoxx:RyseInventory:1.1.8-SNAPSHOT")
+    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.1.9-SNAPSHOT")
 }
 ```
 
@@ -54,8 +52,8 @@ dependencies {
 ```xml
 <dependency>
   <groupId>io.github.rysefoxx</groupId>
-  <artifactId>RyseInventory</artifactId>
-  <version>1.1.8-SNAPSHOT</version>
+  <artifactId>RyseInventory-Plugin</artifactId>
+  <version>1.1.9-SNAPSHOT</version>
 </dependency>
 ```
 
