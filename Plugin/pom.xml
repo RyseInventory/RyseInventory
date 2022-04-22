@@ -5,36 +5,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.rysefoxx</groupId>
-    <artifactId>RyseInventory</artifactId>
-    <version>parent</version>
-    <packaging>pom</packaging>
+    <artifactId>RyseInventory-Plugin</artifactId>
+    <version>1.1.9-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <name>RyseInventory</name>
-    <description>Inventory System</description>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
     </properties>
-
-    <developers>
-        <developer>
-            <id>Rysefoxx</id>
-            <name>Rysefoxx</name>
-        </developer>
-    </developers>
-    <licenses>
-        <license>
-            <name>MIT License</name>
-            <url>https://github.com/Rysefoxx/RyseInventory/blob/master/LICENSE</url>
-        </license>
-    </licenses>
-
-    <modules>
-        <module>v1_16</module>
-        <module>v1_17</module>
-        <module>Plugin</module>
-        <module>API</module>
-    </modules>
 
     <scm>
         <connection>scm:git:git@github.com:Rysefoxx/RyseInventory.git</connection>
@@ -53,8 +33,23 @@
         </repository>
     </distributionManagement>
 
+
     <build>
+        <directory>../target</directory> <!-- Build it one level up, because it is the one we care about -->
+        <finalName>RyseInventory</finalName>
+        <!-- Define filtering for the inclusion of plugin.yml, so we can utilize the pom.xml version in it -->
+        <resources>
+            <resource>
+                <targetPath>.</targetPath>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>plugin.yml</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -125,22 +120,53 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
-    <repositories>
-        <repository>
-            <id>codemc-repo</id>
-            <url>https://repo.codemc.org/repository/maven-public/</url>
-            <layout>default</layout>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
-            <groupId>de.tr7zw</groupId>
-            <artifactId>item-nbt-api-plugin</artifactId>
-            <version>2.9.2</version>
+            <groupId>io.github.rysefoxx.v1_17</groupId>
+            <artifactId>RyseInventory-v1_17</artifactId>
+            <version>1.1.9-SNAPSHOT</version>
+            <type>jar</type>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.github.rysefoxx.v1_16</groupId>
+            <artifactId>RyseInventory-v1_16</artifactId>
+            <version>1.1.9-SNAPSHOT</version>
+            <type>jar</type>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.github.rysefoxx</groupId>
+            <artifactId>RyseInventory-API</artifactId>
+            <version>API</version>
+            <type>jar</type>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.destroystokyo.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.8.9-R0.1-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>G:/WorkSpace/RyseInventory/lib/spigotv1_8.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -149,4 +175,5 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
 </project>
