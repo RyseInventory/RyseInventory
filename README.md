@@ -25,22 +25,28 @@ This API is used to create and manage inventories in Minecraft more easily. Acro
  - ...
 
 # Install
-Install as plugin:
- - Put the plugin in the plugins folder. In your plugin.yml add `depend: [RyseInventory]` and add the dependency
- 
-Install without plugin:
+
  - Register the `InventoryManager` in the onEnable. After that execute `#invoke()`. In the inventory pass at `#manager(InventoryManager)` the manager from your main class.
 
 # Dependency
 _Make sure you shade the API._
 
-### Gradle 
+### Gradle (Groovy) 
 ```
 repositories {
     mavenLocal()
 }
 dependencies {
     implementation 'io.github.rysefoxx:RyseInventory:1.1.8-SNAPSHOT'
+}
+```
+### Gradle (Kotlin) 
+```
+repositories {
+    mavenLocal()
+}
+dependencies {
+    implementation("io.github.rysefoxx:RyseInventory:1.1.8-SNAPSHOT")
 }
 ```
 
