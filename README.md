@@ -31,7 +31,7 @@ _Make sure you shade the API._
 ### Gradle (Groovy) 
 ```
 repositories {
-    mavenLocal()
+    mavenCentral()
 }
 dependencies {
     implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.1.9'
@@ -40,7 +40,7 @@ dependencies {
 ### Gradle (Kotlin) 
 ```
 repositories {
-    mavenLocal()
+    mavenCentral()
 }
 dependencies {
     implementation("io.github.rysefoxx:RyseInventory-Plugin:1.1.9")
