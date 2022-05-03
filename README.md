@@ -32,6 +32,9 @@ _Make sure you shade the API._
 ```
 repositories {
     mavenCentral()
+    maven {
+        url "https://oss.sonatype.org/content/groups/public/"
+    }
 }
 dependencies {
     implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.1.9'
@@ -39,8 +42,11 @@ dependencies {
 ```
 ### Gradle (Kotlin) 
 ```
-repositories {
+repositories 
     mavenCentral()
+    maven {
+        url "https://oss.sonatype.org/content/groups/public/"
+    }
 }
 dependencies {
     implementation("io.github.rysefoxx:RyseInventory-Plugin:1.1.9")
