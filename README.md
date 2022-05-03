@@ -44,9 +44,7 @@ dependencies {
 ```
 repositories 
     mavenCentral()
-    maven {
-        url "https://oss.sonatype.org/content/groups/public/"
-    }
+    maven {url = "https://oss.sonatype.org/content/groups/public/"}
 }
 dependencies {
     implementation("io.github.rysefoxx:RyseInventory-Plugin:1.1.9")
