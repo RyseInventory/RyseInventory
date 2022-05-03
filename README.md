@@ -34,7 +34,7 @@ repositories {
     mavenLocal()
 }
 dependencies {
-    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.1.9-SNAPSHOT'
+    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.1.9'
 }
 ```
 ### Gradle (Kotlin) 
@@ -43,7 +43,7 @@ repositories {
     mavenLocal()
 }
 dependencies {
-    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.1.9-SNAPSHOT")
+    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.1.9")
 }
 ```
 
@@ -52,7 +52,7 @@ dependencies {
 <dependency>
   <groupId>io.github.rysefoxx</groupId>
   <artifactId>RyseInventory-Plugin</artifactId>
-  <version>1.1.9-SNAPSHOT</version>
+  <version>1.1.9</version>
 </dependency>
 ```
 
