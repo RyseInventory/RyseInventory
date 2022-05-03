@@ -33,7 +33,7 @@ _Make sure you shade the API._
 repositories {
     mavenCentral()
     maven {
-        url "https://oss.sonatype.org/content/groups/public/"
+        url "https://s01.oss.sonatype.org/content/groups/public/"
     }
 }
 dependencies {
@@ -44,7 +44,7 @@ dependencies {
 ```
 repositories 
     mavenCentral()
-    maven {url = "https://oss.sonatype.org/content/groups/public/"}
+    maven {url = "https://s01.oss.sonatype.org/content/groups/public/"}
 }
 dependencies {
     implementation("io.github.rysefoxx:RyseInventory-Plugin:1.1.9")
