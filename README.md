@@ -53,6 +53,13 @@ dependencies {
 
 ### Maven
 ```xml
+<repositories>
+    <repository>
+        <id>sonatype</id>
+        <url>"https://s01.oss.sonatype.org/content/groups/public/"</url>
+    </repository>
+</repositories>
+
 <dependency>
   <groupId>io.github.rysefoxx</groupId>
   <artifactId>RyseInventory-Plugin</artifactId>
