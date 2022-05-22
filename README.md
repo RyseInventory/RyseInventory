@@ -37,7 +37,7 @@ repositories {
     }
 }
 dependencies {
-    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.1.9'
+    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.2.0'
 }
 ```
 ### Gradle (Kotlin) 
@@ -47,7 +47,7 @@ repositories
     maven {url = uri("https://s01.oss.sonatype.org/content/groups/public/")}
 }
 dependencies {
-    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.1.9")
+    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.2.0")
 }
 ```
 
@@ -63,7 +63,7 @@ dependencies {
 <dependency>
   <groupId>io.github.rysefoxx</groupId>
   <artifactId>RyseInventory-Plugin</artifactId>
-  <version>1.1.9</version>
+  <version>1.2.0</version>
 </dependency>
 ```
 
