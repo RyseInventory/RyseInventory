@@ -4,11 +4,12 @@ import com.google.common.base.Preconditions;
 import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.content.IntelligentItemAnimatorType;
 import io.github.rysefoxx.content.IntelligentItemColor;
+import io.github.rysefoxx.enums.TimeSetting;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnegative;
@@ -36,9 +37,20 @@ public class IntelligentItemNameAnimator {
     private IntelligentItem intelligentItem;
     private String displayName;
     private Object identifier;
+    private static Plugin plugin;
 
-    public static Builder builder() {
+    public static Builder builder(Plugin plugin) {
+        IntelligentItemNameAnimator.plugin = plugin;
         return new Builder();
+    }
+
+    /**
+     * @throws UnsupportedOperationException if called
+     * @deprecated Use {@link #builder(Plugin)} instead.
+     */
+    @Deprecated
+    public static Builder builder() {
+        throw new UnsupportedOperationException("Use builder(Plugin) instead.");
     }
 
     public static class Builder {
@@ -140,7 +152,7 @@ public class IntelligentItemNameAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder colors(List<Character> frames, IntelligentItemColor ... color) throws IllegalArgumentException {
+        public Builder colors(List<Character> frames, IntelligentItemColor... color) throws IllegalArgumentException {
             Preconditions.checkArgument(frames.size() == color.length, "Frames must have the same length as color.");
 
             for (int i = 0; i < frames.size(); i++) {
@@ -157,7 +169,7 @@ public class IntelligentItemNameAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder colors(Character [] frames, IntelligentItemColor ... color) {
+        public Builder colors(Character[] frames, IntelligentItemColor... color) {
             Preconditions.checkArgument(frames.length == color.length, "Frames must have the same length as color.");
 
             for (int i = 0; i < frames.length; i++) {
@@ -174,7 +186,7 @@ public class IntelligentItemNameAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder colors(Character [] frames, List<IntelligentItemColor> color) {
+        public Builder colors(Character[] frames, List<IntelligentItemColor> color) {
             Preconditions.checkArgument(frames.length == color.size(), "Frames must have the same length as color.");
 
             for (int i = 0; i < frames.length; i++) {
@@ -207,7 +219,7 @@ public class IntelligentItemNameAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link IntelligentItemNameAnimator.Builder#colors(List, IntelligentItemColor...)}
          */
-        public Builder frames(String ... frames) {
+        public Builder frames(String... frames) {
             for (String frame : frames) {
                 frame(frame);
             }
@@ -263,7 +275,7 @@ public class IntelligentItemNameAnimator {
         }
 
         /**
-         * This creates the animation class but does not start it yet! {@link IntelligentItemNameAnimator#animate(JavaPlugin)}
+         * This creates the animation class but does not start it yet! {@link IntelligentItemNameAnimator#animate(Plugin)}
          *
          * @return The animation class
          * @throws IllegalArgumentException if no slot was specified, if frameColor is empty, if frames is empty or if no color has been assigned to a frame.
@@ -286,13 +298,13 @@ public class IntelligentItemNameAnimator {
                 throw new IllegalArgumentException("Please specify a slot where the item is located.");
             }
             if (this.frameColor.isEmpty()) {
-                throw new IllegalArgumentException("No colors have been defined yet!");
+                throw new IllegalArgumentException("Please specify a color for each frame.");
             }
             if (this.intelligentItem == null) {
                 throw new NullPointerException("An IntelligentItem must be passed.");
             }
             if (this.frames.isEmpty()) {
-                throw new IllegalArgumentException("You need to set a possible pattern.");
+                throw new IllegalArgumentException("Please specify at least one frame.");
             }
 
             for (String frame : this.frames) {
@@ -321,29 +333,38 @@ public class IntelligentItemNameAnimator {
 
     /**
      * This starts the animation for the item.
-     *
-     * @param plugin Your main class that extends the JavaPlugin.
      */
-    public void animate(JavaPlugin plugin) {
+    public void animate() {
         this.inventory.addItemAnimator(this);
-        animateByType(plugin);
+        animateByType();
     }
 
-    private void animateByType(JavaPlugin plugin) {
+    /**
+     * This starts the animation for the item.
+     *
+     * @param plugin Your main class that extends the Plugin.
+     * @deprecated Use {@link IntelligentItemNameAnimator#animate()} instead.
+     */
+    @Deprecated
+    public void animate(Plugin plugin) {
+        animate();
+    }
+
+    private void animateByType() {
         if (this.type == IntelligentItemAnimatorType.FULL_WORD) {
-            animateByFullWord(plugin);
+            animateByFullWord();
             return;
         }
         if (this.type == IntelligentItemAnimatorType.WORD_BY_WORD) {
-            animateWordByWord(plugin);
+            animateWordByWord();
             return;
         }
         if (this.type == IntelligentItemAnimatorType.FLASH) {
-            animateWithFlash(plugin);
+            animateWithFlash();
         }
     }
 
-    private void animateWithFlash(JavaPlugin plugin) {
+    private void animateWithFlash() {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(displayName).toCharArray();
             final List<String> framesCopy = frames;
@@ -398,7 +419,7 @@ public class IntelligentItemNameAnimator {
         }, this.delay, this.period);
     }
 
-    private void animateByFullWord(JavaPlugin plugin) {
+    private void animateByFullWord() {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(displayName).toCharArray();
             final List<String> framesCopy = frames;
@@ -477,7 +498,7 @@ public class IntelligentItemNameAnimator {
         }, this.delay, this.period);
     }
 
-    private void animateWordByWord(JavaPlugin plugin) {
+    private void animateWordByWord() {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(displayName).toCharArray();
             final List<String> framesCopy = frames;

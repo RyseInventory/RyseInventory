@@ -1,10 +1,15 @@
 package io.github.rysefoxx.content;
 
 import io.github.rysefoxx.IntelligentItemColorWrapper;
+import io.github.rysefoxx.util.ItemBuilder;
 import io.github.rysefoxx.util.VersionUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnegative;
+import java.awt.*;
 
 /**
  * @author Rysefoxx(Rysefoxx # 6772) | eazypaulcode(eazypaulCode#0001) |
@@ -16,7 +21,7 @@ public class IntelligentItemColor {
     private ChatColor bukkitColor;
     private net.md_5.bungee.api.ChatColor bungeeColor;
     private String hexColor;
-    private int[] rgbColor = new int[2];
+    private int[] rgbColor = new int[3];
     private final boolean bold;
     private final boolean underline;
     private final boolean italic;
@@ -67,13 +72,12 @@ public class IntelligentItemColor {
         private ChatColor bukkitColor;
         private net.md_5.bungee.api.ChatColor bungeeColor;
         private String hexColor;
-        private int[] rgbColor = new int[2];
+        private final int[] rgbColor = new int[3];
         private boolean bold;
         private boolean underline;
         private boolean italic;
         private boolean obfuscated;
         private boolean strikeThrough;
-
 
 
         /**
@@ -247,6 +251,7 @@ public class IntelligentItemColor {
             return this;
         }
 
+        @SuppressWarnings("unchecked")
         public IntelligentItemColor build() {
             try {
                 final Class<?> clazz = Class.forName("io.github.rysefoxx.v1_" + VersionUtils.getSubVersion() + ".ColorHandler");
@@ -275,8 +280,11 @@ public class IntelligentItemColor {
         if (this.bungeeColor != null) return this.bungeeColor;
         if (this.bukkitColor != null) return this.bukkitColor.asBungee();
 
+        if (colorWrapper == null) {
+            throw new IllegalStateException("The color wrapper is null. Please report this to the developer. Your server is running " + VersionUtils.getSubVersion() + ".");
+        }
 
-        if(!this.hexColor.isEmpty()){
+        if (this.hexColor != null && !this.hexColor.isEmpty()) {
             return colorWrapper.getColor(this.hexColor, null);
         }
         return colorWrapper.getColor(null, this.rgbColor);
@@ -301,7 +309,6 @@ public class IntelligentItemColor {
     public boolean isObfuscated() {
         return this.obfuscated;
     }
-
 
     public boolean isStrikeThrough() {
         return this.strikeThrough;

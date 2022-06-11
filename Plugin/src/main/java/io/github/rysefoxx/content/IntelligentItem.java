@@ -1,5 +1,6 @@
 package io.github.rysefoxx.content;
 
+import io.github.rysefoxx.pagination.InventoryContents;
 import lombok.Getter;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
@@ -25,7 +26,6 @@ public class IntelligentItem {
         this.consumer = eventConsumer;
         this.error = error;
     }
-
 
     public static IntelligentItem of(ItemStack itemStack, IntelligentItemError error, Consumer<InventoryClickEvent> eventConsumer) {
         return new IntelligentItem(itemStack, eventConsumer, error);

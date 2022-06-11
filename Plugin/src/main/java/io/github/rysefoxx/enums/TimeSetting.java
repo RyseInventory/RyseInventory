@@ -1,4 +1,4 @@
-package io.github.rysefoxx.pagination;
+package io.github.rysefoxx.enums;
 
 public enum TimeSetting {
 

@@ -1,8 +1,10 @@
 package io.github.rysefoxx.pagination;
 
-import io.github.rysefoxx.opener.InventoryOpenerType;
+import io.github.rysefoxx.enums.DisabledInventoryClick;
+import io.github.rysefoxx.enums.InventoryOpenerType;
+import io.github.rysefoxx.enums.InventoryOptions;
 import io.github.rysefoxx.other.EventCreator;
-import io.github.rysefoxx.other.InventoryOptions;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -21,7 +23,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -31,22 +32,15 @@ import java.util.*;
  * @author Rysefoxx | Rysefoxx#6772
  * @since 2/17/2022
  */
+@RequiredArgsConstructor
 public class InventoryManager {
 
-    private final JavaPlugin plugin;
+    private final Plugin plugin;
 
-    private final HashMap<UUID, RyseInventory> inventories;
-    private final HashMap<UUID, InventoryContents> content;
-    private final HashMap<UUID, BukkitTask> updaterTask;
-    private final HashMap<UUID, RyseInventory> lastInventories;
-
-    public InventoryManager(JavaPlugin plugin) {
-        this.plugin = plugin;
-        this.inventories = new HashMap<>();
-        this.content = new HashMap<>();
-        this.updaterTask = new HashMap<>();
-        this.lastInventories = new HashMap<>();
-    }
+    private final HashMap<UUID, RyseInventory> inventories = new HashMap<>();
+    private final HashMap<UUID, InventoryContents> content = new HashMap<>();
+    private final HashMap<UUID, BukkitTask> updaterTask = new HashMap<>();
+    private final HashMap<UUID, List<RyseInventory>> lastInventories = new HashMap<>();
 
     /**
      * With this method you can get the inventory from the player.
@@ -86,7 +80,11 @@ public class InventoryManager {
      */
     public Optional<RyseInventory> getLastInventory(UUID uuid) {
         if (!this.lastInventories.containsKey(uuid)) return Optional.empty();
-        return Optional.ofNullable(this.lastInventories.get(uuid));
+        if (this.lastInventories.get(uuid).isEmpty()) return Optional.empty();
+        RyseInventory inventory = this.lastInventories.get(uuid).remove(this.lastInventories.get(uuid).size() - 1);
+        inventory.setBackward(true);
+
+        return Optional.of(inventory);
     }
 
     /**
@@ -149,7 +147,11 @@ public class InventoryManager {
     }
 
     protected void setLastInventory(UUID uuid, RyseInventory inventory) {
-        this.lastInventories.put(uuid, inventory);
+        List<RyseInventory> inventories = this.lastInventories.getOrDefault(uuid, new ArrayList<>());
+
+        inventories.add(inventory);
+
+        this.lastInventories.put(uuid, inventories);
     }
 
     protected void stopUpdate(UUID uuid) {
@@ -279,7 +281,12 @@ public class InventoryManager {
 
             RyseInventory mainInventory = inventories.get(player.getUniqueId());
 
-            if (mainInventory.isIgnoreClickEvent()) return;
+            EventCreator<InventoryClickEvent> customEvent = (EventCreator<InventoryClickEvent>) mainInventory.getEvent(InventoryClickEvent.class);
+            if (customEvent != null) {
+                customEvent.accept(event);
+            }
+
+            List<DisabledInventoryClick> list = mainInventory.getIgnoreClickEvent();
 
             InventoryAction action = event.getAction();
             Inventory clickedInventory = event.getClickedInventory();
@@ -288,7 +295,7 @@ public class InventoryManager {
             int slot = event.getSlot();
             ClickType clickType = event.getClick();
 
-            if (clickedInventory == bottomInventory) {
+            if (clickedInventory == bottomInventory && (!list.contains(DisabledInventoryClick.BOTTOM) && !list.contains(DisabledInventoryClick.BOTH))) {
                 if (action == InventoryAction.COLLECT_TO_CURSOR
                         || action == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                     event.setCancelled(true);
@@ -301,12 +308,6 @@ public class InventoryManager {
             }
 
             if (clickedInventory == topInventory) {
-                EventCreator<InventoryClickEvent> customEvent = (EventCreator<InventoryClickEvent>) mainInventory.getEvent(InventoryClickEvent.class);
-                if (customEvent != null) {
-                    customEvent.accept(event);
-                    return;
-                }
-
                 if (!hasContents(player.getUniqueId()))
                     return;
                 if (slot < 0 || (mainInventory.getInventoryOpenerType() == InventoryOpenerType.CHEST && slot > mainInventory.size()))
@@ -319,12 +320,15 @@ public class InventoryManager {
                     event.setCancelled(true);
                     return;
                 }
-                if(event.getClick() == ClickType.DOUBLE_CLICK) {
+
+                if (!list.contains(DisabledInventoryClick.TOP) && !list.contains(DisabledInventoryClick.BOTH)) {
+                    if (event.getClick() == ClickType.DOUBLE_CLICK) {
+                        event.setCancelled(true);
+                        return;
+                    }
                     event.setCancelled(true);
-                    return;
                 }
 
-                event.setCancelled(true);
 
                 contents.get(slot).ifPresent(item -> {
                     if (item.getConsumer() == null) {

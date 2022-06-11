@@ -4,7 +4,10 @@ import com.google.common.base.Preconditions;
 import de.tr7zw.nbtapi.NBTContainer;
 import de.tr7zw.nbtapi.NBTItem;
 import io.github.rysefoxx.content.IntelligentItem;
+import io.github.rysefoxx.enums.AnimatorDirection;
+import io.github.rysefoxx.enums.TimeSetting;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -27,14 +30,14 @@ public class SlideAnimation {
     private Object identifier;
     private InventoryContents contents;
     private boolean blockClickEvent = false;
-    private static JavaPlugin javaPlugin;
+    private static Plugin plugin;
 
     private final List<BukkitTask> task = new ArrayList<>();
 
     private final HashMap<Integer, Integer> timeHandler = new HashMap<>();
 
-    public static Builder builder(JavaPlugin plugin) {
-        javaPlugin = plugin;
+    public static Builder builder(Plugin plugin) {
+        SlideAnimation.plugin = plugin;
         return new Builder();
     }
 
@@ -309,8 +312,6 @@ public class SlideAnimation {
         public Builder item(IntelligentItem item) {
             ItemStack itemStack = item.getItemStack();
 
-
-            //Todo: Check
             NBTItem nbtItem = new NBTItem(itemStack);
             nbtItem.setString("RYSEINVENTORY_SLIDE_ANIMATION_KEY", UUID.randomUUID().toString());
 
@@ -339,9 +340,29 @@ public class SlideAnimation {
          * @param items
          * @return The Builder to perform further editing.
          */
+        public Builder items(IntelligentItem... items) {
+            return item(items);
+        }
+
+        /**
+         * Add multiple items that will appear animated in the inventory.
+         *
+         * @param items
+         * @return The Builder to perform further editing.
+         */
         public Builder item(List<IntelligentItem> items) {
             items.forEach(this::item);
             return this;
+        }
+
+        /**
+         * Add multiple items that will appear animated in the inventory.
+         *
+         * @param items
+         * @return The Builder to perform further editing.
+         */
+        public Builder items(List<IntelligentItem> items) {
+            return item(items);
         }
 
 
@@ -357,7 +378,7 @@ public class SlideAnimation {
         }
 
         /**
-         * This creates the animation class but does not start it yet! {@link SlideAnimation#animate(JavaPlugin, InventoryContents)}
+         * This creates the animation class but does not start it yet! {@link SlideAnimation#animate(InventoryContents)}
          *
          * @return The animation class
          * @throws IllegalArgumentException if no start position was specified, if no end position was specified, if period is empty or if items is empty.
@@ -382,10 +403,10 @@ public class SlideAnimation {
                 throw new IllegalArgumentException("No end positions were found. Please add end positions to make the animation work.");
             }
             if (this.items.isEmpty()) {
-                throw new IllegalArgumentException("No items were found for the animation. Please add items to be animated within the inventory.");
+                throw new IllegalArgumentException("No items were found. Please add items to make the animation work.");
             }
             if (this.direction == null) {
-                throw new NullPointerException("No animation direction was found. Please pass an animation direction.");
+                throw new NullPointerException("Direction is null. Please specify a direction for the animation.");
             }
             Preconditions.checkArgument(this.from.size() == this.to.size(), "from and to must have the same size");
             Preconditions.checkArgument(this.from.size() == this.items.size(), "from and items must have the same size");
@@ -407,11 +428,10 @@ public class SlideAnimation {
     /**
      * This starts the animation for the inventory.
      *
-     * @param plugin   Your main class that extends the JavaPlugin.
      * @param contents
      * @throws IllegalArgumentException if invalid data was passed in the builder.
      */
-    public void animate(JavaPlugin plugin, InventoryContents contents) throws IllegalArgumentException {
+    public void animate(InventoryContents contents) throws IllegalArgumentException {
         this.contents = contents;
         RyseInventory inventory = contents.pagination().inventory();
 
@@ -422,28 +442,40 @@ public class SlideAnimation {
             checkIfInvalid(from, to, inventory);
         }
 
-        animateByTyp(plugin);
+        animateByTyp();
     }
 
-    private void animateByTyp(JavaPlugin plugin) {
+    /**
+     * This starts the animation for the inventory.
+     * @param plugin   Your main class that extends the JavaPlugin.
+     * @param contents The inventory contents.
+     * @throws IllegalArgumentException if invalid data was passed in the builder.
+     * @deprecated Use {@link #animate(InventoryContents)} instead.
+     */
+    @Deprecated
+    public void animate(JavaPlugin plugin, InventoryContents contents) throws IllegalArgumentException {
+        animate(contents);
+    }
+
+    private void animateByTyp() {
         if (this.direction == AnimatorDirection.HORIZONTAL_LEFT_RIGHT || this.direction == AnimatorDirection.HORIZONTAL_RIGHT_LEFT) {
-            animateHorizontal(plugin);
+            animateHorizontal();
             return;
         }
         if (this.direction == AnimatorDirection.VERTICAL_UP_DOWN || this.direction == AnimatorDirection.VERTICAL_DOWN_UP) {
-            animateVertical(plugin);
+            animateVertical();
             return;
         }
         if (this.direction == AnimatorDirection.DIAGONAL_TOP_LEFT || this.direction == AnimatorDirection.DIAGONAL_BOTTOM_LEFT) {
-            animateDiagonalTopBottomLeft(plugin);
+            animateDiagonalTopBottomLeft();
             return;
         }
         if (this.direction == AnimatorDirection.DIAGONAL_TOP_RIGHT || this.direction == AnimatorDirection.DIAGONAL_BOTTOM_RIGHT) {
-            animateDiagonalTopBottomRight(plugin);
+            animateDiagonalTopBottomRight();
         }
     }
 
-    private void animateDiagonalTopBottomLeft(JavaPlugin plugin) {
+    private void animateDiagonalTopBottomLeft() {
         for (int i = 0; i < this.items.size(); i++) {
             boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
 
@@ -508,7 +540,7 @@ public class SlideAnimation {
         }
     }
 
-    private void animateDiagonalTopBottomRight(JavaPlugin plugin) {
+    private void animateDiagonalTopBottomRight() {
         for (int i = 0; i < this.items.size(); i++) {
             boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
 
@@ -573,7 +605,7 @@ public class SlideAnimation {
         }
     }
 
-    private void animateHorizontal(JavaPlugin plugin) {
+    private void animateHorizontal() {
         for (int i = 0; i < this.items.size(); i++) {
             boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
 
@@ -640,7 +672,7 @@ public class SlideAnimation {
         }
     }
 
-    private void animateVertical(JavaPlugin plugin) {
+    private void animateVertical() {
         for (int i = 0; i < this.items.size(); i++) {
             boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
 

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -30,7 +31,7 @@ public class Pagination implements Cloneable {
     private final RyseInventory inventory;
 
     private HashMap<Integer, HashMap<Integer, IntelligentItem>> pageItems;
-    private final HashMap<Integer, IntelligentItem> permanentItems;
+    private final ConcurrentHashMap<Integer, IntelligentItem> permanentItems;
 
     /**
      * Pagination constructor with a default size of 1 element per page.
@@ -41,7 +42,7 @@ public class Pagination implements Cloneable {
         this.itemsPerPage = 1;
         this.page = 0;
         this.items = new ArrayList<>();
-        this.permanentItems = new HashMap<>();
+        this.permanentItems = new ConcurrentHashMap<>();
         this.pageItems = new HashMap<>();
         this.pageItems.put(this.page, new HashMap<>());
     }
@@ -222,7 +223,7 @@ public class Pagination implements Cloneable {
         this.pageItems = items;
     }
 
-    protected HashMap<Integer, IntelligentItem> getPermanentItems() {
+    protected ConcurrentHashMap<Integer, IntelligentItem> getPermanentItems() {
         return permanentItems;
     }
 

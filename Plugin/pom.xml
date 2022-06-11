@@ -6,15 +6,30 @@
 
     <groupId>io.github.rysefoxx</groupId>
     <artifactId>RyseInventory-Plugin</artifactId>
-    <version>1.1.9-SNAPSHOT</version>
+    <version>1.2.1</version>
     <packaging>jar</packaging>
 
     <name>RyseInventory</name>
+    <description>Inventory System</description>
+    <url>https://github.com/Rysefoxx/RyseInventory</url>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
+
+    <developers>
+        <developer>
+            <id>Rysefoxx</id>
+            <name>Rysefoxx</name>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://github.com/Rysefoxx/RyseInventory/blob/master/LICENSE</url>
+        </license>
+    </licenses>
 
     <scm>
         <connection>scm:git:git@github.com:Rysefoxx/RyseInventory.git</connection>
@@ -138,9 +153,25 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.github.rysefoxx.v1_19</groupId>
+            <artifactId>RyseInventory-v1_19</artifactId>
+            <version>1.2.1</version>
+            <type>jar</type>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.github.rysefoxx.v1_18</groupId>
+            <artifactId>RyseInventory-v1_18</artifactId>
+            <version>1.2.1</version>
+            <type>jar</type>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>io.github.rysefoxx.v1_17</groupId>
             <artifactId>RyseInventory-v1_17</artifactId>
-            <version>1.1.9-SNAPSHOT</version>
+            <version>1.2.1</version>
             <type>jar</type>
             <scope>compile</scope>
             <optional>true</optional>
@@ -148,7 +179,7 @@
         <dependency>
             <groupId>io.github.rysefoxx.v1_16</groupId>
             <artifactId>RyseInventory-v1_16</artifactId>
-            <version>1.1.9-SNAPSHOT</version>
+            <version>1.2.1</version>
             <type>jar</type>
             <scope>compile</scope>
             <optional>true</optional>

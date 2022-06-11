@@ -3,12 +3,12 @@ package io.github.rysefoxx.pagination;
 import com.google.common.base.Preconditions;
 import io.github.rysefoxx.content.IntelligentItemAnimatorType;
 import io.github.rysefoxx.content.IntelligentItemColor;
-import io.github.rysefoxx.opener.InventoryOpenerType;
+import io.github.rysefoxx.enums.TimeSetting;
 import io.github.rysefoxx.util.VersionUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnegative;
@@ -35,9 +35,20 @@ public class IntelligentTitleAnimator {
     private String title;
     private RyseInventory inventory;
     private Object identifier;
+    private static Plugin plugin;
 
-    public static Builder builder() {
+    public static Builder builder(Plugin plugin) {
+        IntelligentTitleAnimator.plugin = plugin;
         return new Builder();
+    }
+
+    /**
+     * @deprecated Use {@link #builder(Plugin)} instead.
+     * @throws UnsupportedOperationException if called
+     */
+    @Deprecated
+    public static Builder builder() {
+        throw new UnsupportedOperationException("Use builder(Plugin) instead.");
     }
 
     public static class Builder {
@@ -226,20 +237,12 @@ public class IntelligentTitleAnimator {
         }
 
         /**
-         * This creates the animation class but does not start it yet! {@link IntelligentTitleAnimator#animate(JavaPlugin, Player)}
+         * This creates the animation class but does not start it yet! {@link IntelligentTitleAnimator#animate(Player)}
          *
          * @return The animation class
          * @throws IllegalArgumentException if frameColor is empty, if frames is empty or if no color has been assigned to a frame.
          */
         public IntelligentTitleAnimator build(InventoryContents contents) throws IllegalArgumentException {
-            InventoryOpenerType type = contents.pagination().inventory().getInventoryOpenerType();
-
-//            if (type != InventoryOpenerType.CHEST
-//                    && type != InventoryOpenerType.ENDER_CHEST
-//                    && type != InventoryOpenerType.DROPPER
-//                    && type != InventoryOpenerType.DISPENSER) {
-//                throw new IllegalStateException("The title animation is currently only available for Chest or EnderChest.");
-//            }
             if (this.preset != null) {
                 this.frames = this.preset.frames;
                 this.frameColor = this.preset.frameColor;
@@ -256,13 +259,12 @@ public class IntelligentTitleAnimator {
                 if (!this.frames.isEmpty()) {
                     throw new IllegalArgumentException("Anything less than inclusive with version 13 does not yet support titles with color. Accordingly, the code can be removed with #frame or #frames.");
                 }
-
             } else {
                 if (this.frameColor.isEmpty()) {
-                    throw new IllegalArgumentException("No colors have been defined yet!");
+                    throw new IllegalArgumentException("You must specify at least one frame with #color() or #colors()");
                 }
                 if (this.frames.isEmpty()) {
-                    throw new IllegalArgumentException("You need to set a possible pattern.");
+                    throw new IllegalArgumentException("No frames have been defined yet!");
                 }
 
                 for (String frame : this.frames) {
@@ -290,30 +292,38 @@ public class IntelligentTitleAnimator {
 
     /**
      * This starts the animation for the item.
-     *
-     * @param plugin Your main class that extends the JavaPlugin.
-     * @param player the player
      */
-    public void animate(JavaPlugin plugin, Player player) {
+    public void animate(Player player) {
         this.inventory.addTitleAnimator(this);
-        animateByType(plugin, player);
+        animateByType(player);
     }
 
-    private void animateByType(JavaPlugin plugin, Player player) {
+    /**
+     * This starts the animation for the item.
+     * @deprecated Use {@link IntelligentTitleAnimator#animate(Player)} instead.
+     * @param plugin Your main class that extends the Plugin.
+     * @param player the player
+     */
+    @Deprecated
+    public void animate(Plugin plugin, Player player) {
+        animate(player);
+    }
+
+    private void animateByType(Player player) {
         if (this.type == IntelligentItemAnimatorType.FULL_WORD) {
-            animateByFullWord(plugin, player);
+            animateByFullWord(player);
             return;
         }
         if (this.type == IntelligentItemAnimatorType.WORD_BY_WORD) {
-            animateWordByWord(plugin, player);
+            animateWordByWord(player);
             return;
         }
         if (type == IntelligentItemAnimatorType.FLASH) {
-            animateWithFlash(plugin, player);
+            animateWithFlash(player);
         }
     }
 
-    private void animateWithFlash(JavaPlugin plugin, Player player) {
+    private void animateWithFlash(Player player) {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(title).toCharArray();
             final List<String> framesCopy = frames;
@@ -369,7 +379,7 @@ public class IntelligentTitleAnimator {
         }, this.delay, this.period);
     }
 
-    private void animateByFullWord(JavaPlugin plugin, Player player) {
+    private void animateByFullWord(Player player) {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(title).toCharArray();
             final List<String> framesCopy = frames;
@@ -450,7 +460,7 @@ public class IntelligentTitleAnimator {
         }, this.delay, this.period);
     }
 
-    private void animateWordByWord(JavaPlugin plugin, Player player) {
+    private void animateWordByWord(Player player) {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(title).toCharArray();
             final List<String> framesCopy = frames;

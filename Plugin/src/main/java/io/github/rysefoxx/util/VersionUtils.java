@@ -11,16 +11,8 @@ public class VersionUtils {
     private static final String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
     private static final int subVersion = Integer.parseInt(version.replaceAll("_R\\d", "").replace("v", "").replaceFirst("1_", ""));
 
-    public static boolean is1Dot9() {
-        return subVersion == 9;
-    }
-
     public static int getSubVersion() {
         return subVersion;
-    }
-
-    public static String getVersion() {
-        return version;
     }
 
     public static boolean isAtleast16() {

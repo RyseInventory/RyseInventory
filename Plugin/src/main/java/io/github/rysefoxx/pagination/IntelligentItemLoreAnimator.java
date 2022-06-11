@@ -4,11 +4,12 @@ import com.google.common.base.Preconditions;
 import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.content.IntelligentItemAnimatorType;
 import io.github.rysefoxx.content.IntelligentItemColor;
+import io.github.rysefoxx.enums.TimeSetting;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnegative;
@@ -38,9 +39,20 @@ public class IntelligentItemLoreAnimator {
     private InventoryContents contents;
     private ItemStack itemStack;
     private Object identifier;
+    private static Plugin plugin;
 
-    public static Builder builder() {
+    public static Builder builder(Plugin plugin) {
+        IntelligentItemLoreAnimator.plugin = plugin;
         return new Builder();
+    }
+
+    /**
+     * @deprecated Use {@link #builder(Plugin)} instead.
+     * @throws UnsupportedOperationException if called
+     */
+    @Deprecated
+    public static Builder builder() {
+        throw new UnsupportedOperationException("Use builder(Plugin) instead.");
     }
 
     public static class Builder {
@@ -73,7 +85,7 @@ public class IntelligentItemLoreAnimator {
          * A frame is added to the index. The frame is used to change the color of the lore.
          *
          * @param index e.g 0 for the first line in the lore.
-         * @param frame e.g AABB (A and B must then each be defined with {@link IntelligentItemLoreAnimator#builder()#color(char, IntelligentItemColor)}).
+         * @param frame e.g AABB (A and B must then each be defined with {@link #color(char, IntelligentItemColor)}).
          * @return The Builder to perform further editing
          */
         public Builder lore(@Nonnegative int index, String frame) {
@@ -237,7 +249,7 @@ public class IntelligentItemLoreAnimator {
         }
 
         /**
-         * This creates the animation class but does not start it yet! {@link IntelligentItemLoreAnimator#animate(JavaPlugin)}
+         * This creates the animation class but does not start it yet! {@link IntelligentItemLoreAnimator#animate()}
          *
          * @return The animation class
          * @throws IllegalArgumentException if no slot was specified, if lore is empty, if frameColor is empty or if loreData is empty.
@@ -259,7 +271,7 @@ public class IntelligentItemLoreAnimator {
                 throw new NullPointerException("An IntelligentItem must be passed.");
             }
             if (this.lore == null) {
-                throw new NullPointerException("The given item has no lore.");
+                throw new NullPointerException("The lore of the item must not be null.");
             }
             if (this.lore.isEmpty()) {
                 throw new IllegalArgumentException("The passed item has an empty lore.");
@@ -268,16 +280,16 @@ public class IntelligentItemLoreAnimator {
                 throw new IllegalArgumentException("Please specify a slot where the item is located.");
             }
             if (this.frameColor.isEmpty()) {
-                throw new IllegalArgumentException("No colors have been defined yet!");
+                throw new IllegalArgumentException("Please specify a color for each frame.");
             }
             if (this.loreData.isEmpty()) {
-                throw new IllegalArgumentException("You need to set a possible pattern.");
+                throw new IllegalArgumentException("No lore data has been defined yet!");
             }
 
             for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
                 for (char c : entry.getValue().toCharArray()) {
                     if (frameColor.containsKey(c)) continue;
-                    throw new IllegalArgumentException("You created the frame " + entry.getValue() + ", but the letter " + c + " was not assigned a color.");
+                    throw new IllegalArgumentException("The pattern contains a character that is not defined: " + c+". Please define a color for this character.");
                 }
                 if ((entry.getKey() + 1) <= this.lore.size()) continue;
                 throw new IllegalArgumentException("You passed the index " + entry.getKey() + ", but the lore only has a size of " + this.lore.size() + ".");
@@ -303,30 +315,38 @@ public class IntelligentItemLoreAnimator {
 
     /**
      * This starts the animation for the item.
-     *
-     * @param plugin Your main class the JavaPlugin extended.
      */
-    public void animate(JavaPlugin plugin) {
+    public void animate() {
         this.inventory.addLoreAnimator(this);
-        animateByType(plugin);
+        animateByType();
     }
 
-    private void animateByType(JavaPlugin plugin) {
+    /**
+     * This starts the animation for the item.
+     * @deprecated Use {@link #animate()} instead.
+     * @param plugin Your main class the Plugin extended.
+     */
+    @Deprecated
+    public void animate(Plugin plugin) {
+        animate();
+    }
+
+    private void animateByType() {
         if (this.type == IntelligentItemAnimatorType.FULL_WORD) {
-            animateByFullWord(plugin);
+            animateByFullWord();
             return;
         }
         if (this.type == IntelligentItemAnimatorType.WORD_BY_WORD) {
-            animateWordByWord(plugin);
+            animateWordByWord();
             return;
 
         }
         if (type == IntelligentItemAnimatorType.FLASH) {
-            animateWithFlash(plugin);
+            animateWithFlash();
         }
     }
 
-    private void animateWithFlash(JavaPlugin plugin) {
+    private void animateWithFlash() {
         for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
             BukkitTask task;
             task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
@@ -380,7 +400,7 @@ public class IntelligentItemLoreAnimator {
 
     }
 
-    private void animateByFullWord(JavaPlugin plugin) {
+    private void animateByFullWord() {
         for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
             BukkitTask task;
             task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
@@ -465,7 +485,7 @@ public class IntelligentItemLoreAnimator {
         }
     }
 
-    private void animateWordByWord(JavaPlugin plugin) {
+    private void animateWordByWord() {
         for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
             BukkitTask task;
             task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {

@@ -1,4 +1,4 @@
-package io.github.rysefoxx.other;
+package io.github.rysefoxx.enums;
 
 /**
  * @author Rysefoxx | Rysefoxx#6772

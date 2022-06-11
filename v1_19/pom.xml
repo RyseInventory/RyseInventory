@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.rysefoxx.v1_16</groupId>
-    <artifactId>RyseInventory-v1_16</artifactId>
+    <groupId>io.github.rysefoxx.v1_19</groupId>
+    <artifactId>RyseInventory-v1_19</artifactId>
     <version>1.2.1</version>
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>io.github.rysefoxx</groupId>
         <artifactId>RyseInventory</artifactId>
+        <groupId>io.github.rysefoxx</groupId>
         <version>parent</version>
     </parent>
 
@@ -29,9 +29,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.destroystokyo.paper</groupId>
+            <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.16.4-R0.1-SNAPSHOT</version>
+            <version>1.19-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -43,5 +43,4 @@
             <optional>true</optional>
         </dependency>
     </dependencies>
-
 </project>

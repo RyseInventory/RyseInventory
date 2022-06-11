@@ -5,9 +5,11 @@ import io.github.rysefoxx.RyseInventoryPlugin;
 import io.github.rysefoxx.SlotIterator;
 import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.content.InventoryProvider;
-import io.github.rysefoxx.opener.InventoryOpenerType;
+import io.github.rysefoxx.enums.DisabledInventoryClick;
+import io.github.rysefoxx.enums.InventoryOpenerType;
+import io.github.rysefoxx.enums.InventoryOptions;
+import io.github.rysefoxx.enums.TimeSetting;
 import io.github.rysefoxx.other.EventCreator;
-import io.github.rysefoxx.other.InventoryOptions;
 import io.github.rysefoxx.util.TitleUpdater;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -15,7 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnegative;
 import java.util.*;
@@ -36,30 +38,31 @@ public class RyseInventory {
     private String title;
     private String titleHolder = "§e§oLoading§8...";
     private @Getter
-    Inventory sharedInventory;
+    Inventory inventory;
     private int delay = 0;
     private int openDelay = -1;
     private int period = 1;
     private int closeAfter = -1;
     private int loadDelay = -1;
     private int loadTitle = -1;
-    private boolean ignoreClickEvent;
+    private List<DisabledInventoryClick> ignoreClickEvent = new ArrayList<>();
     private boolean closeAble = true;
     private boolean transferData = true;
-    private boolean share;
     private boolean clearAndSafe;
     private List<InventoryOptions> options = new ArrayList<>();
     private final List<IntelligentItemNameAnimator> itemAnimator = new ArrayList<>();
+    private final List<IntelligentMaterialAnimator> materialAnimator = new ArrayList<>();
     private final List<IntelligentTitleAnimator> titleAnimator = new ArrayList<>();
     private final List<IntelligentItemLoreAnimator> loreAnimator = new ArrayList<>();
     private SlideAnimation slideAnimator = null;
     private Object identifier;
-    private JavaPlugin plugin;
+    private Plugin plugin;
     private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
     private final HashMap<UUID, Inventory> privateInventory = new HashMap<>();
     private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
     protected final List<Player> delayed = new ArrayList<>();
 
+    private boolean backward = false;
 
     /**
      * This method allows you to retrieve the animation using the animation identifier.
@@ -92,6 +95,17 @@ public class RyseInventory {
      */
     public Optional<IntelligentTitleAnimator> getTitleAnimation(Object identifier) {
         return this.titleAnimator.stream().filter(animator -> Objects.equals(animator.getIdentifier(), identifier)).findFirst();
+    }
+
+    /**
+     * This method allows you to retrieve the animation using the animation identifier.
+     *
+     * @param identifier The ID to identify
+     * @return null if no animation with the ID could be found.
+     * @implNote Only works if the animation has also been assigned an identifier.
+     */
+    public Optional<IntelligentMaterialAnimator> getMaterialAnimator(Object identifier) {
+        return this.materialAnimator.stream().filter(animator -> Objects.equals(animator.getIdentifier(), identifier)).findFirst();
     }
 
     /**
@@ -235,32 +249,12 @@ public class RyseInventory {
     }
 
     private Inventory initInventory(Player player, @Nonnegative int page, String[] keys, Object[] values) {
-        Optional<RyseInventory> savedInventory = this.manager.getInventory(player.getUniqueId());
-
-        savedInventory.ifPresent(mainInventory -> {
-            this.manager.setLastInventory(player.getUniqueId(), mainInventory);
-            this.manager.removeInventory(player.getUniqueId());
-
-            if (mainInventory.playerInventory.containsKey(player.getUniqueId())) {
-                player.getInventory().setContents(mainInventory.playerInventory.remove(player.getUniqueId()));
-            }
-        });
-
+        finishSavedInventory(player);
         removeActiveAnimations();
 
-        if (this.clearAndSafe) {
-            this.playerInventory.put(player.getUniqueId(), player.getInventory().getContents());
-            player.getInventory().clear();
-        }
+        clearInventoryWhenNeeded(player);
 
-        Inventory inventory;
-
-        if (this.inventoryOpenerType == InventoryOpenerType.CHEST) {
-            inventory = Bukkit.createInventory(null, this.size == -1 ? this.rows * this.columns : this.size, this.loadTitle == -1 ? this.title : this.titleHolder);
-        } else {
-            inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), this.loadTitle == -1 ? this.title : this.titleHolder);
-        }
-
+        Inventory inventory = setupInventory();
 
         InventoryContents contents = new InventoryContents(player, this);
         Optional<InventoryContents> optional = this.manager.getContents(player.getUniqueId());
@@ -268,26 +262,14 @@ public class RyseInventory {
 
         contents.pagination().setPage(page);
 
-        if (this.transferData) {
-            optional.ifPresent(savedContents -> savedContents.transferData(contents));
-        }
-        if (keys != null && values != null) {
-            Arrays.stream(keys).filter(Objects::nonNull).forEach(s -> Arrays.stream(values).filter(Objects::nonNull).forEach(o -> contents.setData(s, o)));
-        }
-
-        this.manager.setContents(player.getUniqueId(), contents);
-
-        if (this.slideAnimator == null) {
-            this.provider.init(player, contents);
-        } else {
-            this.provider.init(player, contents, this.slideAnimator);
-        }
+        transferData(optional.orElse(null), contents, keys, values);
+        setupData(player, inventory, contents);
+        initProvider(player, contents);
 
 
         if (optional.isPresent() && optional.get().equals(contents)) return inventory;
 
         this.manager.stopUpdate(player.getUniqueId());
-
 
         Pagination pagination = contents.pagination();
         splitInventory(contents);
@@ -297,42 +279,11 @@ public class RyseInventory {
             throw new IllegalArgumentException("There is no " + page + " side. Last page is " + pagination.lastPage());
         }
 
-        if (this.loadDelay != -1) {
-            int finalPage = page;
-            Bukkit.getScheduler().runTaskLater(this.plugin, () -> load(pagination, inventory, player, finalPage), this.loadDelay);
-        } else {
-            load(pagination, inventory, player, page);
-        }
+        loadDelay(page, pagination, player);
+        closeInventoryWhenEnabled(player);
 
-        if (this.loadTitle != -1) {
-            Bukkit.getScheduler().runTaskLater(this.plugin, () -> updateTitle(player, this.title), this.loadTitle);
-        }
-
-        closeAfterScheduler(player);
-
-        Bukkit.getScheduler().runTask(this.plugin, () -> {
-            if (this.openDelay == -1 || this.delayed.contains(player)) {
-                player.openInventory(inventory);
-                this.manager.invokeScheduler(player, this);
-                this.manager.setInventory(player.getUniqueId(), this);
-            } else {
-                if (!this.delayed.contains(player)) {
-                    Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
-                        player.openInventory(inventory);
-                        this.manager.invokeScheduler(player, this);
-                        this.manager.setInventory(player.getUniqueId(), this);
-                    }, this.openDelay);
-                    this.delayed.add(player);
-                }
-            }
-        });
-
-        if (this.share) {
-            this.sharedInventory = inventory;
-        } else {
-            this.privateInventory.put(player.getUniqueId(), inventory);
-        }
-        return this.sharedInventory;
+        finalizeInventoryAndOpen(player);
+        return inventory;
     }
 
     /**
@@ -352,7 +303,7 @@ public class RyseInventory {
      *
      * @param player   The Player
      * @param newTitle The new title
-     * @apiNote https://www.spigotmc.org/threads/change-inventory-title-reflection-1-8-1-18.489966/
+     * @author <a href="https://www.spigotmc.org/threads/change-inventory-title-reflection-1-8-1-18.489966/">Original code (Slightly Modified)</a>
      */
     public void updateTitle(Player player, String newTitle) {
         TitleUpdater.updateTitle(player, newTitle);
@@ -366,7 +317,7 @@ public class RyseInventory {
         return this.size == -1 ? this.rows * this.columns : this.size;
     }
 
-    private void splitInventory(InventoryContents contents) {
+    protected void splitInventory(InventoryContents contents) {
         Pagination pagination = contents.pagination();
         SlotIterator iterator = contents.iterator();
 
@@ -442,7 +393,7 @@ public class RyseInventory {
         SlotIterator iterator = Objects.requireNonNull(contents.iterator());
 
         int toAdd = 0;
-        while (contents.getInPage(page, calculatedSlot).isPresent() || iterator.getBlackList().contains(calculatedSlot)) {
+        while (!contents.firstEmpty().isPresent() ? iterator.getBlackList().contains(calculatedSlot) : contents.getInPage(page, calculatedSlot).isPresent() || iterator.getBlackList().contains(calculatedSlot)) {
             if (calculatedSlot >= 53) {
                 calculatedSlot = startSlot;
                 page++;
@@ -474,6 +425,17 @@ public class RyseInventory {
 
     protected void addItemAnimator(IntelligentItemNameAnimator animator) {
         this.itemAnimator.add(animator);
+    }
+
+    protected void addMaterialAnimator(IntelligentMaterialAnimator animator) {
+        this.materialAnimator.add(animator);
+    }
+
+    protected void removeMaterialAnimator(IntelligentMaterialAnimator animator) {
+        this.materialAnimator.remove(animator);
+
+        if (!Bukkit.getScheduler().isQueued(animator.getTask().getTaskId())) return;
+        animator.getTask().cancel();
     }
 
     protected void removeItemAnimator(IntelligentItemNameAnimator animator) {
@@ -536,7 +498,6 @@ public class RyseInventory {
      *
      * @return The Builder object with several methods
      */
-
     public static Builder builder() {
         return new Builder();
     }
@@ -565,8 +526,7 @@ public class RyseInventory {
         private InventoryProvider provider;
         private Object identifier;
         private int rows;
-        private boolean ignoreClickEvent;
-        private boolean share;
+        private final List<DisabledInventoryClick> ignoreClickEvent = new ArrayList<>();
         private boolean clearAndSafe;
 
         /**
@@ -592,6 +552,7 @@ public class RyseInventory {
             return this;
         }
 
+
         /**
          * With this method you can automatically set when to close the inventory.
          *
@@ -599,6 +560,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          * @deprecated You should now use the {@link #closeAfter(int, TimeSetting)} method.
          */
+        @Deprecated
         public Builder closeAfter(@Nonnegative int time) {
             this.closeAfter = time * 20;
             return this;
@@ -649,17 +611,6 @@ public class RyseInventory {
          */
         public Builder type(InventoryOpenerType type) {
             this.inventoryOpenerType = type;
-            return this;
-        }
-
-        /**
-         * Changes within the inventory are the same for all players if share is true.
-         *
-         * @return The Inventory Builder to set additional options.
-         * @apiNote By default, the inventory is not shared.
-         */
-        public Builder share() {
-            this.share = true;
             return this;
         }
 
@@ -738,6 +689,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          * @deprecated You should now use the {@link #delay(int, TimeSetting)} method.
          */
+        @Deprecated
         public Builder delay(@Nonnegative int seconds) {
             this.delay = seconds * 20;
             return this;
@@ -762,6 +714,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          * @deprecated You should now use the {@link #openDelay(int, TimeSetting)} method.
          */
+        @Deprecated
         public Builder openDelay(@Nonnegative int seconds) {
             this.openDelay = seconds * 20;
             return this;
@@ -836,7 +789,7 @@ public class RyseInventory {
         /**
          * Based on this animation, the items can appear animated when opening the inventory.
          *
-         * @param animation {@link  SlideAnimation#builder(JavaPlugin)}
+         * @param animation {@link  SlideAnimation#builder(Plugin)}
          * @return The Inventory Builder to set additional options.
          */
         public Builder animation(SlideAnimation animation) {
@@ -868,13 +821,23 @@ public class RyseInventory {
         }
 
         /**
-         * Ignores the InventoryClickEvent
+         * Set what should be ignored in the InventoryClickEvent.
          *
          * @return The Inventory Builder to set additional options.
-         * @apiNote A self-created event via #listener is not ignored.
          */
+        @Deprecated
         public Builder ignoreClickEvent() {
-            this.ignoreClickEvent = true;
+            this.ignoreClickEvent.add(DisabledInventoryClick.BOTH);
+            return this;
+        }
+
+        /**
+         * Set what should be ignored in the InventoryClickEvent.
+         *
+         * @return The Inventory Builder to set additional options.
+         */
+        public Builder ignoreClickEvent(DisabledInventoryClick... clicks) {
+            this.ignoreClickEvent.addAll(Arrays.asList(clicks));
             return this;
         }
 
@@ -885,7 +848,7 @@ public class RyseInventory {
          * @return the RyseInventory
          * @throws IllegalStateException if manager is null
          */
-        public RyseInventory build(JavaPlugin plugin) throws IllegalStateException {
+        public RyseInventory build(Plugin plugin) throws IllegalStateException {
             if (this.manager == null) {
                 throw new IllegalStateException("No manager could be found. Make sure you pass a manager or the plugin is loaded as plugin.");
             }
@@ -911,7 +874,6 @@ public class RyseInventory {
             inventory.transferData = this.transferData;
             inventory.inventoryOpenerType = this.inventoryOpenerType;
             inventory.titleHolder = this.titleHolder;
-            inventory.share = this.share;
             inventory.clearAndSafe = this.clearAndSafe;
             inventory.options = this.options;
             inventory.slideAnimator = this.slideAnimation;
@@ -947,10 +909,11 @@ public class RyseInventory {
         return this.closeAble;
     }
 
+
     /**
-     * @return if the InventoryClickEvent should be ignored
+     * @return A list of DisabledInventoryClick objects.
      */
-    public boolean isIgnoreClickEvent() {
+    public List<DisabledInventoryClick> getIgnoreClickEvent() {
         return this.ignoreClickEvent;
     }
 
@@ -996,14 +959,12 @@ public class RyseInventory {
      * @return the correct inventory based on whether it is split or not.
      */
     protected Optional<Inventory> inventoryBasedOnOption(UUID uuid) {
-        if (this.share) return Optional.ofNullable(this.sharedInventory);
-
         if (uuid == null) return Optional.empty();
         if (!this.privateInventory.containsKey(uuid)) return Optional.empty();
         return Optional.ofNullable(this.privateInventory.get(uuid));
     }
 
-    private void load(Pagination pagination, Inventory inventory, Player player, @Nonnegative int page) {
+    protected void load(Pagination pagination, Inventory inventory, Player player, @Nonnegative int page) {
         pagination.getPermanentItems().forEach((integer, item) -> {
             if (integer >= inventory.getSize()) return;
             if (!item.isCanSee()) {
@@ -1022,7 +983,7 @@ public class RyseInventory {
         });
     }
 
-    private void closeAfterScheduler(Player player) {
+    private void closeInventoryWhenEnabled(Player player) {
         if (this.closeAfter == -1) return;
         Bukkit.getScheduler().runTaskLater(this.plugin, () -> close(player), this.closeAfter);
     }
@@ -1040,6 +1001,103 @@ public class RyseInventory {
             IntelligentItemLoreAnimator animator = this.loreAnimator.remove(i);
             removeLoreAnimator(animator);
         }
+        for (int i = 0; i < this.materialAnimator.size(); i++) {
+            IntelligentMaterialAnimator animator = this.materialAnimator.remove(i);
+            removeMaterialAnimator(animator);
+        }
         removeSlideAnimator();
+    }
+
+    protected void setBackward(boolean bool) {
+        this.backward = bool;
+    }
+
+    protected InventoryManager getManager() {
+        return manager;
+    }
+
+    private void finishSavedInventory(Player player) {
+        Optional<RyseInventory> savedInventory = this.manager.getInventory(player.getUniqueId());
+
+        savedInventory.ifPresent(mainInventory -> {
+            if (!this.backward) {
+                this.manager.setLastInventory(player.getUniqueId(), mainInventory);
+            }
+            this.manager.removeInventory(player.getUniqueId());
+
+            if (mainInventory.playerInventory.containsKey(player.getUniqueId())) {
+                player.getInventory().setContents(mainInventory.playerInventory.remove(player.getUniqueId()));
+            }
+        });
+    }
+
+    private void clearInventoryWhenNeeded(Player player) {
+        if (!this.clearAndSafe) return;
+
+        this.playerInventory.put(player.getUniqueId(), player.getInventory().getContents());
+        player.getInventory().clear();
+    }
+
+    private Inventory setupInventory() {
+        if (this.inventoryOpenerType == InventoryOpenerType.CHEST) {
+            return Bukkit.createInventory(null, this.size == -1 ? this.rows * this.columns : this.size, this.loadTitle == -1 ? this.title : this.titleHolder);
+        }
+        return inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), this.loadTitle == -1 ? this.title : this.titleHolder);
+    }
+
+    private void transferData(InventoryContents oldContents, InventoryContents newContents, String[] keys, Object[] values) {
+        if (this.transferData && oldContents != null)
+            oldContents.transferData(newContents);
+
+        if (keys != null && values != null) {
+            Arrays.stream(keys).filter(Objects::nonNull).forEach(s -> Arrays.stream(values).filter(Objects::nonNull).forEach(o -> newContents.setData(s, o)));
+        }
+    }
+
+    private void setupData(Player player, Inventory inventory, InventoryContents contents) {
+        this.manager.setContents(player.getUniqueId(), contents);
+
+        this.inventory = inventory;
+        this.privateInventory.put(player.getUniqueId(), inventory);
+    }
+
+    private void initProvider(Player player, InventoryContents contents) {
+        if (this.slideAnimator == null) {
+            this.provider.init(player, contents);
+            return;
+        }
+        this.provider.init(player, contents, this.slideAnimator);
+
+    }
+
+    private void loadDelay(int page, Pagination pagination, Player player) {
+        if (this.loadDelay != -1) {
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> load(pagination, inventory, player, page), this.loadDelay);
+        } else {
+            load(pagination, inventory, player, page);
+        }
+
+        if (this.loadTitle != -1) {
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> updateTitle(player, this.title), this.loadTitle);
+        }
+    }
+
+    private void finalizeInventoryAndOpen(Player player) {
+        Bukkit.getScheduler().runTask(this.plugin, () -> {
+            if (this.openDelay == -1 || this.delayed.contains(player)) {
+                player.openInventory(inventory);
+                this.manager.invokeScheduler(player, this);
+                this.manager.setInventory(player.getUniqueId(), this);
+            } else {
+                if (!this.delayed.contains(player)) {
+                    Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+                        player.openInventory(inventory);
+                        this.manager.invokeScheduler(player, this);
+                        this.manager.setInventory(player.getUniqueId(), this);
+                    }, this.openDelay);
+                    this.delayed.add(player);
+                }
+            }
+        });
     }
 }
