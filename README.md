@@ -7,7 +7,7 @@ This API is used to create and manage inventories in Minecraft more easily. Acro
 # Features
  - Update 1.1.8 now has an integrated animation system.
  - You can change the inventory title during operation.
- - You can select 18 different inventory types.
+ - You can select 9 different inventory types.
  - You can prevent the inventory from being closed.
  - Own events based on the inventory.
  - You can adjust the delay of the scheduler.
@@ -20,7 +20,6 @@ This API is used to create and manage inventories in Minecraft more easily. Acro
  - You can directly specify on the Intelligent Item whether the player can interact with the item and look at it. [What do you mean?](https://github.com/Rysefoxx/RyseInventory/wiki/IntelligentItem)
  - You can set some items to be visible only on certain pages.
  - Page system
- - ...
 
 # Install
 
@@ -32,28 +31,39 @@ _Make sure you shade the API._
 ### Gradle (Groovy) 
 ```
 repositories {
-    mavenLocal()
+    mavenCentral()
+    maven {
+        url "https://s01.oss.sonatype.org/content/groups/public/"
+    }
 }
 dependencies {
-    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.1.9-SNAPSHOT'
+    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.2.1'
 }
 ```
 ### Gradle (Kotlin) 
 ```
-repositories {
-    mavenLocal()
+repositories 
+    mavenCentral()
+    maven {url = uri("https://s01.oss.sonatype.org/content/groups/public/")}
 }
 dependencies {
-    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.1.9-SNAPSHOT")
+    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.2.1")
 }
 ```
 
 ### Maven
 ```xml
+<repositories>
+    <repository>
+        <id>sonatype</id>
+        <url>"https://s01.oss.sonatype.org/content/groups/public/"</url>
+    </repository>
+</repositories>
+
 <dependency>
   <groupId>io.github.rysefoxx</groupId>
   <artifactId>RyseInventory-Plugin</artifactId>
-  <version>1.1.9-SNAPSHOT</version>
+  <version>1.2.1</version>
 </dependency>
 ```
 
@@ -64,11 +74,12 @@ dependencies {
 # You need help?
 * Everything important is described in the wiki. [Click here](https://github.com/Rysefoxx/RyseInventory/wiki)
 
-# Todo
+# Examples
+* Soon
 
 
 # License
-This template is licensed under the MIT License.
+This API is licensed under the MIT License.
 See [**LICENSE**](https://github.com/Rysefoxx/RyseInventory/blob/master/LICENSE)
 
 Copyright (c) 2022 Rysefoxx
