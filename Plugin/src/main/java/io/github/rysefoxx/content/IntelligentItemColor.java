@@ -1,15 +1,10 @@
 package io.github.rysefoxx.content;
 
 import io.github.rysefoxx.IntelligentItemColorWrapper;
-import io.github.rysefoxx.util.ItemBuilder;
 import io.github.rysefoxx.util.VersionUtils;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnegative;
-import java.awt.*;
 
 /**
  * @author Rysefoxx(Rysefoxx # 6772) | eazypaulcode(eazypaulCode#0001) |

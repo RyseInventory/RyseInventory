@@ -6,6 +6,7 @@ import de.tr7zw.nbtapi.NBTItem;
 import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.enums.AnimatorDirection;
 import io.github.rysefoxx.enums.TimeSetting;
+import io.github.rysefoxx.util.SlotUtils;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -78,7 +79,7 @@ public class SlideAnimation {
         /**
          * Defines how the item should be animated in the inventory.
          *
-         * @param direction
+         * @param direction The direction of the animation.
          * @return The Builder to perform further editing.
          */
         public Builder direction(AnimatorDirection direction) {
@@ -89,8 +90,8 @@ public class SlideAnimation {
         /**
          * Specifies the delay before the animation starts.
          *
-         * @param time
-         * @param setting
+         * @param time The delay.
+         * @param setting The time setting.
          * @return The Builder to perform further editing.
          */
         public Builder delay(@Nonnegative int time, TimeSetting setting) {
@@ -101,8 +102,8 @@ public class SlideAnimation {
         /**
          * Sets the speed of the animation in the scheduler.
          *
-         * @param time
-         * @param setting
+         * @param time The period.
+         * @param setting The time setting.
          * @return The Builder to perform further editing.
          */
         public Builder period(@Nonnegative int time, TimeSetting setting) {
@@ -113,7 +114,7 @@ public class SlideAnimation {
         /**
          * Adds a single start position.
          *
-         * @param slot
+         * @param slot The slot to start at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot is > 53
          */
@@ -128,8 +129,8 @@ public class SlideAnimation {
         /**
          * Adds a single start position.
          *
-         * @param row
-         * @param column
+         * @param row The row to start at.
+         * @param column The column to start at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
@@ -141,14 +142,14 @@ public class SlideAnimation {
                 throw new IllegalArgumentException("The column must not be larger than 9.");
             }
 
-            this.from.add(row * 9 + column);
+            this.from.add(SlotUtils.toSlot(row, column));
             return this;
         }
 
         /**
          * Add multiple start positions.
          *
-         * @param slots
+         * @param slots The slots to start at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot is > 53
          */
@@ -162,8 +163,8 @@ public class SlideAnimation {
         /**
          * Add multiple start positions.
          *
-         * @param rows
-         * @param columns
+         * @param rows The rows to start at.
+         * @param columns The columns to start at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
@@ -181,7 +182,7 @@ public class SlideAnimation {
         /**
          * Add multiple start positions.
          *
-         * @param slots
+         * @param slots The slots to start at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot is > 53
          * @apiNote We recommend passing the list from small to large. e.g .from(Arrays.asList(1, 1, 4)) NOT .from(Arrays.asList(4,1,1))
@@ -194,8 +195,8 @@ public class SlideAnimation {
         /**
          * Add multiple start positions.
          *
-         * @param rows
-         * @param columns
+         * @param rows The rows to start at.
+         * @param columns The columns to start at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
@@ -211,7 +212,7 @@ public class SlideAnimation {
         /**
          * Adds a single end position
          *
-         * @param slot
+         * @param slot The slot to end at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot is > 53
          */
@@ -226,8 +227,8 @@ public class SlideAnimation {
         /**
          * Adds a single end position.
          *
-         * @param row
-         * @param column
+         * @param row The row to end at.
+         * @param column The column to end at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
@@ -239,14 +240,14 @@ public class SlideAnimation {
                 throw new IllegalArgumentException("The column must not be larger than 9.");
             }
 
-            this.to.add(row * 9 + column);
+            this.to.add(SlotUtils.toSlot(row, column));
             return this;
         }
 
         /**
          * Add multiple end positions.
          *
-         * @param slots
+         * @param slots The slots to end at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot is > 53
          */
@@ -260,8 +261,8 @@ public class SlideAnimation {
         /**
          * Add multiple end positions.
          *
-         * @param rows
-         * @param columns
+         * @param rows The rows to end at.
+         * @param columns The columns to end at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
@@ -277,7 +278,7 @@ public class SlideAnimation {
         /**
          * Add multiple end positions.
          *
-         * @param slots
+         * @param slots The slots to end at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot is > 53
          */
@@ -289,8 +290,8 @@ public class SlideAnimation {
         /**
          * Add multiple end positions.
          *
-         * @param rows
-         * @param columns
+         * @param rows The rows to end at.
+         * @param columns The columns to end at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
@@ -306,7 +307,7 @@ public class SlideAnimation {
         /**
          * Add an item, which will appear animated in the inventory.
          *
-         * @param item
+         * @param item The item to add.
          * @return The Builder to perform further editing.
          */
         public Builder item(IntelligentItem item) {
@@ -324,7 +325,7 @@ public class SlideAnimation {
         /**
          * Add multiple items that will appear animated in the inventory.
          *
-         * @param items
+         * @param items The items to add.
          * @return The Builder to perform further editing.
          */
         public Builder item(IntelligentItem... items) {
@@ -337,7 +338,7 @@ public class SlideAnimation {
         /**
          * Add multiple items that will appear animated in the inventory.
          *
-         * @param items
+         * @param items The items to add.
          * @return The Builder to perform further editing.
          */
         public Builder items(IntelligentItem... items) {
@@ -347,7 +348,7 @@ public class SlideAnimation {
         /**
          * Add multiple items that will appear animated in the inventory.
          *
-         * @param items
+         * @param items The items to add.
          * @return The Builder to perform further editing.
          */
         public Builder item(List<IntelligentItem> items) {
@@ -358,7 +359,7 @@ public class SlideAnimation {
         /**
          * Add multiple items that will appear animated in the inventory.
          *
-         * @param items
+         * @param items The items to add.
          * @return The Builder to perform further editing.
          */
         public Builder items(List<IntelligentItem> items) {
@@ -428,7 +429,7 @@ public class SlideAnimation {
     /**
      * This starts the animation for the inventory.
      *
-     * @param contents
+     * @param contents The inventory contents to animate.
      * @throws IllegalArgumentException if invalid data was passed in the builder.
      */
     public void animate(InventoryContents contents) throws IllegalArgumentException {

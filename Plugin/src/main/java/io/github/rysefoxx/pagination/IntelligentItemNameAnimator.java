@@ -462,7 +462,7 @@ public class IntelligentItemNameAnimator {
 
                 String letter = String.valueOf(this.letters[this.subStringIndex]);
                 String rest = this.currentNameFixed.substring(this.subStringIndex + 1);
-                boolean addColor = !letter.isEmpty();
+                boolean addColor = !letter.equals(" ");
 
                 StringBuilder newString = new StringBuilder();
                 if (this.subStringIndex != 0)
@@ -534,7 +534,7 @@ public class IntelligentItemNameAnimator {
                     }
                 }
                 String letter = String.valueOf(this.letters[this.subStringIndex]);
-                boolean addColor = !letter.isEmpty();
+                boolean addColor = !letter.equals(" ");
 
                 char singleFrame = currentFrames[this.colorState];
                 IntelligentItemColor itemColor = frameColor.get(singleFrame);

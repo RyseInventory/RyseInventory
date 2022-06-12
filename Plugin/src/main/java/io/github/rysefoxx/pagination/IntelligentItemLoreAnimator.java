@@ -47,8 +47,8 @@ public class IntelligentItemLoreAnimator {
     }
 
     /**
-     * @deprecated Use {@link #builder(Plugin)} instead.
      * @throws UnsupportedOperationException if called
+     * @deprecated Use {@link #builder(Plugin)} instead.
      */
     @Deprecated
     public static Builder builder() {
@@ -181,7 +181,7 @@ public class IntelligentItemLoreAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder colors(List<Character> frames, IntelligentItemColor ... color) throws IllegalArgumentException {
+        public Builder colors(List<Character> frames, IntelligentItemColor... color) throws IllegalArgumentException {
             Preconditions.checkArgument(frames.size() == color.length, "Frames must have the same length as color.");
 
             for (int i = 0; i < frames.size(); i++) {
@@ -198,7 +198,7 @@ public class IntelligentItemLoreAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder colors(Character [] frames, IntelligentItemColor ... color) {
+        public Builder colors(Character[] frames, IntelligentItemColor... color) {
             Preconditions.checkArgument(frames.length == color.length, "Frames must have the same length as color.");
 
             for (int i = 0; i < frames.length; i++) {
@@ -215,7 +215,7 @@ public class IntelligentItemLoreAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder colors(Character [] frames, List<IntelligentItemColor> color) {
+        public Builder colors(Character[] frames, List<IntelligentItemColor> color) {
             Preconditions.checkArgument(frames.length == color.size(), "Frames must have the same length as color.");
 
             for (int i = 0; i < frames.length; i++) {
@@ -289,7 +289,7 @@ public class IntelligentItemLoreAnimator {
             for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
                 for (char c : entry.getValue().toCharArray()) {
                     if (frameColor.containsKey(c)) continue;
-                    throw new IllegalArgumentException("The pattern contains a character that is not defined: " + c+". Please define a color for this character.");
+                    throw new IllegalArgumentException("The pattern contains a character that is not defined: " + c + ". Please define a color for this character.");
                 }
                 if ((entry.getKey() + 1) <= this.lore.size()) continue;
                 throw new IllegalArgumentException("You passed the index " + entry.getKey() + ", but the lore only has a size of " + this.lore.size() + ".");
@@ -323,8 +323,9 @@ public class IntelligentItemLoreAnimator {
 
     /**
      * This starts the animation for the item.
-     * @deprecated Use {@link #animate()} instead.
+     *
      * @param plugin Your main class the Plugin extended.
+     * @deprecated Use {@link #animate()} instead.
      */
     @Deprecated
     public void animate(Plugin plugin) {
@@ -448,7 +449,7 @@ public class IntelligentItemLoreAnimator {
 
                     String letter = String.valueOf(letters[this.subStringIndex]);
                     String rest = currentLoreFixed.substring(this.subStringIndex + 1);
-                    boolean addColor = !letter.isEmpty();
+                    boolean addColor = !letter.equals(" ");
 
                     StringBuilder newString = new StringBuilder();
                     if (this.subStringIndex != 0)
@@ -528,7 +529,7 @@ public class IntelligentItemLoreAnimator {
                         }
                     }
                     String letter = String.valueOf(letters[this.subStringIndex]);
-                    boolean addColor = !letter.isEmpty();
+                    boolean addColor = !letter.equals(" ");
 
                     char singleFrame = currentFrames[this.colorState];
                     IntelligentItemColor itemColor = frameColor.get(singleFrame);

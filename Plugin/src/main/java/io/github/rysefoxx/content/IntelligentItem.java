@@ -1,6 +1,5 @@
 package io.github.rysefoxx.content;
 
-import io.github.rysefoxx.pagination.InventoryContents;
 import lombok.Getter;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;

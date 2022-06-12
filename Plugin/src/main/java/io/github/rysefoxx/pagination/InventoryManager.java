@@ -1,5 +1,7 @@
 package io.github.rysefoxx.pagination;
 
+import io.github.rysefoxx.content.IntelligentItem;
+import io.github.rysefoxx.enums.CloseReason;
 import io.github.rysefoxx.enums.DisabledInventoryClick;
 import io.github.rysefoxx.enums.InventoryOpenerType;
 import io.github.rysefoxx.enums.InventoryOptions;
@@ -274,12 +276,16 @@ public class InventoryManager {
         public void onInventoryClick(InventoryClickEvent event) {
             if (!(event.getWhoClicked() instanceof Player)) return;
             Player player = (Player) event.getWhoClicked();
-            if (event.getClickedInventory() == null) return;
 
             if (!hasInventory(player.getUniqueId()))
                 return;
-
             RyseInventory mainInventory = inventories.get(player.getUniqueId());
+
+            if (event.getClickedInventory() == null) {
+                if (mainInventory.getCloseReasons().contains(CloseReason.CLICK_OUTSIDE))
+                    player.closeInventory();
+                return;
+            }
 
             EventCreator<InventoryClickEvent> customEvent = (EventCreator<InventoryClickEvent>) mainInventory.getEvent(InventoryClickEvent.class);
             if (customEvent != null) {
@@ -296,6 +302,10 @@ public class InventoryManager {
             ClickType clickType = event.getClick();
 
             if (clickedInventory == bottomInventory && (!list.contains(DisabledInventoryClick.BOTTOM) && !list.contains(DisabledInventoryClick.BOTH))) {
+                if (mainInventory.getCloseReasons().contains(CloseReason.CLICK_BOTTOM_INVENTORY)) {
+                    mainInventory.close(player);
+                    return;
+                }
                 if (action == InventoryAction.COLLECT_TO_CURSOR
                         || action == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                     event.setCancelled(true);
@@ -305,13 +315,15 @@ public class InventoryManager {
                     event.setCancelled(true);
                     return;
                 }
+                return;
             }
 
             if (clickedInventory == topInventory) {
                 if (!hasContents(player.getUniqueId()))
                     return;
-                if (slot < 0 || (mainInventory.getInventoryOpenerType() == InventoryOpenerType.CHEST && slot > mainInventory.size()))
+                if (slot < 0 || (mainInventory.getInventoryOpenerType() == InventoryOpenerType.CHEST && slot > mainInventory.size())) {
                     return;
+                }
 
                 InventoryContents contents = content.get(player.getUniqueId());
                 SlideAnimation animation = mainInventory.getSlideAnimator();
@@ -329,8 +341,15 @@ public class InventoryManager {
                     event.setCancelled(true);
                 }
 
+                Optional<IntelligentItem> optional = contents.get(slot);
 
-                contents.get(slot).ifPresent(item -> {
+                if (!optional.isPresent() && mainInventory.getCloseReasons().contains(CloseReason.CLICK_EMPTY_SLOT)) {
+                    event.setCancelled(true);
+                    mainInventory.close(player);
+                    return;
+                }
+
+                optional.ifPresent(item -> {
                     if (item.getConsumer() == null) {
                         event.setCancelled(false);
                         return;
@@ -344,7 +363,6 @@ public class InventoryManager {
                     player.updateInventory();
                 });
             }
-
         }
 
         @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -381,7 +399,8 @@ public class InventoryManager {
             RyseInventory mainInventory = inventories.get(player.getUniqueId());
 
             if (!mainInventory.isCloseAble()) {
-                Bukkit.getScheduler().runTask(plugin, () -> player.openInventory(event.getInventory()));
+                Bukkit.getScheduler().runTask(plugin, () -> mainInventory.open(player));
+                return;
             }
 
             mainInventory.clearData(player);

@@ -423,7 +423,7 @@ public class IntelligentTitleAnimator {
 
                 String letter = String.valueOf(this.letters[this.subStringIndex]);
                 String rest = this.currentTitleFixed.substring(this.subStringIndex + 1);
-                boolean addColor = !letter.isEmpty();
+                boolean addColor = !letter.equals(" ");
 
                 StringBuilder newString = new StringBuilder();
 
@@ -504,7 +504,7 @@ public class IntelligentTitleAnimator {
                         currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
                     }
                 }
-                boolean addColor = !letter.isEmpty();
+                boolean addColor = !letter.equals(" ");
 
                 char singleFrame = currentFrames[this.colorState];
                 IntelligentItemColor itemColor = frameColor.get(singleFrame);

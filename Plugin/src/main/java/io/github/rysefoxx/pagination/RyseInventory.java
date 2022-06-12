@@ -5,10 +5,7 @@ import io.github.rysefoxx.RyseInventoryPlugin;
 import io.github.rysefoxx.SlotIterator;
 import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.content.InventoryProvider;
-import io.github.rysefoxx.enums.DisabledInventoryClick;
-import io.github.rysefoxx.enums.InventoryOpenerType;
-import io.github.rysefoxx.enums.InventoryOptions;
-import io.github.rysefoxx.enums.TimeSetting;
+import io.github.rysefoxx.enums.*;
 import io.github.rysefoxx.other.EventCreator;
 import io.github.rysefoxx.util.TitleUpdater;
 import lombok.Getter;
@@ -61,6 +58,7 @@ public class RyseInventory {
     private final HashMap<UUID, Inventory> privateInventory = new HashMap<>();
     private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
     protected final List<Player> delayed = new ArrayList<>();
+    private List<CloseReason> closeReasons = new ArrayList<>();
 
     private boolean backward = false;
 
@@ -266,7 +264,6 @@ public class RyseInventory {
         setupData(player, inventory, contents);
         initProvider(player, contents);
 
-
         if (optional.isPresent() && optional.get().equals(contents)) return inventory;
 
         this.manager.stopUpdate(player.getUniqueId());
@@ -387,7 +384,6 @@ public class RyseInventory {
         }
         return slot;
     }
-
 
     private int[] nextSlotAlgorithm(InventoryContents contents, SlotIterator.SlotIteratorType type, @Nonnegative int page, @Nonnegative int calculatedSlot, @Nonnegative int startSlot) {
         SlotIterator iterator = Objects.requireNonNull(contents.iterator());
@@ -528,16 +524,16 @@ public class RyseInventory {
         private int rows;
         private final List<DisabledInventoryClick> ignoreClickEvent = new ArrayList<>();
         private boolean clearAndSafe;
+        private final List<CloseReason> closeReasons = new ArrayList<>();
 
         /**
          * Adds a manager to the inventory.
          *
          * @param manager InventoryManager
          * @return The Inventory Builder to set additional options.
-         * @apiNote If the plugin is in the plugins folder, the parameter can be null.
          */
         public Builder manager(InventoryManager manager) {
-            this.manager = manager == null ? RyseInventoryPlugin.getInventoryManager() : manager;
+            this.manager = manager;
             return this;
         }
 
@@ -577,6 +573,17 @@ public class RyseInventory {
             this.closeAfter = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
+
+        /**
+         * Here you can set possible reasons to automatically close the inventory when the reason takes place.
+         * @param reason The reason to close the inventory.
+         * @return The Inventory Builder to set additional options.
+         */
+        public Builder close(CloseReason... reasons) {
+            this.closeReasons.addAll(new ArrayList<>(Arrays.asList(reasons)));
+            return this;
+        }
+
 
         /**
          * With this method, the content of the inventory is loaded later.
@@ -837,7 +844,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public Builder ignoreClickEvent(DisabledInventoryClick... clicks) {
-            this.ignoreClickEvent.addAll(Arrays.asList(clicks));
+            this.ignoreClickEvent.addAll(new ArrayList<>(Arrays.asList(clicks)));
             return this;
         }
 
@@ -850,7 +857,10 @@ public class RyseInventory {
          */
         public RyseInventory build(Plugin plugin) throws IllegalStateException {
             if (this.manager == null) {
-                throw new IllegalStateException("No manager could be found. Make sure you pass a manager or the plugin is loaded as plugin.");
+                throw new IllegalStateException("No manager could be found. Make sure you pass a manager to the builder.");
+            }
+            if(!this.closeAble && !this.closeReasons.isEmpty()) {
+                throw new IllegalStateException("The #close() method could not be executed because you have forbidden closing the inventory by #preventClose.");
             }
 
             RyseInventory inventory = new RyseInventory();
@@ -877,6 +887,7 @@ public class RyseInventory {
             inventory.clearAndSafe = this.clearAndSafe;
             inventory.options = this.options;
             inventory.slideAnimator = this.slideAnimation;
+            inventory.closeReasons = this.closeReasons;
             return inventory;
         }
     }
@@ -964,27 +975,25 @@ public class RyseInventory {
         return Optional.ofNullable(this.privateInventory.get(uuid));
     }
 
-    protected void load(Pagination pagination, Inventory inventory, Player player, @Nonnegative int page) {
-        pagination.getPermanentItems().forEach((integer, item) -> {
-            if (integer >= inventory.getSize()) return;
-            if (!item.isCanSee()) {
-                item.getError().cantSee(player, item);
-                return;
-            }
-            inventory.setItem(integer, item.getItemStack());
-        });
-        pagination.getPageItems().get(page).forEach((integer, item) -> {
-            if (integer >= inventory.getSize()) return;
-            if (!item.isCanSee()) {
-                item.getError().cantSee(player, item);
-                return;
-            }
-            inventory.setItem(integer, item.getItemStack());
-        });
+    protected void load(Pagination pagination, Player player, @Nonnegative int page) {
+        pagination.getPermanentItems().forEach((integer, item) -> placeItem(player, integer, item));
+        pagination.getPageItems().get(page).forEach((integer, item) -> placeItem(player, integer, item));
     }
 
-    private void closeInventoryWhenEnabled(Player player) {
+    private void placeItem(Player player, int integer, IntelligentItem item) {
+        if (integer >= inventory.getSize()) return;
+        if (!item.isCanSee()) {
+            item.getError().cantSee(player, item);
+            return;
+        }
+        inventory.setItem(integer, item.getItemStack());
+    }
+
+    private void closeInventoryWhenEnabled(Player player) throws IllegalStateException {
         if (this.closeAfter == -1) return;
+        if (!this.closeAble) {
+            throw new IllegalStateException("The #closeAfter() method could not be executed because you have forbidden closing the inventory by #preventClose.");
+        }
         Bukkit.getScheduler().runTaskLater(this.plugin, () -> close(player), this.closeAfter);
     }
 
@@ -1072,14 +1081,18 @@ public class RyseInventory {
 
     private void loadDelay(int page, Pagination pagination, Player player) {
         if (this.loadDelay != -1) {
-            Bukkit.getScheduler().runTaskLater(this.plugin, () -> load(pagination, inventory, player, page), this.loadDelay);
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> load(pagination, player, page), this.loadDelay);
         } else {
-            load(pagination, inventory, player, page);
+            load(pagination, player, page);
         }
 
         if (this.loadTitle != -1) {
             Bukkit.getScheduler().runTaskLater(this.plugin, () -> updateTitle(player, this.title), this.loadTitle);
         }
+    }
+
+    protected List<CloseReason> getCloseReasons() {
+        return closeReasons;
     }
 
     private void finalizeInventoryAndOpen(Player player) {

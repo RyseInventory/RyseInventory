@@ -1,15 +1,16 @@
 package io.github.rysefoxx.pagination;
 
-import com.google.common.annotations.Beta;
 import com.google.common.base.Preconditions;
 import io.github.rysefoxx.SlotIterator;
 import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.enums.IntelligentType;
 import io.github.rysefoxx.enums.InventoryOpenerType;
+import io.github.rysefoxx.pattern.ContentPattern;
+import io.github.rysefoxx.pattern.SearchPattern;
+import io.github.rysefoxx.util.SlotUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Material;
-import org.bukkit.entity.Fireball;
-import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -32,11 +33,16 @@ public class InventoryContents {
     private final HashMap<String, Object> data;
     private final RyseInventory inventory;
 
+    private final SearchPattern searchPattern;
+    private final ContentPattern contentPattern;
+
     public InventoryContents(Player player, RyseInventory inventory) {
         this.player = player;
         this.inventory = inventory;
         this.pagination = new Pagination(inventory);
         this.data = new HashMap<>();
+        this.searchPattern = new SearchPattern(this);
+        this.contentPattern = new ContentPattern(this);
     }
 
     /**
@@ -459,7 +465,7 @@ public class InventoryContents {
         if (column > 8) {
             throw new IllegalArgumentException("The column must not be larger than 9.");
         }
-        return isRightBorder(row * 9 + column);
+        return isRightBorder(SlotUtils.toSlot(row, column));
     }
 
     /**
@@ -503,7 +509,7 @@ public class InventoryContents {
         if (column > 8) {
             throw new IllegalArgumentException("The column must not be larger than 9.");
         }
-        return isLeftBorder(row * 9 + column);
+        return isLeftBorder(SlotUtils.toSlot(row, column));
     }
 
     /**
@@ -534,18 +540,13 @@ public class InventoryContents {
         return Optional.of(nextSlot);
     }
 
-
     /**
      * Adds an item to the inventory in the first free place.
      *
      * @param item The ItemStack to be displayed in the inventory
      */
     public void add(IntelligentItem item) {
-        firstEmpty().ifPresent(integer -> {
-            this.pagination.setItem(integer, item);
-
-            this.inventory.inventoryBasedOnOption(this.player.getUniqueId()).ifPresent(savedInventory -> savedInventory.setItem(integer, item.getItemStack()));
-        });
+        firstEmpty().ifPresent(integer -> this.pagination.setItem(integer, item));
     }
 
     /**
@@ -556,6 +557,60 @@ public class InventoryContents {
     public void add(IntelligentItem... items) {
         for (IntelligentItem item : items) {
             add(item);
+        }
+    }
+
+    /**
+     * Adds an item to the inventory in the first free place.
+     *
+     * @param itemStack The ItemStack to be displayed in the inventory
+     */
+    public void add(ItemStack itemStack) {
+        add(IntelligentItem.empty(itemStack));
+    }
+
+    /**
+     * Add multiple items to the inventory in the first free place.
+     *
+     * @param items The ItemStacks to be displayed in the inventory
+     */
+    public void add(ItemStack... items) {
+        for (ItemStack item : items) {
+            add(IntelligentItem.empty(item));
+        }
+    }
+
+    /**
+     * Adds an item to the inventory in the first free place.
+     *
+     * @param itemStack The ItemStack to be displayed in the inventory
+     * @param type      The type of the item
+     */
+    public void add(ItemStack itemStack, IntelligentType type) {
+        if (type == IntelligentType.EMPTY) {
+            add(IntelligentItem.empty(itemStack));
+            return;
+        }
+        if (type == IntelligentType.IGNORED) {
+            add(IntelligentItem.ignored(itemStack));
+        }
+    }
+
+    /**
+     * Adds an item to the inventory in the first free place.
+     *
+     * @param items The ItemStacks to be displayed in the inventory
+     * @param type  The type of the item
+     */
+    public void add(IntelligentType type, ItemStack... items) {
+        for (ItemStack item : items) {
+            if (type == IntelligentType.EMPTY) {
+                add(IntelligentItem.empty(item));
+                return;
+            }
+            if (type == IntelligentType.IGNORED) {
+                add(IntelligentItem.ignored(item));
+            }
         }
     }
 
@@ -576,7 +631,7 @@ public class InventoryContents {
         }
 
         this.inventory.splitInventory(contents);
-        this.inventory.load(contents.pagination(), this.inventory.getInventory(), this.player, contents.pagination().page() - 1);
+        this.inventory.load(contents.pagination(), this.player, contents.pagination().page() - 1);
     }
 
     /**
@@ -596,11 +651,26 @@ public class InventoryContents {
             throw new IllegalArgumentException("The slot must not be larger than the inventory size.");
         }
         this.pagination.setItem(slot, page, item);
+    }
 
-        if (page > this.pagination.lastPage()) return;
-
-        Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
-        inventoryOptional.ifPresent(savedInventory -> savedInventory.setItem(slot, item.getItemStack()));
+    /**
+     * Sets a fixed smart ItemStack in the inventory on a specified page.
+     *
+     * @param row    The row of the inventory
+     * @param column The column of the inventory
+     * @param page   On which page should the item be placed?
+     * @param item   The ItemStack to be displayed in the inventory
+     * @throws IllegalArgumentException when slot > 53
+     * @apiNote When you define a page please start at 1.
+     */
+    public void setWithinPage(@Nonnegative int row, @Nonnegative int column, @Nonnegative int page, IntelligentItem item) throws IllegalArgumentException {
+        if (row > 5) {
+            throw new IllegalArgumentException("The row must not be larger than 5.");
+        }
+        if (column > 8) {
+            throw new IllegalArgumentException("The column must not be larger than 9.");
+        }
+        setWithinPage(SlotUtils.toSlot(row, column), page, item);
     }
 
     /**
@@ -633,14 +703,39 @@ public class InventoryContents {
      * @param item The item with which the inventory should be filled.
      */
     public void fill(IntelligentItem item) {
-        Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
         for (int i = 0; i < this.inventory.size(); i++) {
             this.pagination.setItem(i, item);
-            int finalI = i;
-            inventoryOptional.ifPresent(savedInventory -> savedInventory.setItem(finalI, item.getItemStack()));
         }
     }
 
+    /**
+     * Fills the whole inventory with an ItemStack.
+     *
+     * @param item The item with which the inventory should be filled.
+     */
+    public void fill(ItemStack item) {
+        for (int i = 0; i < this.inventory.size(); i++) {
+            this.pagination.setItem(i, IntelligentItem.empty(item));
+        }
+    }
+
+    /**
+     * Fills the whole inventory with an ItemStack.
+     *
+     * @param item The item with which the inventory should be filled.
+     * @param type The type of the item
+     */
+    public void fill(ItemStack item, IntelligentType type) {
+        for (int i = 0; i < this.inventory.size(); i++) {
+            if (type == IntelligentType.EMPTY) {
+                this.pagination.setItem(i, IntelligentItem.empty(item));
+                continue;
+            }
+            if (type == IntelligentType.IGNORED) {
+                this.pagination.setItem(i, IntelligentItem.ignored(item));
+            }
+        }
+    }
 
     /**
      * Sets a fixed intelligent ItemStack in the inventory.
@@ -657,8 +752,6 @@ public class InventoryContents {
             throw new IllegalArgumentException("The slot must not be larger than the inventory size.");
         }
         this.pagination.setItem(slot, item);
-
-        this.inventory.inventoryBasedOnOption(this.player.getUniqueId()).ifPresent(savedInventory -> savedInventory.setItem(slot, item.getItemStack()));
     }
 
     /**
@@ -681,7 +774,7 @@ public class InventoryContents {
      * @throws IllegalArgumentException when slot > 53 or > inventory size
      */
     public void set(@Nonnegative int row, @Nonnegative int column, ItemStack itemStack) throws IllegalArgumentException {
-        set(row * 9 + column, IntelligentItem.empty(itemStack));
+        set(SlotUtils.toSlot(row, column), IntelligentItem.empty(itemStack));
     }
 
     /**
@@ -712,7 +805,7 @@ public class InventoryContents {
      * @throws IllegalArgumentException when slot > 53 or > inventory size
      */
     public void set(@Nonnegative int row, @Nonnegative int column, ItemStack itemStack, IntelligentType type) throws IllegalArgumentException {
-        set(row * 9 + column, itemStack, type);
+        set(SlotUtils.toSlot(row, column), itemStack, type);
     }
 
     /**
@@ -741,8 +834,7 @@ public class InventoryContents {
             throw new IllegalArgumentException("The column must not be larger than 9.");
         }
 
-        int slot = row * 9 + column;
-
+        int slot = SlotUtils.toSlot(row, column);
         if (slot > this.inventory.size()) {
             throw new IllegalArgumentException("The slot must not be larger than the inventory size.");
         }
@@ -751,9 +843,64 @@ public class InventoryContents {
     }
 
     /**
+     * Preserve the position of the item in the inventory.
+     *
+     * @param itemStack ItemStack to look for in the inventory.
+     * @return The slot of the item or empty Optional if the item was not found.
+     */
+    public Optional<Integer> getPositionOfItem(ItemStack itemStack) {
+        for (int i = 0; i < this.inventory.size(); i++) {
+            Optional<IntelligentItem> item = get(i);
+            if (!item.isPresent()) continue;
+            if (!item.get().getItemStack().isSimilar(itemStack)) continue;
+
+            return Optional.of(i);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Preserve the position of the item in the inventory.
+     *
+     * @param intelligentItem IntelligentItem to look for in the inventory.
+     * @return The slot of the item or empty Optional if the item was not found.
+     */
+    public Optional<Integer> getPositionOfItem(IntelligentItem intelligentItem) {
+        return getPositionOfItem(intelligentItem.getItemStack());
+    }
+
+    /**
+     * Preserve the position of the item in the inventory.
+     *
+     * @param itemStack ItemStack to look for in the inventory.
+     * @return Returns a pair, or nothing if nothing could be found.
+     * @implNote The pair contains the row and column of the item. Pair#getLeft() is the row and Pair#getRight() is the column.
+     */
+    public Optional<Pair<Integer, Integer>> getCoordinationOfItem(ItemStack itemStack) {
+        for (int i = 0; i < this.inventory.size(); i++) {
+            Optional<IntelligentItem> item = get(i);
+            if (!item.isPresent()) continue;
+            if (!item.get().getItemStack().isSimilar(itemStack)) continue;
+
+            return Optional.of(Pair.of(i / 9, i % 9));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Preserve the position of the item in the inventory.
+     *
+     * @param intelligentItem IntelligentItem to look for in the inventory.
+     * @return Returns a pair, or nothing if nothing could be found.
+     * @implNote The pair contains the row and column of the item. Pair#getLeft() is the row and Pair#getRight() is the column.
+     */
+    public Optional<Pair<Integer, Integer>> getCoordinationOfItem(IntelligentItem intelligentItem) {
+        return getCoordinationOfItem(intelligentItem.getItemStack());
+    }
+
+    /**
      * @return A list of all the items in the inventory.
      */
-    @Beta
     public List<IntelligentItem> getAll() {
         List<IntelligentItem> items = new ArrayList<>();
         for (int i = 0; i < this.inventory.size(); i++) {
@@ -774,9 +921,10 @@ public class InventoryContents {
             throw new IllegalArgumentException("The slot must not be larger than 53.");
         }
 
-        //Todo: getItem geht nd
-//        IntelligentItem intelligentItem = getFromItems(this.inventory.getInventory().getItem(slot));
-//        if (intelligentItem != null) return Optional.of(intelligentItem);
+        IntelligentItem intelligentItem = getFromItems(this.inventory.getInventory().getItem(slot));
+        if (intelligentItem != null)
+            return Optional.of(intelligentItem);
+
 
         if (this.pagination.getPermanentItems().containsKey(slot))
             return Optional.ofNullable(this.pagination.getPermanentItems().get(slot));
@@ -802,7 +950,7 @@ public class InventoryContents {
         if (column > 8) {
             throw new IllegalArgumentException("The column must not be larger than 9.");
         }
-        return get(row * 9 + column);
+        return get(SlotUtils.toSlot(row, column));
     }
 
     /**
@@ -851,7 +999,7 @@ public class InventoryContents {
      * @throws IllegalStateException    if ItemStack has no ItemMeta or no Lore
      */
     public void updateLore(@Nonnegative int row, @Nonnegative int column, @Nonnegative int index, String line) throws IllegalArgumentException, IllegalStateException {
-        updateLore(row * 9 + column, index, line);
+        updateLore(SlotUtils.toSlot(row, column), index, line);
     }
 
     /**
@@ -996,7 +1144,7 @@ public class InventoryContents {
         if (column > 8) {
             throw new IllegalArgumentException("The column must not be larger than 9.");
         }
-        update(row * 9 + column, intelligentItem.getItemStack());
+        update(SlotUtils.toSlot(row, column), intelligentItem.getItemStack());
     }
 
     /**
@@ -1018,7 +1166,7 @@ public class InventoryContents {
      * @throws IllegalArgumentException if slot > 53 or row > 5 or column > 9
      */
     public void updateViaCoordination(@Nonnegative int row, @Nonnegative int column, ItemStack itemStack) throws IllegalArgumentException {
-        update(row * 9 + column, itemStack);
+        update(SlotUtils.toSlot(row, column), itemStack);
     }
 
     /**
@@ -1093,6 +1241,20 @@ public class InventoryContents {
      */
     public SlotIterator iterator() {
         return this.pagination.getSlotIterator();
+    }
+
+    /**
+     * @return The SearchPattern of the inventory.
+     */
+    public SearchPattern searchPattern() {
+        return this.searchPattern;
+    }
+
+    /**
+     * @return The ContentPattern of the inventory.
+     */
+    public ContentPattern contentPattern() {
+        return this.contentPattern;
     }
 
     protected void transferData(InventoryContents transferTo) {

@@ -3,7 +3,6 @@ package io.github.rysefoxx.v1_16;
 
 import io.github.rysefoxx.IntelligentItemColorWrapper;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.entity.Player;
 
 /**
  * @author Rysefoxx | Rysefoxx#6772

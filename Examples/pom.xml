@@ -6,7 +6,7 @@
 
     <groupId>io.github.rysefoxx.examples</groupId>
     <artifactId>RyseInventory-Examples</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -24,7 +24,7 @@
         <dependency>
             <groupId>io.github.rysefoxx</groupId>
             <artifactId>RyseInventory-Plugin</artifactId>
-            <version>1.2.1</version>
+            <version>1.2.2</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

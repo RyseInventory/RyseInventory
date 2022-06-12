@@ -1,11 +1,11 @@
 package io.github.rysefoxx;
 
 import io.github.rysefoxx.pagination.Pagination;
+import io.github.rysefoxx.util.SlotUtils;
 
 import javax.annotation.Nonnegative;
 import java.util.ArrayList;
 import java.util.List;
-
 
 public class SlotIterator {
 
@@ -56,7 +56,7 @@ public class SlotIterator {
         /**
          * This tells us where the item should stop.
          *
-         * @param slot
+         * @param slot The slot to stop at.
          * @return The Builder object itself.
          * @apiNote If this method is used, {@link Pagination#setItemsPerPage(int)} is ignored.
          */
@@ -68,13 +68,13 @@ public class SlotIterator {
         /**
          * This tells us where the item should stop.
          *
-         * @param row
-         * @param column
+         * @param row The row to stop at.
+         * @param column The column to stop at.
          * @return The Builder object itself.
          * @apiNote If this method is used, {@link Pagination#setItemsPerPage(int)} is ignored.
          */
         public Builder endPosition(@Nonnegative int row, @Nonnegative int column) {
-            this.endPosition = row * 9 + column;
+            this.endPosition = SlotUtils.toSlot(row, column);
             return this;
         }
 

@@ -99,6 +99,10 @@ public class TitleUpdater {
     }
 
     public static void updateTitle(Player player, String newTitle) {
+        if (newTitle.length() > 32) {
+            newTitle = newTitle.substring(0, 32);
+        }
+
         // Convert title.
         Object title = ReflectionUtils.toIChatBaseComponentPlain(newTitle);
         try {
@@ -106,10 +110,6 @@ public class TitleUpdater {
             assert CRAFT_PLAYER_CLASS != null;
             Object craftPlayer = CRAFT_PLAYER_CLASS.cast(player);
             Object entityPlayer = getHandle.invoke(craftPlayer);
-
-            if (newTitle.length() > 32) {
-                newTitle = newTitle.substring(0, 32);
-            }
 
             // Get activeContainer from EntityPlayer.
             Object activeContainer = activeContainerField.get(entityPlayer);

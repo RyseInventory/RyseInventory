@@ -6,7 +6,7 @@
 
     <groupId>io.github.rysefoxx.v1_16</groupId>
     <artifactId>RyseInventory-v1_16</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <packaging>jar</packaging>
 
     <parent>
