@@ -1,3 +1,28 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022. Rysefoxx
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package io.github.rysefoxx.pagination;
 
 import com.google.common.base.Preconditions;
@@ -10,6 +35,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
 import java.util.ArrayList;
@@ -37,15 +65,17 @@ public class IntelligentTitleAnimator {
     private Object identifier;
     private static Plugin plugin;
 
-    public static Builder builder(Plugin plugin) {
+    @Contract("_ -> new")
+    public static @NotNull Builder builder(@NotNull Plugin plugin) {
         IntelligentTitleAnimator.plugin = plugin;
         return new Builder();
     }
 
     /**
-     * @deprecated Use {@link #builder(Plugin)} instead.
      * @throws UnsupportedOperationException if called
+     * @deprecated Use {@link #builder(Plugin)} instead.
      */
+    @Contract(value = " -> fail", pure = true)
     @Deprecated
     public static Builder builder() {
         throw new UnsupportedOperationException("Use builder(Plugin) instead.");
@@ -70,7 +100,7 @@ public class IntelligentTitleAnimator {
          * @return The Builder to perform further editing.
          * @apiNote When copying the animator, the identification is not copied if present!
          */
-        public Builder copy(IntelligentTitleAnimator preset) {
+        public @NotNull Builder copy(@NotNull IntelligentTitleAnimator preset) {
             this.preset = preset;
             return this;
         }
@@ -80,7 +110,7 @@ public class IntelligentTitleAnimator {
          *
          * @return The Builder to perform further editing.
          */
-        public Builder loop() {
+        public @NotNull Builder loop() {
             this.loop = true;
             return this;
         }
@@ -91,10 +121,9 @@ public class IntelligentTitleAnimator {
          * @param type The animation type
          * @return The Builder to perform further editing.
          */
-        public Builder type(IntelligentItemAnimatorType type) {
-            if(VersionUtils.isBelowAnd13() && ((type == IntelligentItemAnimatorType.FULL_WORD) || type == IntelligentItemAnimatorType.FLASH)) {
-                throw new IllegalArgumentException("The "+type.name()+" animation makes no sense under inclusive with version 13.");
-            }
+        public @NotNull Builder type(@NotNull IntelligentItemAnimatorType type) {
+            if (VersionUtils.isBelowAnd13() && ((type == IntelligentItemAnimatorType.FULL_WORD) || type == IntelligentItemAnimatorType.FLASH))
+                throw new IllegalArgumentException("The " + type.name() + " animation makes no sense under inclusive with version 13.");
 
             this.type = type;
             return this;
@@ -107,7 +136,7 @@ public class IntelligentTitleAnimator {
          * @param color The color you want the frame to have.
          * @return The Builder to perform further editing.
          */
-        public Builder color(char frame, IntelligentItemColor color) {
+        public @NotNull Builder color(char frame, @NotNull IntelligentItemColor color) {
             this.frameColor.put(frame, color);
             return this;
         }
@@ -120,12 +149,12 @@ public class IntelligentTitleAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder colors(List<Character> frames, IntelligentItemColor... color) {
+        public @NotNull Builder colors(@NotNull List<Character> frames, IntelligentItemColor @NotNull ... color) {
             Preconditions.checkArgument(frames.size() == color.length, "Frames must have the same length as color.");
 
-            for (int i = 0; i < frames.size(); i++) {
+            for (int i = 0; i < frames.size(); i++)
                 color(frames.get(i), color[i]);
-            }
+
             return this;
         }
 
@@ -137,12 +166,12 @@ public class IntelligentTitleAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder colors(Character[] frames, IntelligentItemColor... color) {
+        public @NotNull Builder colors(Character @NotNull [] frames, IntelligentItemColor @NotNull ... color) {
             Preconditions.checkArgument(frames.length == color.length, "Frames must have the same length as color.");
 
-            for (int i = 0; i < frames.length; i++) {
+            for (int i = 0; i < frames.length; i++)
                 color(frames[i], color[i]);
-            }
+
             return this;
         }
 
@@ -154,12 +183,12 @@ public class IntelligentTitleAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder colors(Character[] frames, List<IntelligentItemColor> color) {
+        public @NotNull Builder colors(Character @NotNull [] frames, @NotNull List<IntelligentItemColor> color) {
             Preconditions.checkArgument(frames.length == color.size(), "Frames must have the same length as color.");
 
-            for (int i = 0; i < frames.length; i++) {
+            for (int i = 0; i < frames.length; i++)
                 color(frames[i], color.get(i));
-            }
+
             return this;
         }
 
@@ -170,7 +199,7 @@ public class IntelligentTitleAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link IntelligentItemNameAnimator.Builder#colors(List, IntelligentItemColor...)}
          */
-        public Builder frame(String frame) throws IllegalArgumentException {
+        public @NotNull Builder frame(@NotNull String frame) throws IllegalArgumentException {
             this.frames.add(frame);
             return this;
         }
@@ -182,10 +211,10 @@ public class IntelligentTitleAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link IntelligentItemNameAnimator.Builder#colors(List, IntelligentItemColor...)}
          */
-        public Builder frames(String... frames) {
-            for (String frame : frames) {
+        public @NotNull Builder frames(String @NotNull ... frames) {
+            for (String frame : frames)
                 frame(frame);
-            }
+
             return this;
         }
 
@@ -196,7 +225,7 @@ public class IntelligentTitleAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link IntelligentItemNameAnimator.Builder#colors(List, IntelligentItemColor...)}
          */
-        public Builder frames(List<String> frames) {
+        public @NotNull Builder frames(@NotNull List<String> frames) {
             frames.forEach(this::frame);
             return this;
         }
@@ -208,7 +237,7 @@ public class IntelligentTitleAnimator {
          * @param setting
          * @return The Builder to perform further editing.
          */
-        public Builder period(@Nonnegative int time, TimeSetting setting) {
+        public @NotNull Builder period(@Nonnegative int time, @NotNull TimeSetting setting) {
             this.period = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
@@ -220,7 +249,7 @@ public class IntelligentTitleAnimator {
          * @param setting
          * @return The Builder to perform further editing.
          */
-        public Builder delay(@Nonnegative int time, TimeSetting setting) {
+        public @NotNull Builder delay(@Nonnegative int time, @NotNull TimeSetting setting) {
             this.delay = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
@@ -231,7 +260,7 @@ public class IntelligentTitleAnimator {
          * @param identifier The ID through which you can get the animation
          * @return The Builder to perform further editing
          */
-        public Builder identifier(Object identifier) {
+        public @NotNull Builder identifier(@NotNull Object identifier) {
             this.identifier = identifier;
             return this;
         }
@@ -242,7 +271,7 @@ public class IntelligentTitleAnimator {
          * @return The animation class
          * @throws IllegalArgumentException if frameColor is empty, if frames is empty or if no color has been assigned to a frame.
          */
-        public IntelligentTitleAnimator build(InventoryContents contents) throws IllegalArgumentException {
+        public IntelligentTitleAnimator build(@NotNull InventoryContents contents) throws IllegalArgumentException {
             if (this.preset != null) {
                 this.frames = this.preset.frames;
                 this.frameColor = this.preset.frameColor;
@@ -253,19 +282,18 @@ public class IntelligentTitleAnimator {
             }
 
             if (VersionUtils.isBelowAnd13()) {
-                if (!this.frameColor.isEmpty()) {
+                if (!this.frameColor.isEmpty())
                     throw new IllegalStateException("Anything less than inclusive with version 13 does not yet support titles with color. Please remove code with #color() or #colors()");
-                }
-                if (!this.frames.isEmpty()) {
+
+                if (!this.frames.isEmpty())
                     throw new IllegalArgumentException("Anything less than inclusive with version 13 does not yet support titles with color. Accordingly, the code can be removed with #frame or #frames.");
-                }
+
             } else {
-                if (this.frameColor.isEmpty()) {
+                if (this.frameColor.isEmpty())
                     throw new IllegalArgumentException("You must specify at least one frame with #color() or #colors()");
-                }
-                if (this.frames.isEmpty()) {
+
+                if (this.frames.isEmpty())
                     throw new IllegalArgumentException("No frames have been defined yet!");
-                }
 
                 for (String frame : this.frames) {
                     for (char c : frame.toCharArray()) {
@@ -293,23 +321,24 @@ public class IntelligentTitleAnimator {
     /**
      * This starts the animation for the item.
      */
-    public void animate(Player player) {
+    public void animate(@NotNull Player player) {
         this.inventory.addTitleAnimator(this);
         animateByType(player);
     }
 
     /**
      * This starts the animation for the item.
-     * @deprecated Use {@link IntelligentTitleAnimator#animate(Player)} instead.
+     *
      * @param plugin Your main class that extends the Plugin.
      * @param player the player
+     * @deprecated Use {@link IntelligentTitleAnimator#animate(Player)} instead.
      */
     @Deprecated
-    public void animate(Plugin plugin, Player player) {
+    public void animate(@NotNull Plugin plugin, @NotNull Player player) {
         animate(player);
     }
 
-    private void animateByType(Player player) {
+    private void animateByType(@NotNull Player player) {
         if (this.type == IntelligentItemAnimatorType.FULL_WORD) {
             animateByFullWord(player);
             return;
@@ -318,12 +347,11 @@ public class IntelligentTitleAnimator {
             animateWordByWord(player);
             return;
         }
-        if (type == IntelligentItemAnimatorType.FLASH) {
+        if (type == IntelligentItemAnimatorType.FLASH)
             animateWithFlash(player);
-        }
     }
 
-    private void animateWithFlash(Player player) {
+    private void animateWithFlash(@NotNull Player player) {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(title).toCharArray();
             final List<String> framesCopy = frames;
@@ -379,7 +407,7 @@ public class IntelligentTitleAnimator {
         }, this.delay, this.period);
     }
 
-    private void animateByFullWord(Player player) {
+    private void animateByFullWord(@NotNull Player player) {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(title).toCharArray();
             final List<String> framesCopy = frames;
@@ -460,7 +488,7 @@ public class IntelligentTitleAnimator {
         }, this.delay, this.period);
     }
 
-    private void animateWordByWord(Player player) {
+    private void animateWordByWord(@NotNull Player player) {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(title).toCharArray();
             final List<String> framesCopy = frames;
@@ -483,7 +511,7 @@ public class IntelligentTitleAnimator {
                 }
                 String letter = String.valueOf(this.letters[this.subStringIndex]);
 
-                if(VersionUtils.isBelowAnd13()) {
+                if (VersionUtils.isBelowAnd13()) {
                     this.currentTitle = this.currentTitle + letter;
 
                     this.subStringIndex++;
@@ -528,11 +556,11 @@ public class IntelligentTitleAnimator {
         }, this.delay, this.period);
     }
 
-    protected BukkitTask getTask() {
+    protected @NotNull BukkitTask getTask() {
         return this.task;
     }
 
-    protected Object getIdentifier() {
+    public @Nullable Object getIdentifier() {
         return this.identifier;
     }
 }

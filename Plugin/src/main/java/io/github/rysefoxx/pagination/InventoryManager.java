@@ -1,3 +1,28 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022. Rysefoxx
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package io.github.rysefoxx.pagination;
 
 import io.github.rysefoxx.content.IntelligentItem;
@@ -27,6 +52,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -50,7 +77,7 @@ public class InventoryManager {
      * @param uuid
      * @return null if the player has no inventory open.
      */
-    public Optional<RyseInventory> getInventory(UUID uuid) {
+    public @NotNull Optional<RyseInventory> getInventory(@NotNull UUID uuid) {
         if (!hasInventory(uuid)) return Optional.empty();
         return Optional.ofNullable(this.inventories.get(uuid));
     }
@@ -61,7 +88,7 @@ public class InventoryManager {
      * @param inventory The inventory that is filtered by.
      * @return The list with all found players.
      */
-    public List<UUID> getOpenedPlayers(RyseInventory inventory) {
+    public @NotNull List<UUID> getOpenedPlayers(@NotNull RyseInventory inventory) {
         List<UUID> players = new ArrayList<>();
         Bukkit.getOnlinePlayers().forEach(player -> {
             Optional<RyseInventory> optional = getInventory(player.getUniqueId());
@@ -80,7 +107,7 @@ public class InventoryManager {
      * @param uuid Player UUID
      * @return null if there is no final inventory.
      */
-    public Optional<RyseInventory> getLastInventory(UUID uuid) {
+    public @NotNull Optional<RyseInventory> getLastInventory(@NotNull UUID uuid) {
         if (!this.lastInventories.containsKey(uuid)) return Optional.empty();
         if (this.lastInventories.get(uuid).isEmpty()) return Optional.empty();
         RyseInventory inventory = this.lastInventories.get(uuid).remove(this.lastInventories.get(uuid).size() - 1);
@@ -96,7 +123,7 @@ public class InventoryManager {
      * @return null if no inventory with the ID could be found.
      * @implNote Only works if the inventory has also been assigned an identifier.
      */
-    public Optional<RyseInventory> getInventory(Object identifier) {
+    public @NotNull Optional<RyseInventory> getInventory(@NotNull Object identifier) {
         return this.inventories.values().stream().filter(inventory -> Objects.equals(inventory.getIdentifier(), identifier)).findFirst();
     }
 
@@ -106,7 +133,7 @@ public class InventoryManager {
      * @param uuid
      * @return the player inventory content.
      */
-    public Optional<InventoryContents> getContents(UUID uuid) {
+    public @NotNull Optional<InventoryContents> getContents(@NotNull UUID uuid) {
         if (!this.content.containsKey(uuid)) return Optional.empty();
         return Optional.ofNullable(this.content.get(uuid));
     }
@@ -118,37 +145,38 @@ public class InventoryManager {
         Bukkit.getPluginManager().registerEvents(new InventoryListener(), this.plugin);
     }
 
-    private boolean hasInventory(UUID uuid) {
+    @Contract(pure = true)
+    private boolean hasInventory(@NotNull UUID uuid) {
         return this.inventories.containsKey(uuid);
     }
 
-    private boolean hasContents(UUID uuid) {
+    @Contract(pure = true)
+    private boolean hasContents(@NotNull UUID uuid) {
         return this.content.containsKey(uuid);
     }
 
-    protected void removeInventoryFromPlayer(UUID uuid) {
+    protected void removeInventoryFromPlayer(@NotNull UUID uuid) {
         this.inventories.remove(uuid);
         this.content.remove(uuid);
         BukkitTask task = this.updaterTask.remove(uuid);
 
-        if (task != null) {
+        if (task != null)
             task.cancel();
-        }
     }
 
-    protected void removeInventory(UUID uuid) {
+    protected void removeInventory(@NotNull UUID uuid) {
         this.inventories.remove(uuid);
     }
 
-    protected void setContents(UUID uuid, InventoryContents contents) {
+    protected void setContents(@NotNull UUID uuid, @NotNull InventoryContents contents) {
         this.content.put(uuid, contents);
     }
 
-    protected void setInventory(UUID uuid, RyseInventory inventory) {
+    protected void setInventory(@NotNull UUID uuid, @NotNull RyseInventory inventory) {
         this.inventories.put(uuid, inventory);
     }
 
-    protected void setLastInventory(UUID uuid, RyseInventory inventory) {
+    protected void setLastInventory(@NotNull UUID uuid, @NotNull RyseInventory inventory) {
         List<RyseInventory> inventories = this.lastInventories.getOrDefault(uuid, new ArrayList<>());
 
         inventories.add(inventory);
@@ -156,13 +184,13 @@ public class InventoryManager {
         this.lastInventories.put(uuid, inventories);
     }
 
-    protected void stopUpdate(UUID uuid) {
+    protected void stopUpdate(@NotNull UUID uuid) {
         if (!this.updaterTask.containsKey(uuid)) return;
         BukkitTask task = this.updaterTask.remove(uuid);
         task.cancel();
     }
 
-    protected void invokeScheduler(Player player, RyseInventory inventory) {
+    protected void invokeScheduler(@NotNull Player player, @NotNull RyseInventory inventory) {
         if (this.updaterTask.containsKey(player.getUniqueId())) return;
 
         BukkitTask task = new BukkitRunnable() {
@@ -213,7 +241,6 @@ public class InventoryManager {
             event.setCancelled(true);
         }
 
-        //Todo: check
         @EventHandler(ignoreCancelled = true)
         public void onPlayerPickupItem(PlayerPickupItemEvent event) {
             Player player = event.getPlayer();

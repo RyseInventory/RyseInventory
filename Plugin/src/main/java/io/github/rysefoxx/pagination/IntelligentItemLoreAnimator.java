@@ -1,3 +1,28 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022. Rysefoxx
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package io.github.rysefoxx.pagination;
 
 import com.google.common.base.Preconditions;
@@ -11,6 +36,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
 import java.util.ArrayList;
@@ -41,7 +69,8 @@ public class IntelligentItemLoreAnimator {
     private Object identifier;
     private static Plugin plugin;
 
-    public static Builder builder(Plugin plugin) {
+    @Contract("_ -> new")
+    public static @NotNull Builder builder(@NotNull Plugin plugin) {
         IntelligentItemLoreAnimator.plugin = plugin;
         return new Builder();
     }
@@ -50,6 +79,7 @@ public class IntelligentItemLoreAnimator {
      * @throws UnsupportedOperationException if called
      * @deprecated Use {@link #builder(Plugin)} instead.
      */
+    @Contract(value = " -> fail", pure = true)
     @Deprecated
     public static Builder builder() {
         throw new UnsupportedOperationException("Use builder(Plugin) instead.");
@@ -76,7 +106,7 @@ public class IntelligentItemLoreAnimator {
          * @return The Builder to perform further editing.
          * @apiNote When copying the animator, the identification is not copied if present!
          */
-        public Builder copy(IntelligentItemLoreAnimator preset) {
+        public @NotNull Builder copy(@NotNull IntelligentItemLoreAnimator preset) {
             this.preset = preset;
             return this;
         }
@@ -88,7 +118,7 @@ public class IntelligentItemLoreAnimator {
          * @param frame e.g AABB (A and B must then each be defined with {@link #color(char, IntelligentItemColor)}).
          * @return The Builder to perform further editing
          */
-        public Builder lore(@Nonnegative int index, String frame) {
+        public @NotNull Builder lore(@Nonnegative int index, @NotNull String frame) {
             this.loreData.put(index, frame);
             return this;
         }
@@ -99,7 +129,7 @@ public class IntelligentItemLoreAnimator {
          * @param identifier The ID through which you can get the animation
          * @return The Builder to perform further editing
          */
-        public Builder identifier(Object identifier) {
+        public @NotNull Builder identifier(@NotNull Object identifier) {
             this.identifier = identifier;
             return this;
         }
@@ -110,19 +140,17 @@ public class IntelligentItemLoreAnimator {
          * @param intelligentItem
          * @return The Builder to perform further editing.
          */
-        public Builder item(IntelligentItem intelligentItem) {
+        public @NotNull Builder item(@NotNull IntelligentItem intelligentItem) {
             this.intelligentItem = intelligentItem;
             ItemStack itemStack = this.intelligentItem.getItemStack();
 
             List<String> lore = itemStack.hasItemMeta() ? itemStack.getItemMeta().getLore() : new ArrayList<>();
 
-            if (lore == null) {
+            if (lore == null)
                 throw new NullPointerException("The given item has no lore.");
-            }
 
-            if (lore.isEmpty()) {
+            if (lore.isEmpty())
                 throw new IllegalArgumentException("The passed item has an empty lore.");
-            }
 
             this.lore = lore;
             return this;
@@ -133,7 +161,7 @@ public class IntelligentItemLoreAnimator {
          *
          * @return The Builder to perform further editing.
          */
-        public Builder loop() {
+        public @NotNull Builder loop() {
             this.loop = true;
             return this;
         }
@@ -144,7 +172,7 @@ public class IntelligentItemLoreAnimator {
          * @param type The animation type
          * @return The Builder to perform further editing.
          */
-        public Builder type(IntelligentItemAnimatorType type) {
+        public @NotNull Builder type(@NotNull IntelligentItemAnimatorType type) {
             this.type = type;
             return this;
         }
@@ -156,7 +184,7 @@ public class IntelligentItemLoreAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot > 53
          */
-        public Builder slot(@Nonnegative int slot) {
+        public @NotNull Builder slot(@Nonnegative int slot) {
             this.slot = slot;
             return this;
         }
@@ -168,7 +196,7 @@ public class IntelligentItemLoreAnimator {
          * @param color The color you want the frame to have.
          * @return The Builder to perform further editing.
          */
-        public Builder color(char frame, IntelligentItemColor color) {
+        public @NotNull Builder color(char frame, @NotNull IntelligentItemColor color) {
             this.frameColor.put(frame, color);
             return this;
         }
@@ -181,12 +209,12 @@ public class IntelligentItemLoreAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder colors(List<Character> frames, IntelligentItemColor... color) throws IllegalArgumentException {
+        public @NotNull Builder colors(@NotNull List<Character> frames, IntelligentItemColor @NotNull ... color) throws IllegalArgumentException {
             Preconditions.checkArgument(frames.size() == color.length, "Frames must have the same length as color.");
 
-            for (int i = 0; i < frames.size(); i++) {
+            for (int i = 0; i < frames.size(); i++)
                 color(frames.get(i), color[i]);
-            }
+
             return this;
         }
 
@@ -198,12 +226,12 @@ public class IntelligentItemLoreAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder colors(Character[] frames, IntelligentItemColor... color) {
+        public @NotNull Builder colors(Character @NotNull [] frames, IntelligentItemColor @NotNull ... color) {
             Preconditions.checkArgument(frames.length == color.length, "Frames must have the same length as color.");
 
-            for (int i = 0; i < frames.length; i++) {
+            for (int i = 0; i < frames.length; i++)
                 color(frames[i], color[i]);
-            }
+
             return this;
         }
 
@@ -215,12 +243,12 @@ public class IntelligentItemLoreAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder colors(Character[] frames, List<IntelligentItemColor> color) {
+        public @NotNull Builder colors(Character @NotNull [] frames, @NotNull List<IntelligentItemColor> color) {
             Preconditions.checkArgument(frames.length == color.size(), "Frames must have the same length as color.");
 
-            for (int i = 0; i < frames.length; i++) {
+            for (int i = 0; i < frames.length; i++)
                 color(frames[i], color.get(i));
-            }
+
             return this;
         }
 
@@ -231,7 +259,7 @@ public class IntelligentItemLoreAnimator {
          * @param setting
          * @return The Builder to perform further editing.
          */
-        public Builder period(@Nonnegative int time, TimeSetting setting) {
+        public @NotNull Builder period(@Nonnegative int time, @NotNull TimeSetting setting) {
             this.period = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
@@ -243,7 +271,7 @@ public class IntelligentItemLoreAnimator {
          * @param setting
          * @return The Builder to perform further editing.
          */
-        public Builder delay(@Nonnegative int time, TimeSetting setting) {
+        public @NotNull Builder delay(@Nonnegative int time, @NotNull TimeSetting setting) {
             this.delay = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
@@ -255,7 +283,7 @@ public class IntelligentItemLoreAnimator {
          * @throws IllegalArgumentException if no slot was specified, if lore is empty, if frameColor is empty or if loreData is empty.
          * @throws NullPointerException     if item is null or if lore is null.
          */
-        public IntelligentItemLoreAnimator build(InventoryContents contents) throws IllegalArgumentException, NullPointerException {
+        public @NotNull IntelligentItemLoreAnimator build(@NotNull InventoryContents contents) throws IllegalArgumentException, NullPointerException {
             if (this.preset != null) {
                 this.intelligentItem = this.preset.intelligentItem;
                 this.lore = this.preset.lore;
@@ -267,24 +295,24 @@ public class IntelligentItemLoreAnimator {
                 this.slot = this.preset.slot;
                 this.loop = this.preset.loop;
             }
-            if (this.intelligentItem == null) {
+            if (this.intelligentItem == null)
                 throw new NullPointerException("An IntelligentItem must be passed.");
-            }
-            if (this.lore == null) {
+
+            if (this.lore == null)
                 throw new NullPointerException("The lore of the item must not be null.");
-            }
-            if (this.lore.isEmpty()) {
+
+            if (this.lore.isEmpty())
                 throw new IllegalArgumentException("The passed item has an empty lore.");
-            }
-            if (this.slot == -1) {
+
+            if (this.slot == -1)
                 throw new IllegalArgumentException("Please specify a slot where the item is located.");
-            }
-            if (this.frameColor.isEmpty()) {
+
+            if (this.frameColor.isEmpty())
                 throw new IllegalArgumentException("Please specify a color for each frame.");
-            }
-            if (this.loreData.isEmpty()) {
+
+            if (this.loreData.isEmpty())
                 throw new IllegalArgumentException("No lore data has been defined yet!");
-            }
+
 
             for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
                 for (char c : entry.getValue().toCharArray()) {
@@ -328,7 +356,7 @@ public class IntelligentItemLoreAnimator {
      * @deprecated Use {@link #animate()} instead.
      */
     @Deprecated
-    public void animate(Plugin plugin) {
+    public void animate(@NotNull Plugin plugin) {
         animate();
     }
 
@@ -554,7 +582,7 @@ public class IntelligentItemLoreAnimator {
         }
     }
 
-    private void updateLore(InventoryContents contents, String lore, @Nonnegative int index) {
+    private void updateLore(@NotNull InventoryContents contents, @NotNull String lore, @Nonnegative int index) {
         ItemStack itemStack = this.itemStack;
 
         ItemMeta itemMeta = itemStack.getItemMeta();
@@ -568,11 +596,11 @@ public class IntelligentItemLoreAnimator {
         this.itemStack = itemStack;
     }
 
-    protected List<BukkitTask> getTasks() {
+    protected @NotNull List<BukkitTask> getTasks() {
         return this.task;
     }
 
-    protected Object getIdentifier() {
+    public @Nullable Object getIdentifier() {
         return this.identifier;
     }
 }

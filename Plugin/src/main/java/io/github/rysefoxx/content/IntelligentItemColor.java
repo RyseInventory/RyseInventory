@@ -1,8 +1,36 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022. Rysefoxx
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package io.github.rysefoxx.content;
 
 import io.github.rysefoxx.IntelligentItemColorWrapper;
 import io.github.rysefoxx.util.VersionUtils;
 import org.bukkit.ChatColor;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
 
@@ -23,7 +51,8 @@ public class IntelligentItemColor {
     private final boolean obfuscated;
     private final boolean strikeThrough;
 
-    public IntelligentItemColor(String hexColor, boolean bold, boolean underline, boolean italic, boolean obfuscated, boolean strikeThrough) {
+    @Contract(pure = true)
+    public IntelligentItemColor(@NotNull String hexColor, boolean bold, boolean underline, boolean italic, boolean obfuscated, boolean strikeThrough) {
         this.hexColor = hexColor;
         this.bold = bold;
         this.underline = underline;
@@ -32,6 +61,7 @@ public class IntelligentItemColor {
         this.strikeThrough = strikeThrough;
     }
 
+    @Contract(pure = true)
     public IntelligentItemColor(int[] rgbColor, boolean bold, boolean underline, boolean italic, boolean obfuscated, boolean strikeThrough) {
         this.rgbColor = rgbColor;
         this.bold = bold;
@@ -41,7 +71,8 @@ public class IntelligentItemColor {
         this.strikeThrough = strikeThrough;
     }
 
-    public IntelligentItemColor(net.md_5.bungee.api.ChatColor bungeeColor, boolean bold, boolean underline, boolean italic, boolean obfuscated, boolean strikeThrough) {
+    @Contract(pure = true)
+    public IntelligentItemColor(@NotNull net.md_5.bungee.api.ChatColor bungeeColor, boolean bold, boolean underline, boolean italic, boolean obfuscated, boolean strikeThrough) {
         this.bungeeColor = bungeeColor;
         this.bold = bold;
         this.underline = underline;
@@ -50,7 +81,8 @@ public class IntelligentItemColor {
         this.strikeThrough = strikeThrough;
     }
 
-    public IntelligentItemColor(ChatColor bukkitColor, boolean bold, boolean underline, boolean italic, boolean obfuscated, boolean strikeThrough) {
+    @Contract(pure = true)
+    public IntelligentItemColor(@NotNull ChatColor bukkitColor, boolean bold, boolean underline, boolean italic, boolean obfuscated, boolean strikeThrough) {
         this.bukkitColor = bukkitColor;
         this.bold = bold;
         this.underline = underline;
@@ -59,7 +91,8 @@ public class IntelligentItemColor {
         this.strikeThrough = strikeThrough;
     }
 
-    public static Builder builder() {
+    @Contract(" -> new")
+    public static @NotNull Builder builder() {
         return new Builder();
     }
 
@@ -80,7 +113,7 @@ public class IntelligentItemColor {
          *
          * @return The Builder to perform further editing.
          */
-        public Builder bold() {
+        public @NotNull Builder bold() {
             this.bold = true;
             return this;
         }
@@ -90,7 +123,7 @@ public class IntelligentItemColor {
          *
          * @return The Builder to perform further editing.
          */
-        public Builder strikeThrough() {
+        public @NotNull Builder strikeThrough() {
             this.strikeThrough = true;
             return this;
         }
@@ -100,7 +133,7 @@ public class IntelligentItemColor {
          *
          * @return The Builder to perform further editing.
          */
-        public Builder underline() {
+        public @NotNull Builder underline() {
             this.underline = true;
             return this;
         }
@@ -110,7 +143,7 @@ public class IntelligentItemColor {
          *
          * @return The Builder to perform further editing.
          */
-        public Builder italic() {
+        public @NotNull Builder italic() {
             this.italic = true;
             return this;
         }
@@ -120,7 +153,7 @@ public class IntelligentItemColor {
          *
          * @return The Builder to perform further editing.
          */
-        public Builder obfuscate() {
+        public @NotNull Builder obfuscate() {
             this.obfuscated = true;
             return this;
         }
@@ -131,7 +164,7 @@ public class IntelligentItemColor {
          * @param bukkitColor ChatColor from org.bukkit
          * @return The Builder to perform further editing.
          */
-        public Builder bukkitColor(ChatColor bukkitColor) {
+        public @NotNull Builder bukkitColor(@NotNull ChatColor bukkitColor) {
             if (bukkitColor == ChatColor.UNDERLINE
                     || bukkitColor == ChatColor.ITALIC
                     || bukkitColor == ChatColor.STRIKETHROUGH
@@ -151,7 +184,7 @@ public class IntelligentItemColor {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameter is not a valid color.
          */
-        public Builder bungeeColor(net.md_5.bungee.api.ChatColor bungeeColor) throws IllegalArgumentException {
+        public @NotNull Builder bungeeColor(@NotNull net.md_5.bungee.api.ChatColor bungeeColor) throws IllegalArgumentException {
             if (bungeeColor == net.md_5.bungee.api.ChatColor.UNDERLINE
                     || bungeeColor == net.md_5.bungee.api.ChatColor.ITALIC
                     || bungeeColor == net.md_5.bungee.api.ChatColor.STRIKETHROUGH
@@ -168,20 +201,20 @@ public class IntelligentItemColor {
         /**
          * The letter gets this color
          *
-         * @param red
-         * @param green
-         * @param blue
+         * @param red   The red value of the color.
+         * @param green The green value of the color.
+         * @param blue  The blue value of the color.
          * @return The Builder to perform further editing
          * @throws IllegalArgumentException     If one of the parameters is greater than 255
          * @throws UnsupportedClassVersionError If the server is running under 1.16.
          */
-        public Builder rgbColor(@Nonnegative int red, @Nonnegative int green, @Nonnegative int blue) throws IllegalArgumentException, UnsupportedClassVersionError {
-            if (!VersionUtils.isAtleast16()) {
+        public @NotNull Builder rgbColor(@Nonnegative int red, @Nonnegative int green, @Nonnegative int blue) throws IllegalArgumentException, UnsupportedClassVersionError {
+            if (!VersionUtils.isAtleast16())
                 throw new UnsupportedClassVersionError("For RGB color, the server must be running on at least 1.16.");
-            }
-            if (red > 255 || green > 255 || blue > 255) {
+
+            if (red > 255 || green > 255 || blue > 255)
                 throw new IllegalArgumentException("The RGB color can not be greater than 255.");
-            }
+
 
             this.rgbColor[0] = red;
             this.rgbColor[1] = green;
@@ -200,9 +233,9 @@ public class IntelligentItemColor {
         public Builder colorByChar(char number) throws NullPointerException {
             ChatColor color = ChatColor.getByChar(number);
 
-            if (color == null) {
+            if (color == null)
                 throw new NullPointerException("No ChatColor with the character " + number + " could be found.");
-            }
+
             this.bukkitColor = color;
             return this;
         }
@@ -216,9 +249,9 @@ public class IntelligentItemColor {
          * @throws NullPointerException     if no ChatColor could be found.
          */
         public Builder paragraph(String paragraph) throws IllegalArgumentException, NullPointerException {
-            if (paragraph.length() > 2) {
+            if (paragraph.length() > 2)
                 throw new IllegalArgumentException("The parameter must not be longer than 2 characters. This is how a transfer could look like paragraph(§3).");
-            }
+
             return colorByChar(paragraph.charAt(1));
         }
 
@@ -231,81 +264,92 @@ public class IntelligentItemColor {
          * @throws UnsupportedClassVersionError If the server is running under 1.16.
          */
         public Builder hexColor(String hexColor) throws IllegalArgumentException, UnsupportedClassVersionError {
-            if (!VersionUtils.isAtleast16()) {
+            if (!VersionUtils.isAtleast16())
                 throw new UnsupportedClassVersionError("For Hex color, the server must be running on at least 1.16.");
-            }
-            if (!hexColor.startsWith("#")) {
-                hexColor = "#" + hexColor;
-            }
 
-            if (hexColor.length() > 7) {
+            if (!hexColor.startsWith("#"))
+                hexColor = "#" + hexColor;
+            if (hexColor.length() > 7)
                 throw new IllegalArgumentException("The hex input must not be longer than 7 characters.");
-            }
 
             this.hexColor = hexColor;
             return this;
         }
 
-        @SuppressWarnings("unchecked")
-        public IntelligentItemColor build() {
-            try {
-                final Class<?> clazz = Class.forName("io.github.rysefoxx.v1_" + VersionUtils.getSubVersion() + ".ColorHandler");
-                if (IntelligentItemColorWrapper.class.isAssignableFrom(clazz)) {
-                    colorWrapper = (IntelligentItemColorWrapper<net.md_5.bungee.api.ChatColor>) clazz.getConstructor().newInstance();
-                }
-            } catch (final Exception ignored) {}
+        public @Nullable IntelligentItemColor build() {
+            tryToSetWrapper();
 
-            if (this.hexColor != null) {
+            if (this.hexColor != null)
                 return new IntelligentItemColor(this.hexColor, this.bold, this.underline, this.italic, this.obfuscated, this.strikeThrough);
-            }
-            if (this.bukkitColor != null) {
+
+            if (this.bukkitColor != null)
                 return new IntelligentItemColor(this.bukkitColor, this.bold, this.underline, this.italic, this.obfuscated, this.strikeThrough);
-            }
-            if (this.bungeeColor != null) {
+
+            if (this.bungeeColor != null)
                 return new IntelligentItemColor(this.bungeeColor, this.bold, this.underline, this.italic, this.obfuscated, this.strikeThrough);
-            }
-            if (this.rgbColor.length > 0) {
+
+            if (this.rgbColor.length > 0)
                 return new IntelligentItemColor(this.rgbColor, this.bold, this.underline, this.italic, this.obfuscated, this.strikeThrough);
-            }
             return null;
         }
     }
 
-    public net.md_5.bungee.api.ChatColor getColor() {
+    public @NotNull net.md_5.bungee.api.ChatColor getColor() {
         if (this.bungeeColor != null) return this.bungeeColor;
         if (this.bukkitColor != null) return this.bukkitColor.asBungee();
 
-        if (colorWrapper == null) {
+        if (colorWrapper == null)
             throw new IllegalStateException("The color wrapper is null. Please report this to the developer. Your server is running " + VersionUtils.getSubVersion() + ".");
-        }
 
-        if (this.hexColor != null && !this.hexColor.isEmpty()) {
+        if (this.hexColor != null && !this.hexColor.isEmpty())
             return colorWrapper.getColor(this.hexColor, null);
-        }
+
         return colorWrapper.getColor(null, this.rgbColor);
     }
 
-
+    /**
+     * @return true if the color is bold
+     */
     public boolean isBold() {
         return this.bold;
     }
 
-
+    /**
+     * @return true if the color is underlined
+     */
     public boolean isUnderline() {
         return this.underline;
     }
 
-
+    /**
+     * @return true if the color is italic
+     */
     public boolean isItalic() {
         return this.italic;
     }
 
-
+    /**
+     * @return true if the color is obfuscated
+     */
     public boolean isObfuscated() {
         return this.obfuscated;
     }
 
+    /**
+     * @return true if the color is striked through
+     */
     public boolean isStrikeThrough() {
         return this.strikeThrough;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void tryToSetWrapper() {
+        try {
+            final Class<?> clazz = Class.forName("io.github.rysefoxx.v1_" + VersionUtils.getSubVersion() + ".ColorHandler");
+            if (IntelligentItemColorWrapper.class.isAssignableFrom(clazz)) {
+                colorWrapper = (IntelligentItemColorWrapper<net.md_5.bungee.api.ChatColor>) clazz.getConstructor().newInstance();
+            }
+        } catch (final Exception ignored) {
+        }
     }
 }

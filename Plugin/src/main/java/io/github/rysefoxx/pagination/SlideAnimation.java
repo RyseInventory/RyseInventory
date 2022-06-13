@@ -1,3 +1,28 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022. Rysefoxx
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package io.github.rysefoxx.pagination;
 
 import com.google.common.base.Preconditions;
@@ -12,6 +37,9 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
 import java.util.*;
@@ -37,7 +65,8 @@ public class SlideAnimation {
 
     private final HashMap<Integer, Integer> timeHandler = new HashMap<>();
 
-    public static Builder builder(Plugin plugin) {
+    @Contract("_ -> new")
+    public static @NotNull Builder builder(@NotNull Plugin plugin) {
         SlideAnimation.plugin = plugin;
         return new Builder();
     }
@@ -71,7 +100,7 @@ public class SlideAnimation {
          * @return The Builder to perform further editing.
          * @apiNote When copying the animator, the identification is not copied if present!
          */
-        public Builder copy(SlideAnimation preset) {
+        public @NotNull Builder copy(@NotNull SlideAnimation preset) {
             this.preset = preset;
             return this;
         }
@@ -82,7 +111,7 @@ public class SlideAnimation {
          * @param direction The direction of the animation.
          * @return The Builder to perform further editing.
          */
-        public Builder direction(AnimatorDirection direction) {
+        public @NotNull Builder direction(@NotNull AnimatorDirection direction) {
             this.direction = direction;
             return this;
         }
@@ -90,11 +119,11 @@ public class SlideAnimation {
         /**
          * Specifies the delay before the animation starts.
          *
-         * @param time The delay.
+         * @param time    The delay.
          * @param setting The time setting.
          * @return The Builder to perform further editing.
          */
-        public Builder delay(@Nonnegative int time, TimeSetting setting) {
+        public @NotNull Builder delay(@Nonnegative int time, @NotNull TimeSetting setting) {
             this.delay = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
@@ -102,11 +131,11 @@ public class SlideAnimation {
         /**
          * Sets the speed of the animation in the scheduler.
          *
-         * @param time The period.
+         * @param time    The period.
          * @param setting The time setting.
          * @return The Builder to perform further editing.
          */
-        public Builder period(@Nonnegative int time, TimeSetting setting) {
+        public @NotNull Builder period(@Nonnegative int time, @NotNull TimeSetting setting) {
             this.period = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
@@ -118,10 +147,10 @@ public class SlideAnimation {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot is > 53
          */
-        public Builder from(@Nonnegative int slot) throws IllegalArgumentException {
-            if (slot > 53) {
+        public @NotNull Builder from(@Nonnegative int slot) throws IllegalArgumentException {
+            if (slot > 53)
                 throw new IllegalArgumentException("The slot must not be larger than 53.");
-            }
+
             this.from.add(slot);
             return this;
         }
@@ -129,18 +158,18 @@ public class SlideAnimation {
         /**
          * Adds a single start position.
          *
-         * @param row The row to start at.
+         * @param row    The row to start at.
          * @param column The column to start at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
-        public Builder from(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
-            if (row > 5) {
+        public @NotNull Builder from(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
+            if (row > 5)
                 throw new IllegalArgumentException("The row must not be larger than 5.");
-            }
-            if (column > 8) {
+
+            if (column > 8)
                 throw new IllegalArgumentException("The column must not be larger than 9.");
-            }
+
 
             this.from.add(SlotUtils.toSlot(row, column));
             return this;
@@ -153,28 +182,26 @@ public class SlideAnimation {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot is > 53
          */
-        public Builder from(Integer... slots) throws IllegalArgumentException {
-            for (Integer slot : slots) {
+        public @NotNull Builder from(Integer @NotNull ... slots) throws IllegalArgumentException {
+            for (Integer slot : slots)
                 from(slot);
-            }
+
             return this;
         }
 
         /**
          * Add multiple start positions.
          *
-         * @param rows The rows to start at.
+         * @param rows    The rows to start at.
          * @param columns The columns to start at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
-        public Builder from(Integer[] rows, Integer[] columns) throws IllegalArgumentException {
+        public @NotNull Builder from(Integer @NotNull [] rows, Integer @NotNull [] columns) throws IllegalArgumentException {
             Preconditions.checkArgument(rows.length == columns.length, "Rows must have the same length as columns.");
 
-
-            for (int i = 0; i < rows.length; i++) {
+            for (int i = 0; i < rows.length; i++)
                 from(rows[i], columns[i]);
-            }
 
             return this;
         }
@@ -187,7 +214,7 @@ public class SlideAnimation {
          * @throws IllegalArgumentException if slot is > 53
          * @apiNote We recommend passing the list from small to large. e.g .from(Arrays.asList(1, 1, 4)) NOT .from(Arrays.asList(4,1,1))
          */
-        public Builder from(List<Integer> slots) throws IllegalArgumentException {
+        public @NotNull Builder from(@NotNull List<Integer> slots) throws IllegalArgumentException {
             slots.forEach(this::from);
             return this;
         }
@@ -195,17 +222,17 @@ public class SlideAnimation {
         /**
          * Add multiple start positions.
          *
-         * @param rows The rows to start at.
+         * @param rows    The rows to start at.
          * @param columns The columns to start at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
-        public Builder from(List<Integer> rows, List<Integer> columns) throws IllegalArgumentException {
+        public @NotNull Builder from(@NotNull List<Integer> rows, @NotNull List<Integer> columns) throws IllegalArgumentException {
             Preconditions.checkArgument(rows.size() == columns.size(), "Rows must have the same length as columns.");
 
-            for (int i = 0; i < rows.size(); i++) {
+            for (int i = 0; i < rows.size(); i++)
                 from(rows.get(i), columns.get(i));
-            }
+
             return this;
         }
 
@@ -216,10 +243,10 @@ public class SlideAnimation {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot is > 53
          */
-        public Builder to(@Nonnegative int slot) throws IllegalArgumentException {
-            if (slot > 53) {
+        public @NotNull Builder to(@Nonnegative int slot) throws IllegalArgumentException {
+            if (slot > 53)
                 throw new IllegalArgumentException("The slot must not be larger than 53.");
-            }
+
             this.to.add(slot);
             return this;
         }
@@ -227,12 +254,12 @@ public class SlideAnimation {
         /**
          * Adds a single end position.
          *
-         * @param row The row to end at.
+         * @param row    The row to end at.
          * @param column The column to end at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
-        public Builder to(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
+        public @NotNull Builder to(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
             if (row > 5) {
                 throw new IllegalArgumentException("The row must not be larger than 5.");
             }
@@ -251,27 +278,27 @@ public class SlideAnimation {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot is > 53
          */
-        public Builder to(Integer... slots) throws IllegalArgumentException {
-            for (Integer slot : slots) {
+        public @NotNull Builder to(int @NotNull ... slots) throws IllegalArgumentException {
+            for (int slot : slots)
                 to(slot);
-            }
+
             return this;
         }
 
         /**
          * Add multiple end positions.
          *
-         * @param rows The rows to end at.
+         * @param rows    The rows to end at.
          * @param columns The columns to end at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
-        public Builder to(Integer[] rows, Integer[] columns) throws IllegalArgumentException {
+        public @NotNull Builder to(Integer @NotNull [] rows, Integer @NotNull [] columns) throws IllegalArgumentException {
             Preconditions.checkArgument(rows.length == columns.length, "Rows must have the same length as columns.");
 
-            for (int i = 0; i < rows.length; i++) {
+            for (int i = 0; i < rows.length; i++)
                 to(rows[i], columns[i]);
-            }
+
             return this;
         }
 
@@ -282,7 +309,7 @@ public class SlideAnimation {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot is > 53
          */
-        public Builder to(List<Integer> slots) throws IllegalArgumentException {
+        public @NotNull Builder to(@NotNull List<Integer> slots) throws IllegalArgumentException {
             slots.forEach(this::to);
             return this;
         }
@@ -290,17 +317,17 @@ public class SlideAnimation {
         /**
          * Add multiple end positions.
          *
-         * @param rows The rows to end at.
+         * @param rows    The rows to end at.
          * @param columns The columns to end at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
-        public Builder to(List<Integer> rows, List<Integer> columns) throws IllegalArgumentException {
+        public @NotNull Builder to(@NotNull List<Integer> rows, @NotNull List<Integer> columns) throws IllegalArgumentException {
             Preconditions.checkArgument(rows.size() == columns.size(), "Rows must have the same length as columns.");
 
-            for (int i = 0; i < rows.size(); i++) {
+            for (int i = 0; i < rows.size(); i++)
                 to(rows.get(i), columns.get(i));
-            }
+
             return this;
         }
 
@@ -310,7 +337,7 @@ public class SlideAnimation {
          * @param item The item to add.
          * @return The Builder to perform further editing.
          */
-        public Builder item(IntelligentItem item) {
+        public @NotNull Builder item(@NotNull IntelligentItem item) {
             ItemStack itemStack = item.getItemStack();
 
             NBTItem nbtItem = new NBTItem(itemStack);
@@ -328,10 +355,10 @@ public class SlideAnimation {
          * @param items The items to add.
          * @return The Builder to perform further editing.
          */
-        public Builder item(IntelligentItem... items) {
-            for (IntelligentItem item : items) {
+        public @NotNull Builder item(IntelligentItem @NotNull ... items) {
+            for (IntelligentItem item : items)
                 item(item);
-            }
+
             return this;
         }
 
@@ -341,7 +368,7 @@ public class SlideAnimation {
          * @param items The items to add.
          * @return The Builder to perform further editing.
          */
-        public Builder items(IntelligentItem... items) {
+        public @NotNull Builder items(IntelligentItem @NotNull ... items) {
             return item(items);
         }
 
@@ -351,7 +378,7 @@ public class SlideAnimation {
          * @param items The items to add.
          * @return The Builder to perform further editing.
          */
-        public Builder item(List<IntelligentItem> items) {
+        public @NotNull Builder item(@NotNull List<IntelligentItem> items) {
             items.forEach(this::item);
             return this;
         }
@@ -362,7 +389,7 @@ public class SlideAnimation {
          * @param items The items to add.
          * @return The Builder to perform further editing.
          */
-        public Builder items(List<IntelligentItem> items) {
+        public @NotNull Builder items(@NotNull List<IntelligentItem> items) {
             return item(items);
         }
 
@@ -373,7 +400,7 @@ public class SlideAnimation {
          * @param identifier The ID through which you can get the animation
          * @return The Builder to perform further editing
          */
-        public Builder identifier(Object identifier) {
+        public @NotNull Builder identifier(@NotNull Object identifier) {
             this.identifier = identifier;
             return this;
         }
@@ -397,21 +424,20 @@ public class SlideAnimation {
                 this.blockClickEvent = this.preset.blockClickEvent;
             }
 
-            if (this.to.isEmpty()) {
+            if (this.to.isEmpty())
                 throw new IllegalArgumentException("No start positions were found. Please add start positions to make the animation work.");
-            }
-            if (this.from.isEmpty()) {
+
+            if (this.from.isEmpty())
                 throw new IllegalArgumentException("No end positions were found. Please add end positions to make the animation work.");
-            }
-            if (this.items.isEmpty()) {
+
+            if (this.items.isEmpty())
                 throw new IllegalArgumentException("No items were found. Please add items to make the animation work.");
-            }
-            if (this.direction == null) {
+
+            if (this.direction == null)
                 throw new NullPointerException("Direction is null. Please specify a direction for the animation.");
-            }
+
             Preconditions.checkArgument(this.from.size() == this.to.size(), "from and to must have the same size");
             Preconditions.checkArgument(this.from.size() == this.items.size(), "from and items must have the same size");
-
 
             SlideAnimation slideAnimation = new SlideAnimation();
             slideAnimation.to = this.to;
@@ -432,7 +458,7 @@ public class SlideAnimation {
      * @param contents The inventory contents to animate.
      * @throws IllegalArgumentException if invalid data was passed in the builder.
      */
-    public void animate(InventoryContents contents) throws IllegalArgumentException {
+    public void animate(@NotNull InventoryContents contents) throws IllegalArgumentException {
         this.contents = contents;
         RyseInventory inventory = contents.pagination().inventory();
 
@@ -448,13 +474,14 @@ public class SlideAnimation {
 
     /**
      * This starts the animation for the inventory.
+     *
      * @param plugin   Your main class that extends the JavaPlugin.
      * @param contents The inventory contents.
      * @throws IllegalArgumentException if invalid data was passed in the builder.
      * @deprecated Use {@link #animate(InventoryContents)} instead.
      */
     @Deprecated
-    public void animate(JavaPlugin plugin, InventoryContents contents) throws IllegalArgumentException {
+    public void animate(@NotNull JavaPlugin plugin, @NotNull InventoryContents contents) throws IllegalArgumentException {
         animate(contents);
     }
 
@@ -739,14 +766,14 @@ public class SlideAnimation {
         }
     }
 
-    private String getKey(IntelligentItem item) {
+    private String getKey(@NotNull IntelligentItem item) {
         ItemStack previousItemStack = item.getItemStack();
 
         NBTContainer container = NBTItem.convertItemtoNBT(previousItemStack);
         return container.hasKey("RYSEINVENTORY_SLIDE_ANIMATION_KEY") ? container.getString("RYSEINVENTORY_SLIDE_ANIMATION_KEY") : "";
     }
 
-    private void checkIfInvalid(@Nonnegative int from, @Nonnegative int to, RyseInventory inventory) {
+    private void checkIfInvalid(@Nonnegative int from, @Nonnegative int to, @NotNull RyseInventory inventory) {
         if (this.direction == AnimatorDirection.HORIZONTAL_LEFT_RIGHT || this.direction == AnimatorDirection.HORIZONTAL_RIGHT_LEFT) {
             if ((from - 1) / 9 != (to - 1) / 9 && from / 9 != to / 9) {
                 throw new IllegalArgumentException("The start position " + from + " and the end position " + to + " are not on the same row.");
@@ -771,26 +798,26 @@ public class SlideAnimation {
             }
         }
 
-        if (from == to) {
+        if (from == to)
             throw new IllegalArgumentException("The animation could not be started! from " + from + " and to " + to + " have the same values. from must be smaller than " + to + ".");
-        }
-        if (from > inventory.size()) {
+
+        if (from > inventory.size())
             throw new IllegalArgumentException("The start slot must not be larger than the inventory size.");
-        }
-        if (to > inventory.size()) {
+
+        if (to > inventory.size())
             throw new IllegalArgumentException("The end slot must not be larger than the inventory size.");
-        }
+
     }
 
     protected boolean isBlockClickEvent() {
         return this.blockClickEvent;
     }
 
-    protected List<BukkitTask> getTasks() {
+    protected @NotNull List<BukkitTask> getTasks() {
         return this.task;
     }
 
-    protected Object getIdentifier() {
+    public @Nullable Object getIdentifier() {
         return this.identifier;
     }
 }

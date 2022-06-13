@@ -1,3 +1,28 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022. Rysefoxx
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package io.github.rysefoxx.pagination;
 
 import com.google.common.base.Preconditions;
@@ -8,6 +33,9 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
 import java.util.ArrayList;
@@ -34,7 +62,8 @@ public class IntelligentMaterialAnimator {
     private InventoryContents contents;
     private static Plugin plugin;
 
-    public static Builder builder(Plugin plugin) {
+    @Contract("_ -> new")
+    public static @NotNull Builder builder(@NotNull Plugin plugin) {
         IntelligentMaterialAnimator.plugin = plugin;
         return new Builder();
     }
@@ -59,7 +88,7 @@ public class IntelligentMaterialAnimator {
          * @param intelligentItem
          * @return The Builder to perform further editing.
          */
-        public Builder item(IntelligentItem intelligentItem) {
+        public @NotNull Builder item(@NotNull IntelligentItem intelligentItem) {
             this.intelligentItem = intelligentItem;
             return this;
         }
@@ -70,8 +99,9 @@ public class IntelligentMaterialAnimator {
          *
          * @param preset The animator to be copied.
          * @return The Builder to perform further editing.
+         * @apiNote When copying the animator, the identification is not copied if present!
          */
-        public Builder copy(IntelligentMaterialAnimator preset) {
+        public @NotNull Builder copy(@NotNull IntelligentMaterialAnimator preset) {
             this.preset = preset;
             return this;
         }
@@ -81,7 +111,7 @@ public class IntelligentMaterialAnimator {
          *
          * @return The Builder to perform further editing.
          */
-        public Builder loop() {
+        public @NotNull Builder loop() {
             this.loop = true;
             return this;
         }
@@ -93,10 +123,10 @@ public class IntelligentMaterialAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot > 53
          */
-        public Builder slot(@Nonnegative int slot) throws IllegalArgumentException {
-            if (slot > 53) {
+        public @NotNull Builder slot(@Nonnegative int slot) throws IllegalArgumentException {
+            if (slot > 53)
                 throw new IllegalArgumentException("The slot must not be larger than 53.");
-            }
+
             this.slot = slot;
             return this;
         }
@@ -108,7 +138,7 @@ public class IntelligentMaterialAnimator {
          * @param material The material you want the frame to have.
          * @return The Builder to perform further editing.
          */
-        public Builder material(char frame, Material material) {
+        public @NotNull Builder material(char frame, @NotNull Material material) {
             this.frameMaterial.put(frame, material);
             return this;
         }
@@ -121,12 +151,12 @@ public class IntelligentMaterialAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder materials(List<Character> frames, Material... materials) throws IllegalArgumentException {
+        public @NotNull Builder materials(@NotNull List<Character> frames, Material @NotNull ... materials) throws IllegalArgumentException {
             Preconditions.checkArgument(frames.size() == materials.length, "Frames must have the same length as materials.");
 
-            for (int i = 0; i < frames.size(); i++) {
+            for (int i = 0; i < frames.size(); i++)
                 material(frames.get(i), materials[i]);
-            }
+
             return this;
         }
 
@@ -138,12 +168,12 @@ public class IntelligentMaterialAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder materials(Character[] frames, Material... materials) {
+        public @NotNull Builder materials(Character @NotNull [] frames, Material @NotNull ... materials) {
             Preconditions.checkArgument(frames.length == materials.length, "Frames must have the same length as materials.");
 
-            for (int i = 0; i < frames.length; i++) {
+            for (int i = 0; i < frames.length; i++)
                 material(frames[i], materials[i]);
-            }
+
             return this;
         }
 
@@ -155,12 +185,12 @@ public class IntelligentMaterialAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
-        public Builder materials(Character[] frames, List<Material> materials) {
+        public @NotNull Builder materials(Character @NotNull [] frames, @NotNull List<Material> materials) {
             Preconditions.checkArgument(frames.length == materials.size(), "Frames must have the same length as materials.");
 
-            for (int i = 0; i < frames.length; i++) {
+            for (int i = 0; i < frames.length; i++)
                 material(frames[i], materials.get(i));
-            }
+
             return this;
         }
 
@@ -171,7 +201,7 @@ public class IntelligentMaterialAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If no material has been assigned to the frame yet. e.g {@link IntelligentMaterialAnimator.Builder#material(char, Material)}
          */
-        public Builder frame(String frame) throws IllegalArgumentException {
+        public @NotNull Builder frame(@NotNull String frame) throws IllegalArgumentException {
             this.frames.add(frame);
             return this;
         }
@@ -183,10 +213,10 @@ public class IntelligentMaterialAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If no material has been assigned to the frame yet. e.g {@link IntelligentMaterialAnimator.Builder#material(char, Material)}
          */
-        public Builder frames(String... frames) {
-            for (String frame : frames) {
+        public @NotNull Builder frames(String @NotNull ... frames) {
+            for (String frame : frames)
                 frame(frame);
-            }
+
             return this;
         }
 
@@ -197,7 +227,7 @@ public class IntelligentMaterialAnimator {
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If no material has been assigned to the frame yet. e.g {@link IntelligentMaterialAnimator.Builder#material(char, Material)}
          */
-        public Builder frames(List<String> frames) {
+        public @NotNull Builder frames(@NotNull List<String> frames) {
             frames.forEach(this::frame);
             return this;
         }
@@ -209,7 +239,7 @@ public class IntelligentMaterialAnimator {
          * @param setting
          * @return The Builder to perform further editing.
          */
-        public Builder period(@Nonnegative int time, TimeSetting setting) {
+        public @NotNull Builder period(@Nonnegative int time, @NotNull TimeSetting setting) {
             this.period = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
@@ -221,7 +251,7 @@ public class IntelligentMaterialAnimator {
          * @param setting
          * @return The Builder to perform further editing.
          */
-        public Builder delay(@Nonnegative int time, TimeSetting setting) {
+        public @NotNull Builder delay(@Nonnegative int time, @NotNull TimeSetting setting) {
             this.delay = setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
             return this;
         }
@@ -233,7 +263,7 @@ public class IntelligentMaterialAnimator {
          * @return The Builder to perform further editing
          * @apiNote When copying the animator, the identification is not copied if present!
          */
-        public Builder identifier(Object identifier) {
+        public @NotNull Builder identifier(@NotNull Object identifier) {
             this.identifier = identifier;
             return this;
         }
@@ -245,7 +275,7 @@ public class IntelligentMaterialAnimator {
          * @throws IllegalArgumentException if no slot was specified, if frameMaterial is empty, if frames is empty or if no material has been assigned to a frame.
          * @throws NullPointerException     if item is null.
          */
-        public IntelligentMaterialAnimator build(InventoryContents contents) throws IllegalArgumentException, NullPointerException {
+        public IntelligentMaterialAnimator build(@NotNull InventoryContents contents) throws IllegalArgumentException, NullPointerException {
             if (this.preset != null) {
                 this.intelligentItem = this.preset.intelligentItem;
                 this.frames = this.preset.frames;
@@ -256,18 +286,18 @@ public class IntelligentMaterialAnimator {
                 this.loop = this.preset.loop;
             }
 
-            if (this.slot == -1) {
+            if (this.slot == -1)
                 throw new IllegalArgumentException("Please specify a slot where the item is located.");
-            }
-            if (this.frameMaterial.isEmpty()) {
+
+            if (this.frameMaterial.isEmpty())
                 throw new IllegalArgumentException("Please specify a material for each frame.");
-            }
-            if (this.intelligentItem == null) {
+
+            if (this.intelligentItem == null)
                 throw new NullPointerException("Please specify an item to animate.");
-            }
-            if (this.frames.isEmpty()) {
+
+            if (this.frames.isEmpty())
                 throw new IllegalArgumentException("No frames have been defined yet!");
-            }
+
 
             for (String frame : this.frames) {
                 for (char c : frame.toCharArray()) {
@@ -353,14 +383,15 @@ public class IntelligentMaterialAnimator {
         }, this.delay, this.period);
     }
 
-    protected BukkitTask getTask() {
+    protected @NotNull BukkitTask getTask() {
         return this.task;
     }
 
-    protected Object getIdentifier() {
+    public @Nullable Object getIdentifier() {
         return this.identifier;
     }
 
+    @Contract(pure = true)
     private int getFrameLength() {
         int length = 0;
         for (String frame : frames) {

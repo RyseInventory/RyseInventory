@@ -1,8 +1,34 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022. Rysefoxx
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package io.github.rysefoxx.pagination;
 
 import io.github.rysefoxx.SlotIterator;
 import io.github.rysefoxx.content.IntelligentItem;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnegative;
 import java.util.ArrayList;
@@ -37,7 +63,7 @@ public class Pagination implements Cloneable {
      * Pagination constructor with a default size of 1 element per page.
      */
 
-    public Pagination(RyseInventory inventory) {
+    public Pagination(@NotNull RyseInventory inventory) {
         this.inventory = inventory;
         this.itemsPerPage = 1;
         this.page = 0;
@@ -75,20 +101,13 @@ public class Pagination implements Cloneable {
      */
     public @Nonnegative
     int lastPage() {
-        int value;
-
-        if (this.slotIterator == null || this.slotIterator.getEndPosition() == -1) {
-            value = this.itemsPerPage;
-        } else {
-            value = this.slotIterator.getEndPosition() - (this.slotIterator.getSlot() == -1 ? 9 * this.slotIterator.getRow() + this.slotIterator.getColumn() : this.slotIterator.getSlot());
-        }
-        return (int) Math.ceil((double) this.items.size() / value);
+        return (int) Math.ceil((double) this.items.size() / calculateValueForPage());
     }
 
     /**
      * @return the current inventory.
      */
-    public RyseInventory inventory() {
+    public @NotNull RyseInventory inventory() {
         return this.inventory;
     }
 
@@ -96,14 +115,7 @@ public class Pagination implements Cloneable {
      * @return true if you are on the last page.
      */
     public boolean isLast() {
-        int value;
-
-        if (this.slotIterator == null || this.slotIterator.getEndPosition() == -1) {
-            value = this.itemsPerPage;
-        } else {
-            value = this.slotIterator.getEndPosition() - (this.slotIterator.getSlot() == -1 ? 9 * this.slotIterator.getRow() + this.slotIterator.getColumn() : this.slotIterator.getSlot());
-        }
-
+        int value = calculateValueForPage();
         int slide = (int) Math.ceil((double) this.items.size() / value);
 
         return this.page == (slide != 0 ? slide - 1 : 0);
@@ -121,7 +133,7 @@ public class Pagination implements Cloneable {
      *
      * @return the new Pagination
      */
-    public Pagination next() {
+    public @NotNull Pagination next() {
         if (isLast()) return this;
         this.page++;
         return this;
@@ -132,7 +144,7 @@ public class Pagination implements Cloneable {
      *
      * @return the new Pagination
      */
-    public Pagination previous() {
+    public @NotNull Pagination previous() {
         if (isFirst()) return this;
         this.page--;
         return this;
@@ -143,7 +155,7 @@ public class Pagination implements Cloneable {
      *
      * @param items A list of intelligent ItemStacks
      */
-    public void setItems(List<IntelligentItem> items) {
+    public void setItems(@NotNull List<IntelligentItem> items) {
         this.items = new ArrayList<>(items);
     }
 
@@ -152,7 +164,7 @@ public class Pagination implements Cloneable {
      *
      * @param items An array of smart ItemStacks
      */
-    public void setItems(IntelligentItem[] items) {
+    public void setItems(@NotNull IntelligentItem[] items) {
         this.items = Arrays.stream(items).collect(Collectors.toList());
     }
 
@@ -161,7 +173,7 @@ public class Pagination implements Cloneable {
      *
      * @param item the intelligent ItemStack
      */
-    public void addItem(IntelligentItem item) {
+    public void addItem(@NotNull IntelligentItem item) {
         this.items.add(item);
     }
 
@@ -170,7 +182,7 @@ public class Pagination implements Cloneable {
      *
      * @param slotIterator the SlotIterator
      */
-    public void iterator(SlotIterator slotIterator) {
+    public void iterator(@NotNull SlotIterator slotIterator) {
         this.slotIterator = slotIterator;
     }
 
@@ -181,10 +193,10 @@ public class Pagination implements Cloneable {
      * @param newItem The Item
      * @throws IllegalArgumentException if slot > 53
      */
-    protected void setItem(@Nonnegative int slot, IntelligentItem newItem) throws IllegalArgumentException {
-        if (slot > 53) {
+    protected void setItem(@Nonnegative int slot, @NotNull IntelligentItem newItem) throws IllegalArgumentException {
+        if (slot > 53)
             throw new IllegalArgumentException("The slot must not be larger than 53.");
-        }
+
         this.permanentItems.put(slot, newItem);
     }
 
@@ -196,10 +208,10 @@ public class Pagination implements Cloneable {
      * @param newItem The Item
      * @throws IllegalArgumentException if slot > 53
      */
-    protected void setItem(@Nonnegative int slot, @Nonnegative int page, IntelligentItem newItem) throws IllegalArgumentException {
-        if (slot > 53) {
+    protected void setItem(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem newItem) throws IllegalArgumentException {
+        if (slot > 53)
             throw new IllegalArgumentException("The slot must not be larger than 53.");
-        }
+
         page--;
         if (!this.pageItems.containsKey(page))
             this.pageItems.put(page, new HashMap<>());
@@ -215,7 +227,7 @@ public class Pagination implements Cloneable {
         this.itemsPerPage = itemsPerPage;
     }
 
-    protected HashMap<Integer, HashMap<Integer, IntelligentItem>> getPageItems() {
+    protected @NotNull HashMap<Integer, HashMap<Integer, IntelligentItem>> getPageItems() {
         return pageItems;
     }
 
@@ -223,11 +235,11 @@ public class Pagination implements Cloneable {
         this.pageItems = items;
     }
 
-    protected ConcurrentHashMap<Integer, IntelligentItem> getPermanentItems() {
+    protected @NotNull ConcurrentHashMap<Integer, IntelligentItem> getPermanentItems() {
         return permanentItems;
     }
 
-    protected List<IntelligentItem> getItems() {
+    protected @NotNull List<IntelligentItem> getItems() {
         return items;
     }
 
@@ -242,5 +254,16 @@ public class Pagination implements Cloneable {
         } catch (CloneNotSupportedException e) {
             return this;
         }
+    }
+
+    private int calculateValueForPage() {
+        int value;
+
+        if (this.slotIterator == null || this.slotIterator.getEndPosition() == -1) {
+            value = this.itemsPerPage;
+        } else {
+            value = this.slotIterator.getEndPosition() - (this.slotIterator.getSlot() == -1 ? 9 * this.slotIterator.getRow() + this.slotIterator.getColumn() : this.slotIterator.getSlot());
+        }
+        return value;
     }
 }
