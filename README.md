@@ -77,6 +77,8 @@ dependencies {
 # Examples
 * [Click here](https://github.com/Rysefoxx/RyseInventory/tree/master/Examples/src/main/java/io/github/rysefoxx/examples)
 
+# ToDo
+ * Remove all deprecated method in update 1.2.3.
 
 # License
 This API is licensed under the MIT License.
