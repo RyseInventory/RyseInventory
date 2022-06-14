@@ -23,38 +23,34 @@
  *
  */
 
-package io.github.rysefoxx.v1_17;
+package io.github.rysefoxx.content;
 
+import lombok.Getter;
+import lombok.Setter;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
-import io.github.rysefoxx.IntelligentItemColorWrapper;
-import net.md_5.bungee.api.ChatColor;
+import javax.annotation.Nonnegative;
 
 /**
  * @author Rysefoxx | Rysefoxx#6772
- * @since 4/22/2022
+ * @since 6/14/2022
  */
-public class ColorHandler implements IntelligentItemColorWrapper<ChatColor> {
-    private String toHex(int value) {
-        StringBuilder hex = new StringBuilder(Integer.toHexString(value));
-        while (hex.length() < 2) {
-            hex.append("0");
-        }
-        return hex.toString();
+@Getter
+@Setter
+public class IntelligentItemData {
+
+    private final IntelligentItem item;
+    private int page;
+    private int originalSlot;
+    private int modifiedSlot;
+
+
+    @Contract(pure = true)
+    public IntelligentItemData(@NotNull IntelligentItem item, @Nonnegative int page, @Nonnegative int originalSlot) {
+        this.item = item;
+        this.page = page;
+        this.originalSlot = originalSlot;
+        this.modifiedSlot = this.originalSlot;
     }
-
-    @Override
-    public ChatColor getColor(String input, int[] rgb) {
-        if (input == null) {
-            int red = rgb[0];
-            int green = rgb[1];
-            int blue = rgb[2];
-
-            String hex = "#" + toHex(red) + toHex(green) + toHex(blue);
-
-            return ChatColor.of(hex);
-        }
-
-        return ChatColor.of(input);
-    }
-
 }

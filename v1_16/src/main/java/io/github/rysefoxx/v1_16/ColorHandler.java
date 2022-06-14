@@ -44,14 +44,14 @@ public class ColorHandler implements IntelligentItemColorWrapper<ChatColor> {
 
     @Override
     public ChatColor getColor(String input, int[] rgb) {
-        if(input == null) {
+        if (input == null) {
             int red = rgb[0];
             int green = rgb[1];
             int blue = rgb[2];
 
             String hex = "#" + toHex(red) + toHex(green) + toHex(blue);
 
-           return ChatColor.of(hex);
+            return ChatColor.of(hex);
         }
 
         return ChatColor.of(input);

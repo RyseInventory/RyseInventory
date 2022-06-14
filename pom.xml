@@ -62,7 +62,7 @@
         <module>v1_19</module>
         <module>Plugin</module>
         <module>API</module>
-        <module>Examples</module>
+        <module>examples</module>
     </modules>
 
     <scm>

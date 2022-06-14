@@ -23,38 +23,24 @@
  *
  */
 
-package io.github.rysefoxx.v1_17;
+package io.github.rysefoxx.util;
 
+import io.github.rysefoxx.enums.TimeSetting;
+import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
-import io.github.rysefoxx.IntelligentItemColorWrapper;
-import net.md_5.bungee.api.ChatColor;
+import javax.annotation.Nonnegative;
 
 /**
  * @author Rysefoxx | Rysefoxx#6772
- * @since 4/22/2022
+ * @since 6/14/2022
  */
-public class ColorHandler implements IntelligentItemColorWrapper<ChatColor> {
-    private String toHex(int value) {
-        StringBuilder hex = new StringBuilder(Integer.toHexString(value));
-        while (hex.length() < 2) {
-            hex.append("0");
-        }
-        return hex.toString();
+@UtilityClass
+public class TimeUtils {
+
+    @Contract(pure = true)
+    public @Nonnegative int buildTime(@Nonnegative int time, @NotNull TimeSetting setting) {
+        return setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
     }
-
-    @Override
-    public ChatColor getColor(String input, int[] rgb) {
-        if (input == null) {
-            int red = rgb[0];
-            int green = rgb[1];
-            int blue = rgb[2];
-
-            String hex = "#" + toHex(red) + toHex(green) + toHex(blue);
-
-            return ChatColor.of(hex);
-        }
-
-        return ChatColor.of(input);
-    }
-
 }

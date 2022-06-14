@@ -23,38 +23,23 @@
  *
  */
 
-package io.github.rysefoxx.v1_17;
+package io.github.rysefoxx;
 
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import io.github.rysefoxx.IntelligentItemColorWrapper;
-import net.md_5.bungee.api.ChatColor;
-
-/**
- * @author Rysefoxx | Rysefoxx#6772
- * @since 4/22/2022
- */
-public class ColorHandler implements IntelligentItemColorWrapper<ChatColor> {
-    private String toHex(int value) {
-        StringBuilder hex = new StringBuilder(Integer.toHexString(value));
-        while (hex.length() < 2) {
-            hex.append("0");
-        }
-        return hex.toString();
-    }
+public final class RyseInventoryPlugin extends JavaPlugin {
 
     @Override
-    public ChatColor getColor(String input, int[] rgb) {
-        if (input == null) {
-            int red = rgb[0];
-            int green = rgb[1];
-            int blue = rgb[2];
+    public void onEnable() {
+        getLogger().info("");
+        getLogger().info("§aThanks for using RyseInventory :)");
+        getLogger().info("");
+        getLogger().severe("RyseInventory is no longer supported as a plugin.");
+        getLogger().severe("Please use our API which you can find on my Github account.");
+        getLogger().severe(" -> https://github.com/Rysefoxx/RyseInventory");
+        getLogger().info("");
 
-            String hex = "#" + toHex(red) + toHex(green) + toHex(blue);
-
-            return ChatColor.of(hex);
-        }
-
-        return ChatColor.of(input);
+        Bukkit.getPluginManager().disablePlugin(this);
     }
-
 }
