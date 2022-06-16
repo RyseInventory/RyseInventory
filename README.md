@@ -75,7 +75,7 @@ dependencies {
 * Everything important is described in the wiki. [Click here](https://github.com/Rysefoxx/RyseInventory/wiki)
 
 # Examples
-* [Click here](https://github.com/Rysefoxx/RyseInventory/tree/master/Examples/src/main/java/io/github/rysefoxx/examples)
+* [Click here](https://github.com/Rysefoxx/RyseInventory/tree/master/examples)
 
 # ToDo
  * Remove all deprecated method in update 1.2.3.
