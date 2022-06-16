@@ -32,7 +32,7 @@ import io.github.rysefoxx.content.IntelligentItemData;
 import io.github.rysefoxx.content.InventoryProvider;
 import io.github.rysefoxx.enums.*;
 import io.github.rysefoxx.other.EventCreator;
-import io.github.rysefoxx.util.SlotUtils;
+import io.github.rysefoxx.pattern.SlotIteratorPattern;
 import io.github.rysefoxx.util.TimeUtils;
 import io.github.rysefoxx.util.TitleUpdater;
 import lombok.Getter;
@@ -52,45 +52,42 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class RyseInventory {
 
-    private List<EventCreator<? extends Event>> events = new ArrayList<>();
     private InventoryManager manager;
     private @Getter
     InventoryProvider provider;
-    private @Getter
-    int size = -1;
-    private @Getter
-    int rows;
-    private @Getter
-    int columns = 9;
     private String title;
-    private String titleHolder = "§e§oLoading§8...";
     private @Getter
     Inventory inventory;
+    private boolean clearAndSafe;
+    private SlideAnimation slideAnimator;
+    private Object identifier;
+    private Plugin plugin;
+
+    private @Getter
+    int size = -1;
     private int delay = 0;
     private int openDelay = -1;
     private int period = 1;
     private int closeAfter = -1;
     private int loadDelay = -1;
     private int loadTitle = -1;
-    private List<DisabledInventoryClick> ignoreClickEvent = new ArrayList<>();
     private boolean closeAble = true;
     private boolean transferData = true;
-    private boolean clearAndSafe;
+    private boolean backward = false;
+    private String titleHolder = "§e§oLoading§8...";
+    private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
+
+    protected final List<Player> delayed = new ArrayList<>();
     private List<InventoryOptions> options = new ArrayList<>();
+    private List<EventCreator<? extends Event>> events = new ArrayList<>();
+    private List<DisabledInventoryClick> ignoreClickEvent = new ArrayList<>();
+    private List<CloseReason> closeReasons = new ArrayList<>();
     private final List<IntelligentItemNameAnimator> itemAnimator = new ArrayList<>();
     private final List<IntelligentMaterialAnimator> materialAnimator = new ArrayList<>();
     private final List<IntelligentTitleAnimator> titleAnimator = new ArrayList<>();
     private final List<IntelligentItemLoreAnimator> loreAnimator = new ArrayList<>();
-    private SlideAnimation slideAnimator = null;
-    private Object identifier;
-    private Plugin plugin;
-    private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
     private final HashMap<UUID, Inventory> privateInventory = new HashMap<>();
     private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
-    protected final List<Player> delayed = new ArrayList<>();
-    private List<CloseReason> closeReasons = new ArrayList<>();
-
-    private boolean backward = false;
 
     /**
      * This method allows you to retrieve the animation using the animation identifier.
@@ -162,9 +159,7 @@ public class RyseInventory {
     public @NotNull List<UUID> getOpenedPlayers() {
         List<UUID> players = new ArrayList<>();
         Bukkit.getOnlinePlayers().forEach(player -> {
-            Optional<RyseInventory> optional = this.manager.getInventory(player.getUniqueId());
-
-            optional.ifPresent(savedInventory -> {
+            this.manager.getInventory(player.getUniqueId()).ifPresent(savedInventory -> {
                 if (this != savedInventory) return;
                 players.add(player.getUniqueId());
             });
@@ -176,13 +171,8 @@ public class RyseInventory {
      * Closes the inventory for all players.
      */
     public void closeAll() {
-        Bukkit.getOnlinePlayers().forEach(player -> {
-            Optional<RyseInventory> inventory = this.manager.getInventory(player.getUniqueId());
-
-            inventory.ifPresent(mainInventory -> {
-                if (mainInventory != this) return;
-                mainInventory.close(player);
-            });
+        getOpenedPlayers().stream().map(Bukkit::getPlayer).filter(Objects::nonNull).forEach(player -> {
+            this.manager.getInventory(player.getUniqueId()).ifPresent(mainInventory -> mainInventory.close(player));
         });
     }
 
@@ -255,7 +245,7 @@ public class RyseInventory {
     public @NotNull Inventory open(@NotNull Player player, @Nonnegative int page, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
         Preconditions.checkArgument(keys.length == values.length, "String[] and Object[] must have the same size");
 
-        return this.initInventory(player, page, keys, values);
+        return initInventory(player, page, keys, values);
     }
 
     /**
@@ -270,7 +260,7 @@ public class RyseInventory {
     public @NotNull Inventory open(@NotNull Player player, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
         Preconditions.checkArgument(keys.length == values.length, "String[] and Object[] must have the same size");
 
-        return this.initInventory(player, 1, keys, values);
+        return initInventory(player, 1, keys, values);
     }
 
     private @NotNull Inventory initInventory(@NotNull Player player, @Nonnegative int page, @Nullable String[] keys, @Nullable Object[] values) {
@@ -317,8 +307,6 @@ public class RyseInventory {
      * @return null if there is no custom event matching the event class
      */
     public @Nullable EventCreator<? extends Event> getEvent(@NotNull Class<? extends Event> event) {
-        if (this.events.isEmpty()) return null;
-
         return this.events.stream().filter(eventOne -> event == eventOne.getClazz()).findFirst().orElse(null);
     }
 
@@ -338,7 +326,7 @@ public class RyseInventory {
      */
     public @Nonnegative
     int size() {
-        return this.size == -1 ? this.rows * this.columns : this.size;
+        return this.size;
     }
 
     /**
@@ -355,10 +343,15 @@ public class RyseInventory {
      * Builder to create an inventory.
      */
     public static class Builder {
+        private SlideAnimation slideAnimation;
+        private InventoryManager manager;
+        private String title;
+        private InventoryProvider provider;
+        private Object identifier;
+        private boolean clearAndSafe;
+
         private String titleHolder = "§e§oLoading§8...";
         private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
-        private final List<InventoryOptions> options = new ArrayList<>();
-        private final List<EventCreator<? extends Event>> events = new ArrayList<>();
         private boolean closeAble = true;
         private boolean transferData = true;
         private int size = -1;
@@ -369,14 +362,9 @@ public class RyseInventory {
         private int loadDelay = -1;
         private int loadTitle = -1;
 
-        private SlideAnimation slideAnimation;
-        private InventoryManager manager;
-        private String title;
-        private InventoryProvider provider;
-        private Object identifier;
-        private int rows;
+        private final List<InventoryOptions> options = new ArrayList<>();
+        private final List<EventCreator<? extends Event>> events = new ArrayList<>();
         private final List<DisabledInventoryClick> ignoreClickEvent = new ArrayList<>();
-        private boolean clearAndSafe;
         private final List<CloseReason> closeReasons = new ArrayList<>();
 
         /**
@@ -457,6 +445,7 @@ public class RyseInventory {
          */
         public @NotNull Builder type(@NotNull InventoryOpenerType type) {
             this.inventoryOpenerType = type;
+            this.size = type.getType().getDefaultSize();
             return this;
         }
 
@@ -576,7 +565,7 @@ public class RyseInventory {
             if (rows > 6)
                 throw new IllegalArgumentException("The rows can not be greater than 6");
 
-            this.rows = rows;
+            size(rows * 9);
             return this;
         }
 
@@ -655,8 +644,6 @@ public class RyseInventory {
             inventory.manager = this.manager;
             inventory.size = this.size;
             inventory.closeAble = this.closeAble;
-            inventory.rows = this.rows;
-            inventory.columns = 9;
             inventory.title = this.title;
             inventory.events = this.events;
             inventory.loadTitle = this.loadTitle;
@@ -765,12 +752,12 @@ public class RyseInventory {
     }
 
     private void placeItem(@NotNull Player player, @Nonnegative int integer, @NotNull IntelligentItem item) {
-        if (integer >= inventory.getSize()) return;
+        if (integer >= this.inventory.getSize()) return;
         if (!item.isCanSee()) {
             item.getError().cantSee(player, item);
             return;
         }
-        inventory.setItem(integer, item.getItemStack());
+        this.inventory.setItem(integer, item.getItemStack());
     }
 
     private void closeInventoryWhenEnabled(@NotNull Player player) throws IllegalStateException {
@@ -813,9 +800,9 @@ public class RyseInventory {
         Optional<RyseInventory> savedInventory = this.manager.getInventory(player.getUniqueId());
 
         savedInventory.ifPresent(mainInventory -> {
-            if (!this.backward) {
+            if (!this.backward)
                 this.manager.setLastInventory(player.getUniqueId(), mainInventory);
-            }
+
             this.manager.removeInventory(player.getUniqueId());
 
             if (mainInventory.playerInventory.containsKey(player.getUniqueId())) {
@@ -833,7 +820,7 @@ public class RyseInventory {
 
     private @NotNull Inventory setupInventory() {
         if (this.inventoryOpenerType == InventoryOpenerType.CHEST) {
-            return Bukkit.createInventory(null, this.size == -1 ? this.rows * this.columns : this.size, this.loadTitle == -1 ? this.title : this.titleHolder);
+            return Bukkit.createInventory(null, this.size, this.loadTitle == -1 ? this.title : this.titleHolder);
         }
         return inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), this.loadTitle == -1 ? this.title : this.titleHolder);
     }
@@ -899,27 +886,92 @@ public class RyseInventory {
         if (iterator == null) return;
 
         SlotIterator.SlotIteratorType type = iterator.getType();
+        SlotIteratorPattern pattern = iterator.getPatternBuilder();
+
+        if(this.inventoryOpenerType != InventoryOpenerType.CHEST
+                && this.inventoryOpenerType != InventoryOpenerType.ENDER_CHEST
+                && pattern != null) {
+            throw new IllegalStateException("SlotIterator with PatternBuilder is not supported for InventoryOpenerType " + this.inventoryOpenerType.getType().toString());
+        }
 
         int itemsSet = 0;
         int page = 0;
         int startSlot = iterator.getSlot();
-
-        if (startSlot == -1)
-            startSlot = SlotUtils.toSlot(iterator.getRow(), iterator.getColumn());
-
         int slot = startSlot;
         List<IntelligentItemData> data = contents.pagination().getInventoryData();
+
+        int patternSlot = -1;
+        int patternLineIndex = 0;
+        int stoppedAtIndex = 0;
 
         for (int i = 0; i < data.size(); i++) {
             IntelligentItemData itemData = data.get(i);
             if (itemData.getModifiedSlot() != -1) continue;
 
-            if (itemsSet >= pagination.getItemsPerPage() || (slot >= iterator.getEndPosition() && iterator.getEndPosition() != -1)) {
+            if (itemsSet >= pagination.getItemsPerPage() || (slot >= iterator.getEndPosition() && iterator.getEndPosition() != -1 && pattern == null)) {
                 itemsSet = 0;
+                patternSlot = -1;
+                patternLineIndex = 0;
+                stoppedAtIndex = 0;
                 slot = startSlot;
                 page++;
             }
+            if (pattern != null) {
+                String line = pattern.getLines().get(patternLineIndex);
 
+                if (stoppedAtIndex >= line.toCharArray().length) stoppedAtIndex = 0;
+
+                for (int j = stoppedAtIndex; j < line.toCharArray().length; j++) {
+                    char c = line.charAt(j);
+                    patternSlot++;
+
+                    if(patternSlot >= size()) {
+                        j = -1;
+                        patternLineIndex = 0;
+                        patternSlot = -1;
+                        page++;
+                        itemsSet = 0;
+                        stoppedAtIndex = 0;
+                        line = pattern.getLines().get(patternLineIndex);
+                        continue;
+                    }
+
+                    if (j + 1 >= line.toCharArray().length && (c != pattern.getAttachedChar() || get(data, patternSlot, page) != null)) {
+                        j = -1;
+                        if (patternSlot == 8 || patternSlot == 8 + 9 || patternSlot == 8 + 18 || patternSlot == 8 + 27 || patternSlot == 8 + 36)
+                            patternLineIndex++;
+                        if (patternSlot == 8 + 45) {
+                            patternLineIndex = 0;
+                            patternSlot = -1;
+                            page++;
+                        }
+                        itemsSet = 0;
+                        stoppedAtIndex = 0;
+                        line = pattern.getLines().get(patternLineIndex);
+                        continue;
+                    }
+
+                    if (c != pattern.getAttachedChar() || get(data, patternSlot, page) != null)
+                        continue;
+
+                    itemData.setPage(page);
+                    itemData.setModifiedSlot(patternSlot);
+
+                    data.set(i, itemData);
+                    itemsSet++;
+                    stoppedAtIndex = j + 1;
+
+                    if (patternSlot == 8 + 45) {
+                        patternLineIndex = 0;
+                        patternSlot = -1;
+                        itemsSet = 0;
+                        stoppedAtIndex = 0;
+                        page++;
+                    }
+                    break;
+                }
+                continue;
+            }
             if (!iterator.isOverride()) {
                 int[] dataArray = nextSlotAlgorithm(contents, type, page, slot, startSlot);
                 page = dataArray[0];
@@ -938,6 +990,13 @@ public class RyseInventory {
         contents.pagination().setInventoryData(data);
     }
 
+    private @Nullable IntelligentItem get(List<IntelligentItemData> inventoryData, @Nonnegative int slot, @Nonnegative int page) {
+        for (IntelligentItemData data : inventoryData) {
+            if (data.getPage() == page && data.getModifiedSlot() == slot)
+                return data.getItem();
+        }
+        return null;
+    }
 
     private int updateForNextSlot(@NotNull SlotIterator.SlotIteratorType type, @Nonnegative int slot, @Nonnegative int startSlot) {
         if (type == SlotIterator.SlotIteratorType.HORIZONTAL)

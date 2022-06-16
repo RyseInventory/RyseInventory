@@ -25,6 +25,7 @@
 
 package io.github.rysefoxx;
 
+import io.github.rysefoxx.pagination.InventoryManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -32,6 +33,8 @@ public final class RyseInventoryPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        InventoryManager inventoryManager = new InventoryManager(this);
+        inventoryManager.invoke();
         getLogger().info("");
         getLogger().info("§aThanks for using RyseInventory :)");
         getLogger().info("");

@@ -35,7 +35,6 @@ import io.github.rysefoxx.util.SlotUtils;
 import io.github.rysefoxx.util.TimeUtils;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Contract;

@@ -27,6 +27,7 @@ package io.github.rysefoxx.content;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,6 +39,7 @@ import javax.annotation.Nonnegative;
  */
 @Getter
 @Setter
+@ToString
 public class IntelligentItemData {
 
     private final IntelligentItem item;
@@ -47,7 +49,7 @@ public class IntelligentItemData {
 
 
     @Contract(pure = true)
-    public IntelligentItemData(@NotNull IntelligentItem item, @Nonnegative int page, @Nonnegative int originalSlot) {
+    public IntelligentItemData(@NotNull IntelligentItem item, @Nonnegative int page, int originalSlot) {
         this.item = item;
         this.page = page;
         this.originalSlot = originalSlot;

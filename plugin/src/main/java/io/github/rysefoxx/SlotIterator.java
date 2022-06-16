@@ -25,10 +25,13 @@
 
 package io.github.rysefoxx;
 
+import com.google.common.annotations.Beta;
 import io.github.rysefoxx.pagination.Pagination;
+import io.github.rysefoxx.pattern.SlotIteratorPattern;
 import io.github.rysefoxx.util.SlotUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
 import java.util.ArrayList;
@@ -38,11 +41,10 @@ public class SlotIterator {
 
     private int slot = -1;
     private int endPosition = -1;
-    private int row = -1;
-    private int column = -1;
     private SlotIteratorType type;
     private boolean override;
     private List<Integer> blackList = new ArrayList<>();
+    private SlotIteratorPattern pattern;
 
     @Contract(" -> new")
     public static @NotNull Builder builder() {
@@ -50,14 +52,26 @@ public class SlotIterator {
     }
 
     public static class Builder {
-
         private int slot = -1;
         private int endPosition = -1;
-        private int row = -1;
-        private int column = -1;
         private SlotIteratorType type;
         private boolean override;
         private List<Integer> blackList = new ArrayList<>();
+        private SlotIteratorPattern pattern;
+
+        /**
+         * Copies the values of the given {@link SlotIterator} into this builder.
+         * @param iterator the {@link SlotIterator} to copy the values from
+         * @return The builder object itself.
+         */
+        public @NotNull Builder copy(@NotNull SlotIterator iterator){
+            this.slot = iterator.slot;
+            this.endPosition = iterator.endPosition;
+            this.type = iterator.type;
+            this.override = iterator.override;
+            this.blackList = iterator.blackList;
+            return this;
+        }
 
         /**
          * Adds a slot to the blacklist.
@@ -128,8 +142,31 @@ public class SlotIterator {
          * @apiNote If this method is used, {@link Pagination#setItemsPerPage(int)} is ignored.
          */
         public @NotNull Builder endPosition(@Nonnegative int row, @Nonnegative int column) {
-            this.endPosition = SlotUtils.toSlot(row, column);
+            return endPosition(SlotUtils.toSlot(row, column));
+        }
+
+        /**
+         * Sets the slot to start at.
+         * @deprecated Use {@link #startPosition(int)} instead.
+         * @param startSlot The slot to start at.
+         * @return The Builder object itself.
+         */
+        @Deprecated
+        public @NotNull Builder slot(@Nonnegative int startSlot) {
+            this.slot = startSlot;
             return this;
+        }
+
+        /**
+         * Sets the slot to start at.
+         * @deprecated Use {@link #startPosition(int, int)})} instead.
+         * @param row    The row to start at.
+         * @param column The column to start at.
+         * @return The Builder object itself.
+         */
+        @Deprecated
+        public @NotNull Builder slot(@Nonnegative int row, @Nonnegative int column) {
+            return slot(SlotUtils.toSlot(row, column));
         }
 
         /**
@@ -138,7 +175,7 @@ public class SlotIterator {
          * @param startSlot The slot to start at.
          * @return The Builder object itself.
          */
-        public @NotNull Builder slot(@Nonnegative int startSlot) {
+        public @NotNull Builder startPosition(@Nonnegative int startSlot) {
             this.slot = startSlot;
             return this;
         }
@@ -150,9 +187,21 @@ public class SlotIterator {
          * @param column The column to start at.
          * @return The Builder object itself.
          */
-        public @NotNull Builder slot(@Nonnegative int row, @Nonnegative int column) {
-            this.row = row;
-            this.column = column;
+        public @NotNull Builder startPosition(@Nonnegative int row, @Nonnegative int column) {
+            return slot(SlotUtils.toSlot(row, column));
+        }
+
+        /**
+         * Using this method, you can decide for yourself how the items should be placed in the inventory.
+         *
+         * <br><br>This method has higher priority than #startPosition and #type. If both are used, this method is preferred.</br></br>
+         *
+         * @param builder The {@link SlotIteratorPattern} to use.
+         * @return The Builder object itself.
+         */
+        @Beta
+        public @NotNull Builder withPattern(@NotNull SlotIteratorPattern builder) {
+            this.pattern = builder;
             return this;
         }
 
@@ -180,18 +229,24 @@ public class SlotIterator {
         public SlotIterator build() {
             SlotIterator slotIterator = new SlotIterator();
             slotIterator.slot = this.slot;
-            slotIterator.row = this.row;
-            slotIterator.column = this.column;
             slotIterator.type = this.type;
             slotIterator.override = this.override;
             slotIterator.blackList = this.blackList;
             slotIterator.endPosition = this.endPosition;
+            slotIterator.pattern = this.pattern;
 
             if ((this.slot >= this.endPosition) && this.endPosition != -1)
                 throw new IllegalArgumentException("The start slot must be smaller than the end slot");
 
             return slotIterator;
         }
+    }
+
+    /**
+     * @return the pattern builder.
+     */
+    public @Nullable SlotIteratorPattern getPatternBuilder() {
+        return this.pattern;
     }
 
     /**
@@ -205,14 +260,14 @@ public class SlotIterator {
      * @return the start column
      */
     public int getColumn() {
-        return this.column;
+        return SlotUtils.toRowAndColumn(this.slot).getRight();
     }
 
     /**
      * @return the start row
      */
     public int getRow() {
-        return this.row;
+        return SlotUtils.toRowAndColumn(this.slot).getLeft();
     }
 
     /**
