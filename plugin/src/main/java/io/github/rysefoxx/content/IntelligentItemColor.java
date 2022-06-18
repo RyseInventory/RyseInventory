@@ -27,6 +27,7 @@ package io.github.rysefoxx.content;
 
 import io.github.rysefoxx.IntelligentItemColorWrapper;
 import io.github.rysefoxx.util.VersionUtils;
+import lombok.SneakyThrows;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -279,6 +280,7 @@ public class IntelligentItemColor {
         public @Nullable IntelligentItemColor build() {
             tryToSetWrapper();
 
+
             if (this.hexColor != null)
                 return new IntelligentItemColor(this.hexColor, this.bold, this.underline, this.italic, this.obfuscated, this.strikeThrough);
 
@@ -291,6 +293,15 @@ public class IntelligentItemColor {
             if (this.rgbColor.length > 0)
                 return new IntelligentItemColor(this.rgbColor, this.bold, this.underline, this.italic, this.obfuscated, this.strikeThrough);
             return null;
+        }
+
+        @SneakyThrows
+        @SuppressWarnings("unchecked")
+        private void tryToSetWrapper() {
+                final Class<?> clazz = Class.forName("io.github.rysefoxx.v1_" + VersionUtils.getSubVersion() + ".ColorHandler");
+                if (IntelligentItemColorWrapper.class.isAssignableFrom(clazz)) {
+                    colorWrapper = (IntelligentItemColorWrapper<net.md_5.bungee.api.ChatColor>) clazz.getConstructor().newInstance();
+                }
         }
     }
 
@@ -340,16 +351,5 @@ public class IntelligentItemColor {
      */
     public boolean isStrikeThrough() {
         return this.strikeThrough;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void tryToSetWrapper() {
-        try {
-            final Class<?> clazz = Class.forName("io.github.rysefoxx.v1_" + VersionUtils.getSubVersion() + ".ColorHandler");
-            if (IntelligentItemColorWrapper.class.isAssignableFrom(clazz)) {
-                colorWrapper = (IntelligentItemColorWrapper<net.md_5.bungee.api.ChatColor>) clazz.getConstructor().newInstance();
-            }
-        } catch (final Exception ignored) {
-        }
     }
 }

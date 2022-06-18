@@ -23,32 +23,24 @@
  *
  */
 
-package io.github.rysefoxx.enums;
+package io.github.rysefoxx.util;
 
-import lombok.Getter;
-import org.bukkit.event.inventory.InventoryType;
-import org.jetbrains.annotations.Contract;
+import lombok.experimental.UtilityClass;
 
 /**
- * All possible inventory types supported by RyseInventory.
+ * @author Rysefoxx | Rysefoxx#6772
+ * @since 6/17/2022
  */
-@Getter
-public enum InventoryOpenerType {
+@UtilityClass
+public class StringConstants {
 
-    CHEST(InventoryType.CHEST),
-    DISPENSER(InventoryType.DISPENSER),
-    DROPPER(InventoryType.DROPPER),
-    BREWING_STAND(InventoryType.BREWING),
-    CRAFTING_TABLE(InventoryType.WORKBENCH),
-    ENCHANTMENT_TABLE(InventoryType.ENCHANTING),
-    FURNACE(InventoryType.FURNACE),
-    HOPPER(InventoryType.HOPPER),
-    ENDER_CHEST(InventoryType.ENDER_CHEST),
-    ;
-    private final InventoryType type;
+    public final String INVALID_COLOR_FRAME = "Frames must have the same length as color.";
+    public final String INVALID_MATERIAL_FRAME = "Frames must have the same length as materials.";
+    public final String INVALID_SLOT = "The slot must not be larger than 53.";
+    public final String INVALID_AMOUNT = "Amount must not be larger than 64.";
+    public final String INVALID_ROW = "The row must not be larger than 5.";
+    public final String INVALID_COLUMN = "The column must not be larger than 9.";
+    public final String INVALID_OBJECT = "String[] and Object[] must have the same size";
+    public final String INVALID_ROW_LENGTH = "Rows must have the same length as columns.";
 
-    @Contract(pure = true)
-    InventoryOpenerType(InventoryType type) {
-        this.type = type;
-    }
 }

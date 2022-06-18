@@ -30,6 +30,7 @@ import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.content.IntelligentItemAnimatorType;
 import io.github.rysefoxx.content.IntelligentItemColor;
 import io.github.rysefoxx.enums.TimeSetting;
+import io.github.rysefoxx.util.StringConstants;
 import io.github.rysefoxx.util.TimeUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -141,13 +142,13 @@ public class IntelligentItemNameAnimator {
         /**
          * This tells us in which slot the animation should take place.
          *
-         * @param slot
+         * @param slot The slot to be animated.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot > 53
          */
         public @NotNull Builder slot(@Nonnegative int slot) throws IllegalArgumentException {
             if (slot > 53)
-                throw new IllegalArgumentException("The slot must not be larger than 53.");
+                throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
             this.slot = slot;
             return this;
@@ -168,13 +169,13 @@ public class IntelligentItemNameAnimator {
         /**
          * Several frames are assigned individual colors.
          *
-         * @param frames
-         * @param color
+         * @param frames The frames that should receive the color.
+         * @param color The color you want the frames to have.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
         public @NotNull Builder colors(@NotNull List<Character> frames, IntelligentItemColor @NotNull ... color) throws IllegalArgumentException {
-            Preconditions.checkArgument(frames.size() == color.length, "Frames must have the same length as color.");
+            Preconditions.checkArgument(frames.size() == color.length, StringConstants.INVALID_COLOR_FRAME);
 
             for (int i = 0; i < frames.size(); i++)
                 color(frames.get(i), color[i]);
@@ -185,13 +186,13 @@ public class IntelligentItemNameAnimator {
         /**
          * Several frames are assigned individual colors.
          *
-         * @param frames
-         * @param color
+         * @param frames The frames that should receive the color.
+         * @param color The color you want the frames to have.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
         public @NotNull Builder colors(Character @NotNull [] frames, IntelligentItemColor @NotNull ... color) {
-            Preconditions.checkArgument(frames.length == color.length, "Frames must have the same length as color.");
+            Preconditions.checkArgument(frames.length == color.length, StringConstants.INVALID_COLOR_FRAME);
 
             for (int i = 0; i < frames.length; i++)
                 color(frames[i], color[i]);
@@ -202,13 +203,13 @@ public class IntelligentItemNameAnimator {
         /**
          * Several frames are assigned individual colors.
          *
-         * @param frames
-         * @param color
+         * @param frames The frames that should receive the color.
+         * @param color The color you want the frames to have.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
         public @NotNull Builder colors(Character @NotNull [] frames, @NotNull List<IntelligentItemColor> color) {
-            Preconditions.checkArgument(frames.length == color.size(), "Frames must have the same length as color.");
+            Preconditions.checkArgument(frames.length == color.size(), StringConstants.INVALID_COLOR_FRAME);
 
             for (int i = 0; i < frames.length; i++)
                 color(frames[i], color.get(i));
@@ -219,7 +220,7 @@ public class IntelligentItemNameAnimator {
         /**
          * Adds another frame.
          *
-         * @param frame
+         * @param frame The frame to be added.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link IntelligentItemNameAnimator.Builder#colors(List, IntelligentItemColor...)}
          */
@@ -236,7 +237,7 @@ public class IntelligentItemNameAnimator {
         /**
          * Adds several frames.
          *
-         * @param frames
+         * @param frames The frames to be added.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link IntelligentItemNameAnimator.Builder#colors(List, IntelligentItemColor...)}
          */
@@ -250,7 +251,7 @@ public class IntelligentItemNameAnimator {
         /**
          * Adds several frames.
          *
-         * @param frames
+         * @param frames The frames to be added.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link IntelligentItemNameAnimator.Builder#colors(List, IntelligentItemColor...)}
          */
@@ -296,7 +297,7 @@ public class IntelligentItemNameAnimator {
         }
 
         /**
-         * This creates the animation class but does not start it yet! {@link IntelligentItemNameAnimator#animate(Plugin)}
+         * This creates the animation class but does not start it yet! {@link IntelligentItemNameAnimator#animate()}
          *
          * @return The animation class
          * @throws IllegalArgumentException if no slot was specified, if frameColor is empty, if frames is empty or if no color has been assigned to a frame.

@@ -41,6 +41,10 @@ public class TimeUtils {
 
     @Contract(pure = true)
     public @Nonnegative int buildTime(@Nonnegative int time, @NotNull TimeSetting setting) {
-        return setting == TimeSetting.MILLISECONDS ? time : setting == TimeSetting.SECONDS ? time * 20 : setting == TimeSetting.MINUTES ? (time * 20) * 60 : time;
+        if(setting == TimeSetting.MILLISECONDS) return time;
+        if(setting == TimeSetting.SECONDS) return time * 20;
+        if(setting == TimeSetting.MINUTES) return time * 20 * 60;
+        
+        return time;
     }
 }

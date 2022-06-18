@@ -66,7 +66,7 @@ public class Example extends JavaPlugin {
                         pagination.setItemsPerPage(10);
                         pagination.iterator(SlotIterator.builder().startPosition(2, 2).type(SlotIterator.SlotIteratorType.HORIZONTAL).blackList(Arrays.asList(25, 26, 27, 28)).build());
 
-                        contents.set(5, 3, IntelligentItem.of(new ItemBuilder(Material.ARROW).amount((pagination.isFirst() ? 1 : pagination.page() - 1)).displayName(pagination.isFirst() ? "§c§oThis is the first page" : "§ePage §8⇒ §9" + pagination.copy().previous().page()).build(), event -> {
+                        contents.set(5, 3, IntelligentItem.of(new ItemBuilder(Material.ARROW).amount((pagination.isFirst() ? 1 : pagination.page() - 1)).displayName(pagination.isFirst() ? "§c§oThis is the first page" : "§ePage §8⇒ §9" + pagination.newInstance(pagination).previous().page()).build(), event -> {
                             if (pagination.isFirst()) {
                                 player.sendMessage("§c§oYou are already on the first page.");
                                 return;
@@ -83,7 +83,7 @@ public class Example extends JavaPlugin {
                             }));
                         }
 
-                        int page = pagination.copy().next().page();
+                        int page = pagination.newInstance(pagination).next().page();
                         contents.set(5, 5, IntelligentItem.of(new ItemBuilder(Material.ARROW).amount((pagination.isLast() ? 1 : page)).displayName((!pagination.isLast() ? "§ePage §8⇒ §9" + page : "§c§oThis is the last page")).build(), event -> {
                             if (pagination.isLast()) {
                                 player.sendMessage("§c§oYou are already on the last page.");

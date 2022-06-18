@@ -28,6 +28,7 @@ import com.google.gson.Gson;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -39,6 +40,7 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 /**
  * <b>ReflectionUtils</b> - Reflection handler for NMS and CraftBukkit.<br>
@@ -146,7 +148,7 @@ public final class ReflectionUtils {
                     v(18, "a").orElse("sendPacket"),
                     MethodType.methodType(void.class, getNMSClass("network.protocol", "Packet")));
         } catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException ex) {
-            ex.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Error while finding getter", ex);
         }
 
         PLAYER_CONNECTION = connection;
@@ -174,7 +176,7 @@ public final class ReflectionUtils {
             return (T) method.invoke(instance, params);
 
         } catch (final ReflectiveOperationException ex) {
-            ex.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Error during method call", ex);
         }
         return null;
     }
@@ -241,7 +243,7 @@ public final class ReflectionUtils {
         try {
             return Class.forName(NMS + name);
         } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Error finding NMS class.", ex);
             return null;
         }
     }
@@ -252,7 +254,7 @@ public final class ReflectionUtils {
         try {
             return Class.forName(STRING + name);
         } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Error finding fixed NMS class", ex);
             return null;
         }
     }
@@ -271,7 +273,7 @@ public final class ReflectionUtils {
     public static CompletableFuture<Void> sendPacket(@Nonnull Player player, @Nonnull Object... packets) {
         return CompletableFuture.runAsync(() -> sendPacketSync(player, packets))
                 .exceptionally(ex -> {
-                    ex.printStackTrace();
+                    Bukkit.getLogger().log(Level.SEVERE, "Error sending a packet.", ex);
                     return null;
                 });
     }
@@ -294,7 +296,7 @@ public final class ReflectionUtils {
                 for (Object packet : packets) SEND_PACKET.invoke(connection, packet);
             }
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Error sending a packet.", throwable);
         }
     }
 
@@ -304,7 +306,7 @@ public final class ReflectionUtils {
         try {
             return GET_HANDLE.invoke(player);
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Error while getting the object.", throwable);
             return null;
         }
     }
@@ -358,7 +360,7 @@ public final class ReflectionUtils {
             Object handle = GET_HANDLE.invoke(player);
             return PLAYER_CONNECTION.invoke(handle);
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Error while getting the connection.", throwable);
             return null;
         }
     }
@@ -375,7 +377,7 @@ public final class ReflectionUtils {
         try {
             return Class.forName(CRAFTBUKKIT + name);
         } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Error while getting the craftclass.", ex);
             return null;
         }
     }
@@ -385,7 +387,7 @@ public final class ReflectionUtils {
         try {
             return Class.forName(clazz);
         } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Error while getting the array class.", ex);
             return null;
         }
     }
@@ -394,7 +396,7 @@ public final class ReflectionUtils {
         try {
             return Class.forName("[L" + clazz.getName() + ';');
         } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Error while getting the array class.", ex);
             return null;
         }
     }
@@ -450,7 +452,7 @@ public final class ReflectionUtils {
             try {
                 return (this.version == 0 ? handle : this.handle).call();
             } catch (Exception e) {
-                e.printStackTrace();
+                Bukkit.getLogger().log(Level.SEVERE, "Error while getting the generic.", e);
                 return null;
             }
         }

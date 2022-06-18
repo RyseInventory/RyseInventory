@@ -78,19 +78,6 @@ public class SlotIterator {
          *
          * @param slot The slot to add to the blacklist.
          * @return The builder object itself.
-         * @deprecated Use {@link #blackList(int)} instead.
-         */
-        @Deprecated
-        public @NotNull Builder addBlackList(@Nonnegative int slot) {
-            this.blackList.add(slot);
-            return this;
-        }
-
-        /**
-         * Adds a slot to the blacklist.
-         *
-         * @param slot The slot to add to the blacklist.
-         * @return The builder object itself.
          */
         public @NotNull Builder blackList(@Nonnegative int slot) {
             this.blackList.add(slot);
@@ -115,8 +102,8 @@ public class SlotIterator {
          * @return The builder object itself.
          */
         public @NotNull Builder blackList(int @NotNull ... slots) {
-            for (int slot : slots)
-                blackList(slot);
+            for (int blackListSlot : slots)
+                blackList(blackListSlot);
 
             return this;
         }
@@ -147,30 +134,6 @@ public class SlotIterator {
 
         /**
          * Sets the slot to start at.
-         * @deprecated Use {@link #startPosition(int)} instead.
-         * @param startSlot The slot to start at.
-         * @return The Builder object itself.
-         */
-        @Deprecated
-        public @NotNull Builder slot(@Nonnegative int startSlot) {
-            this.slot = startSlot;
-            return this;
-        }
-
-        /**
-         * Sets the slot to start at.
-         * @deprecated Use {@link #startPosition(int, int)})} instead.
-         * @param row    The row to start at.
-         * @param column The column to start at.
-         * @return The Builder object itself.
-         */
-        @Deprecated
-        public @NotNull Builder slot(@Nonnegative int row, @Nonnegative int column) {
-            return slot(SlotUtils.toSlot(row, column));
-        }
-
-        /**
-         * Sets the slot to start at.
          *
          * @param startSlot The slot to start at.
          * @return The Builder object itself.
@@ -188,7 +151,7 @@ public class SlotIterator {
          * @return The Builder object itself.
          */
         public @NotNull Builder startPosition(@Nonnegative int row, @Nonnegative int column) {
-            return slot(SlotUtils.toSlot(row, column));
+            return startPosition(SlotUtils.toSlot(row, column));
         }
 
         /**

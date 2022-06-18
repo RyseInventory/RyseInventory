@@ -28,6 +28,7 @@ package io.github.rysefoxx.pagination;
 import com.google.common.base.Preconditions;
 import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.enums.TimeSetting;
+import io.github.rysefoxx.util.StringConstants;
 import io.github.rysefoxx.util.TimeUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -126,7 +127,7 @@ public class IntelligentMaterialAnimator {
          */
         public @NotNull Builder slot(@Nonnegative int slot) throws IllegalArgumentException {
             if (slot > 53)
-                throw new IllegalArgumentException("The slot must not be larger than 53.");
+                throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
             this.slot = slot;
             return this;
@@ -153,7 +154,7 @@ public class IntelligentMaterialAnimator {
          * @throws IllegalArgumentException If the parameters are not equal.
          */
         public @NotNull Builder materials(@NotNull List<Character> frames, Material @NotNull ... materials) throws IllegalArgumentException {
-            Preconditions.checkArgument(frames.size() == materials.length, "Frames must have the same length as materials.");
+            Preconditions.checkArgument(frames.size() == materials.length, StringConstants.INVALID_MATERIAL_FRAME);
 
             for (int i = 0; i < frames.size(); i++)
                 material(frames.get(i), materials[i]);
@@ -170,7 +171,7 @@ public class IntelligentMaterialAnimator {
          * @throws IllegalArgumentException If the parameters are not equal.
          */
         public @NotNull Builder materials(Character @NotNull [] frames, Material @NotNull ... materials) {
-            Preconditions.checkArgument(frames.length == materials.length, "Frames must have the same length as materials.");
+            Preconditions.checkArgument(frames.length == materials.length, StringConstants.INVALID_MATERIAL_FRAME);
 
             for (int i = 0; i < frames.length; i++)
                 material(frames[i], materials[i]);
@@ -187,7 +188,7 @@ public class IntelligentMaterialAnimator {
          * @throws IllegalArgumentException If the parameters are not equal.
          */
         public @NotNull Builder materials(Character @NotNull [] frames, @NotNull List<Material> materials) {
-            Preconditions.checkArgument(frames.length == materials.size(), "Frames must have the same length as materials.");
+            Preconditions.checkArgument(frames.length == materials.size(), StringConstants.INVALID_MATERIAL_FRAME);
 
             for (int i = 0; i < frames.length; i++)
                 material(frames[i], materials.get(i));

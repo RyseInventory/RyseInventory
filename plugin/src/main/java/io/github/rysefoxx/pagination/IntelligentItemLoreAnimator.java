@@ -30,6 +30,7 @@ import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.content.IntelligentItemAnimatorType;
 import io.github.rysefoxx.content.IntelligentItemColor;
 import io.github.rysefoxx.enums.TimeSetting;
+import io.github.rysefoxx.util.StringConstants;
 import io.github.rysefoxx.util.TimeUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -128,22 +129,22 @@ public class IntelligentItemLoreAnimator {
         /**
          * This tells which item is to be animated.
          *
-         * @param intelligentItem
+         * @param intelligentItem The item to be animated.
          * @return The Builder to perform further editing.
          */
         public @NotNull Builder item(@NotNull IntelligentItem intelligentItem) {
             this.intelligentItem = intelligentItem;
             ItemStack itemStack = this.intelligentItem.getItemStack();
 
-            List<String> lore = itemStack.hasItemMeta() ? itemStack.getItemMeta().getLore() : new ArrayList<>();
+            List<String> itemLore = itemStack.hasItemMeta() ? itemStack.getItemMeta().getLore() : new ArrayList<>();
 
-            if (lore == null)
+            if (itemLore == null)
                 throw new NullPointerException("The given item has no lore.");
 
-            if (lore.isEmpty())
+            if (itemLore.isEmpty())
                 throw new IllegalArgumentException("The passed item has an empty lore.");
 
-            this.lore = lore;
+            this.lore = itemLore;
             return this;
         }
 
@@ -201,7 +202,7 @@ public class IntelligentItemLoreAnimator {
          * @throws IllegalArgumentException If the parameters are not equal.
          */
         public @NotNull Builder colors(@NotNull List<Character> frames, IntelligentItemColor @NotNull ... color) throws IllegalArgumentException {
-            Preconditions.checkArgument(frames.size() == color.length, "Frames must have the same length as color.");
+            Preconditions.checkArgument(frames.size() == color.length, StringConstants.INVALID_COLOR_FRAME);
 
             for (int i = 0; i < frames.size(); i++)
                 color(frames.get(i), color[i]);
@@ -218,7 +219,7 @@ public class IntelligentItemLoreAnimator {
          * @throws IllegalArgumentException If the parameters are not equal.
          */
         public @NotNull Builder colors(Character @NotNull [] frames, IntelligentItemColor @NotNull ... color) {
-            Preconditions.checkArgument(frames.length == color.length, "Frames must have the same length as color.");
+            Preconditions.checkArgument(frames.length == color.length, StringConstants.INVALID_COLOR_FRAME);
 
             for (int i = 0; i < frames.length; i++)
                 color(frames[i], color[i]);
@@ -235,7 +236,7 @@ public class IntelligentItemLoreAnimator {
          * @throws IllegalArgumentException If the parameters are not equal.
          */
         public @NotNull Builder colors(Character @NotNull [] frames, @NotNull List<IntelligentItemColor> color) {
-            Preconditions.checkArgument(frames.length == color.size(), "Frames must have the same length as color.");
+            Preconditions.checkArgument(frames.length == color.size(), StringConstants.INVALID_COLOR_FRAME);
 
             for (int i = 0; i < frames.length; i++)
                 color(frames[i], color.get(i));
@@ -357,8 +358,8 @@ public class IntelligentItemLoreAnimator {
 
     private void animateWithFlash() {
         for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
-            BukkitTask task;
-            task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+            BukkitTask bukkitTask;
+            bukkitTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
                 final HashMap<Integer, String> framesCopy = loreData;
 
                 int subStringIndex = 0;
@@ -403,7 +404,7 @@ public class IntelligentItemLoreAnimator {
                     updateLore(contents, this.currentLore, loreIndex);
                 }
             }, this.delay, this.period);
-            this.task.add(task);
+            this.task.add(bukkitTask);
         }
 
 
@@ -411,8 +412,8 @@ public class IntelligentItemLoreAnimator {
 
     private void animateByFullWord() {
         for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
-            BukkitTask task;
-            task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+            BukkitTask bukkitTask;
+            bukkitTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
                 final HashMap<Integer, String> framesCopy = loreData;
                 final List<String> previous = new ArrayList<>();
 
@@ -490,14 +491,14 @@ public class IntelligentItemLoreAnimator {
                     updateLore(contents, this.currentLore, loreIndex);
                 }
             }, this.delay, this.period);
-            this.task.add(task);
+            this.task.add(bukkitTask);
         }
     }
 
     private void animateWordByWord() {
         for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
-            BukkitTask task;
-            task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+            BukkitTask bukkitTask;
+            bukkitTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
                 final HashMap<Integer, String> framesCopy = loreData;
 
                 int colorState = 0;
@@ -542,13 +543,14 @@ public class IntelligentItemLoreAnimator {
                     char singleFrame = currentFrames[this.colorState];
                     IntelligentItemColor itemColor = frameColor.get(singleFrame);
 
-                    this.currentLore = this.currentLore + itemColor.getColor()
-                            + (itemColor.isBold() ? "§l" : "")
-                            + (itemColor.isUnderline() ? "§n" : "")
-                            + (itemColor.isItalic() ? "§o" : "")
-                            + (itemColor.isObfuscated() ? "§k" : "")
-                            + (itemColor.isStrikeThrough() ? "§m" : "")
-                            + letter;
+                    this.currentLore = this.currentLore +
+                            itemColor.getColor() +
+                            (itemColor.isBold() ? "§l" : "") +
+                            (itemColor.isUnderline() ? "§n" : "") +
+                            (itemColor.isItalic() ? "§o" : "") +
+                            (itemColor.isObfuscated() ? "§k" : "") +
+                            (itemColor.isStrikeThrough() ? "§m" : "") +
+                            letter;
 
                     this.subStringIndex++;
 
@@ -558,22 +560,22 @@ public class IntelligentItemLoreAnimator {
                     updateLore(contents, this.currentLore, loreIndex);
                 }
             }, this.delay, this.period);
-            this.task.add(task);
+            this.task.add(bukkitTask);
         }
     }
 
     private void updateLore(@NotNull InventoryContents contents, @NotNull String lore, @Nonnegative int index) {
-        ItemStack itemStack = this.itemStack;
+        ItemStack globalItemStack = this.itemStack;
 
-        ItemMeta itemMeta = itemStack.getItemMeta();
+        ItemMeta itemMeta = globalItemStack.getItemMeta();
         List<String> currentLore = itemMeta.getLore() == null ? new ArrayList<>() : itemMeta.getLore();
         currentLore.set(index, lore);
 
         itemMeta.setLore(currentLore);
-        itemStack.setItemMeta(itemMeta);
+        globalItemStack.setItemMeta(itemMeta);
 
-        contents.update(slot, itemStack);
-        this.itemStack = itemStack;
+        contents.update(slot, globalItemStack);
+        this.itemStack = globalItemStack;
     }
 
     protected @NotNull List<BukkitTask> getTasks() {

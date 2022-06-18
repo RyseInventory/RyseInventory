@@ -33,6 +33,7 @@ import io.github.rysefoxx.enums.InventoryOpenerType;
 import io.github.rysefoxx.pattern.ContentPattern;
 import io.github.rysefoxx.pattern.SearchPattern;
 import io.github.rysefoxx.util.SlotUtils;
+import io.github.rysefoxx.util.StringConstants;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Material;
@@ -77,7 +78,7 @@ public class InventoryContents {
      */
     public boolean hasSlot(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         return slot <= this.inventory.size();
     }
@@ -91,7 +92,7 @@ public class InventoryContents {
      */
     public boolean removeItemWithConsumer(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         get(slot).ifPresent(IntelligentItem::clearConsumer);
         this.pagination.remove(slot);
@@ -162,7 +163,7 @@ public class InventoryContents {
      */
     public void subtractFirst(@NotNull ItemStack item, @Nonnegative int amount) throws IllegalArgumentException {
         if (amount > 64)
-            throw new IllegalArgumentException("Amount must not be larger than 64.");
+            throw new IllegalArgumentException(StringConstants.INVALID_AMOUNT);
 
         for (int i = 0; i < this.inventory.size(); i++) {
             Optional<IntelligentItem> optional = get(i);
@@ -218,7 +219,7 @@ public class InventoryContents {
      */
     public void removeAll(@NotNull ItemStack item, @Nonnegative int amount) throws IllegalArgumentException {
         if (amount > 64)
-            throw new IllegalArgumentException("Amount must not be larger than 64.");
+            throw new IllegalArgumentException(StringConstants.INVALID_AMOUNT);
 
 
         for (int i = 0; i < this.inventory.size(); i++) {
@@ -272,7 +273,7 @@ public class InventoryContents {
      */
     public void removeFirst(@Nonnegative int amount) throws IllegalArgumentException {
         if (amount > 64)
-            throw new IllegalArgumentException("Amount must not be larger than 64.");
+            throw new IllegalArgumentException(StringConstants.INVALID_AMOUNT);
 
         for (int i = 0; i < this.inventory.size(); i++) {
             Optional<IntelligentItem> optional = get(i);
@@ -408,8 +409,8 @@ public class InventoryContents {
      * Removes all data in the inventory and returns all values in the consumer.
      */
     public void clearData(@NotNull Consumer<List<?>> consumer) {
-        List<Object> data = Arrays.asList(this.data.values().toArray());
-        consumer.accept(data);
+        List<Object> objects = Arrays.asList(this.data.values().toArray());
+        consumer.accept(objects);
 
         this.data.clear();
     }
@@ -458,7 +459,7 @@ public class InventoryContents {
      */
     public boolean isRightBorder(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
 
@@ -492,10 +493,10 @@ public class InventoryContents {
      */
     public boolean isRightBorder(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
         if (row > 5)
-            throw new IllegalArgumentException("The row must not be larger than 5.");
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
 
         if (column > 8)
-            throw new IllegalArgumentException("The column must not be larger than 9.");
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
 
         return isRightBorder(SlotUtils.toSlot(row, column));
     }
@@ -506,7 +507,7 @@ public class InventoryContents {
      */
     public boolean isLeftBorder(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
 
@@ -536,10 +537,10 @@ public class InventoryContents {
      */
     public boolean isLeftBorder(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
         if (row > 5)
-            throw new IllegalArgumentException("The row must not be larger than 5.");
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
 
         if (column > 8)
-            throw new IllegalArgumentException("The column must not be larger than 9.");
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
 
         return isLeftBorder(SlotUtils.toSlot(row, column));
     }
@@ -673,7 +674,7 @@ public class InventoryContents {
      */
     public void setWithinPage(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem item) throws IllegalArgumentException {
         if (slot > 53)
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         this.pagination.setItem(slot, page, item);
     }
@@ -690,10 +691,10 @@ public class InventoryContents {
      */
     public void setWithinPage(@Nonnegative int row, @Nonnegative int column, @Nonnegative int page, @NotNull IntelligentItem item) throws IllegalArgumentException {
         if (row > 5)
-            throw new IllegalArgumentException("The row must not be larger than 5.");
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
 
         if (column > 8)
-            throw new IllegalArgumentException("The column must not be larger than 9.");
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
 
         setWithinPage(SlotUtils.toSlot(row, column), page, item);
     }
@@ -768,7 +769,7 @@ public class InventoryContents {
      */
     public void set(@Nonnegative int slot, @NotNull IntelligentItem item) throws IllegalArgumentException {
         if (slot > 53)
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         this.pagination.setItem(slot, item);
     }
@@ -794,10 +795,10 @@ public class InventoryContents {
      */
     public void set(@Nonnegative int row, @Nonnegative int column, @NotNull ItemStack itemStack) throws IllegalArgumentException {
         if (row > 5)
-            throw new IllegalArgumentException("The row must not be larger than 5.");
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
 
         if (column > 8)
-            throw new IllegalArgumentException("The column must not be larger than 9.");
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
 
         set(SlotUtils.toSlot(row, column), IntelligentItem.empty(itemStack));
     }
@@ -830,10 +831,10 @@ public class InventoryContents {
      */
     public void set(@Nonnegative int row, @Nonnegative int column, @NotNull ItemStack itemStack, @NotNull IntelligentType type) throws IllegalArgumentException {
         if (row > 5)
-            throw new IllegalArgumentException("The row must not be larger than 5.");
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
 
         if (column > 8)
-            throw new IllegalArgumentException("The column must not be larger than 9.");
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
 
         set(SlotUtils.toSlot(row, column), itemStack, type);
     }
@@ -858,10 +859,10 @@ public class InventoryContents {
      */
     public void set(@Nonnegative int row, @Nonnegative int column, @NotNull IntelligentItem item) throws IllegalArgumentException {
         if (row > 5)
-            throw new IllegalArgumentException("The row must not be larger than 5.");
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
 
         if (column > 8)
-            throw new IllegalArgumentException("The column must not be larger than 9.");
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
 
         set(SlotUtils.toSlot(row, column), item);
     }
@@ -942,7 +943,7 @@ public class InventoryContents {
      */
     public Optional<IntelligentItem> get(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         return Optional.ofNullable(this.pagination.get(slot));
     }
@@ -957,10 +958,10 @@ public class InventoryContents {
      */
     public @NotNull Optional<IntelligentItem> get(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
         if (row > 5)
-            throw new IllegalArgumentException("The row must not be larger than 5.");
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
 
         if (column > 8)
-            throw new IllegalArgumentException("The column must not be larger than 9.");
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
 
         return get(SlotUtils.toSlot(row, column));
     }
@@ -1024,7 +1025,7 @@ public class InventoryContents {
      */
     public void updateLore(@Nonnegative int slot, @NotNull List<String> lore) throws IllegalArgumentException, IllegalStateException {
         if (slot > 53)
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         Optional<IntelligentItem> itemOptional = get(slot);
         if (!itemOptional.isPresent()) return;
@@ -1055,7 +1056,7 @@ public class InventoryContents {
      */
     public void updateLore(@Nonnegative int slot, @Nonnegative int index, @NotNull String line) throws IllegalArgumentException, IllegalStateException {
         if (slot > 53)
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         Optional<IntelligentItem> itemOptional = get(slot);
         if (!itemOptional.isPresent()) return;
@@ -1111,7 +1112,7 @@ public class InventoryContents {
      */
     public void update(@Nonnegative int slot, @NotNull ItemStack itemStack) throws IllegalArgumentException {
         if (slot > 53)
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         Optional<IntelligentItem> itemOptional = get(slot);
         if (!itemOptional.isPresent()) return;
@@ -1146,10 +1147,10 @@ public class InventoryContents {
      */
     public void update(@Nonnegative int row, @Nonnegative int column, @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
         if (row > 5)
-            throw new IllegalArgumentException("The row must not be larger than 5.");
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
 
         if (column > 8)
-            throw new IllegalArgumentException("The column must not be larger than 9.");
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
 
         update(SlotUtils.toSlot(row, column), intelligentItem.getItemStack());
     }
@@ -1271,7 +1272,7 @@ public class InventoryContents {
 
     protected Optional<IntelligentItem> getInPage(@Nonnegative int page, @Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         return Optional.ofNullable(this.pagination.get(slot, page));
     }

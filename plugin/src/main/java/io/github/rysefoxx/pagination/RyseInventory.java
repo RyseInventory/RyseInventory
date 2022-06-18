@@ -33,6 +33,7 @@ import io.github.rysefoxx.content.InventoryProvider;
 import io.github.rysefoxx.enums.*;
 import io.github.rysefoxx.other.EventCreator;
 import io.github.rysefoxx.pattern.SlotIteratorPattern;
+import io.github.rysefoxx.util.StringConstants;
 import io.github.rysefoxx.util.TimeUtils;
 import io.github.rysefoxx.util.TitleUpdater;
 import lombok.Getter;
@@ -205,7 +206,7 @@ public class RyseInventory {
      * @throws IllegalArgumentException if the two arrays do not have the same size.
      */
     public void open(String @NotNull [] keys, Object @NotNull [] values, Player @NotNull ... players) throws IllegalArgumentException {
-        Preconditions.checkArgument(keys.length == values.length, "String[] and Object[] must have the same size");
+        Preconditions.checkArgument(keys.length == values.length, StringConstants.INVALID_OBJECT);
 
         for (Player player : players)
             open(player, 1, keys, values);
@@ -243,7 +244,7 @@ public class RyseInventory {
      * @throws IllegalArgumentException if the two arrays do not have the same size.
      */
     public @NotNull Inventory open(@NotNull Player player, @Nonnegative int page, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
-        Preconditions.checkArgument(keys.length == values.length, "String[] and Object[] must have the same size");
+        Preconditions.checkArgument(keys.length == values.length, StringConstants.INVALID_OBJECT);
 
         return initInventory(player, page, keys, values);
     }
@@ -258,7 +259,7 @@ public class RyseInventory {
      * @throws IllegalArgumentException if the two arrays do not have the same size.
      */
     public @NotNull Inventory open(@NotNull Player player, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
-        Preconditions.checkArgument(keys.length == values.length, "String[] and Object[] must have the same size");
+        Preconditions.checkArgument(keys.length == values.length, StringConstants.INVALID_OBJECT);
 
         return initInventory(player, 1, keys, values);
     }
@@ -269,7 +270,7 @@ public class RyseInventory {
 
         clearInventoryWhenNeeded(player);
 
-        Inventory inventory = setupInventory();
+        Inventory setupInventory = setupInventory();
 
         InventoryContents contents = new InventoryContents(player, this);
         Optional<InventoryContents> optional = this.manager.getContents(player.getUniqueId());
@@ -278,10 +279,10 @@ public class RyseInventory {
         contents.pagination().setPage(page);
 
         transferData(optional.orElse(null), contents, keys, values);
-        setupData(player, inventory, contents);
+        setupData(player, setupInventory, contents);
         initProvider(player, contents);
 
-        if (optional.isPresent() && optional.get().equals(contents)) return inventory;
+        if (optional.isPresent() && optional.get().equals(contents)) return setupInventory;
 
         this.manager.stopUpdate(player.getUniqueId());
 
@@ -297,7 +298,7 @@ public class RyseInventory {
         closeInventoryWhenEnabled(player);
 
         finalizeInventoryAndOpen(player);
-        return inventory;
+        return setupInventory;
     }
 
     /**
@@ -769,22 +770,18 @@ public class RyseInventory {
     }
 
     private void removeActiveAnimations() {
-        for (int i = 0; i < this.itemAnimator.size(); i++) {
-            IntelligentItemNameAnimator animator = this.itemAnimator.remove(i);
-            removeItemAnimator(animator);
-        }
-        for (int i = 0; i < this.titleAnimator.size(); i++) {
-            IntelligentTitleAnimator animator = this.titleAnimator.remove(i);
-            removeTitleAnimator(animator);
-        }
-        for (int i = 0; i < this.loreAnimator.size(); i++) {
-            IntelligentItemLoreAnimator animator = this.loreAnimator.remove(i);
-            removeLoreAnimator(animator);
-        }
-        for (int i = 0; i < this.materialAnimator.size(); i++) {
-            IntelligentMaterialAnimator animator = this.materialAnimator.remove(i);
-            removeMaterialAnimator(animator);
-        }
+        for (IntelligentItemNameAnimator intelligentItemNameAnimator : this.itemAnimator)
+            removeItemAnimator(intelligentItemNameAnimator);
+
+        for (IntelligentTitleAnimator intelligentTitleAnimator : this.titleAnimator)
+            removeTitleAnimator(intelligentTitleAnimator);
+
+        for (IntelligentItemLoreAnimator intelligentItemLoreAnimator : this.loreAnimator)
+            removeLoreAnimator(intelligentItemLoreAnimator);
+
+        for (IntelligentMaterialAnimator intelligentMaterialAnimator : this.materialAnimator)
+            removeMaterialAnimator(intelligentMaterialAnimator);
+
         removeSlideAnimator();
     }
 
@@ -822,7 +819,13 @@ public class RyseInventory {
         if (this.inventoryOpenerType == InventoryOpenerType.CHEST) {
             return Bukkit.createInventory(null, this.size, this.loadTitle == -1 ? this.title : this.titleHolder);
         }
-        return inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), this.loadTitle == -1 ? this.title : this.titleHolder);
+        return inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), buildTitle());
+    }
+
+    @Contract(pure = true)
+    private @NotNull String buildTitle() {
+        if(this.loadTitle == -1) return this.title;
+        return this.titleHolder;
     }
 
     private void transferData(InventoryContents oldContents, @NotNull InventoryContents newContents, @Nullable String[] keys, @Nullable Object[] values) {

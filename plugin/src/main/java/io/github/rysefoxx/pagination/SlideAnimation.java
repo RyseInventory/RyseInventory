@@ -32,6 +32,7 @@ import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.enums.AnimatorDirection;
 import io.github.rysefoxx.enums.TimeSetting;
 import io.github.rysefoxx.util.SlotUtils;
+import io.github.rysefoxx.util.StringConstants;
 import io.github.rysefoxx.util.TimeUtils;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -49,6 +50,8 @@ import java.util.*;
  * @since 4/15/2022
  */
 public class SlideAnimation {
+
+    private static final String ANIMATION_KEY = "RYSEINVENTORY_SLIDE_ANIMATION_KEY";
 
     private List<Integer> from = new ArrayList<>();
     private List<Integer> to = new ArrayList<>();
@@ -148,7 +151,7 @@ public class SlideAnimation {
          */
         public @NotNull Builder from(@Nonnegative int slot) throws IllegalArgumentException {
             if (slot > 53)
-                throw new IllegalArgumentException("The slot must not be larger than 53.");
+                throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
             this.from.add(slot);
             return this;
@@ -164,10 +167,10 @@ public class SlideAnimation {
          */
         public @NotNull Builder from(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
             if (row > 5)
-                throw new IllegalArgumentException("The row must not be larger than 5.");
+                throw new IllegalArgumentException(StringConstants.INVALID_ROW);
 
             if (column > 8)
-                throw new IllegalArgumentException("The column must not be larger than 9.");
+                throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
 
 
             this.from.add(SlotUtils.toSlot(row, column));
@@ -197,7 +200,7 @@ public class SlideAnimation {
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
         public @NotNull Builder from(Integer @NotNull [] rows, Integer @NotNull [] columns) throws IllegalArgumentException {
-            Preconditions.checkArgument(rows.length == columns.length, "Rows must have the same length as columns.");
+            Preconditions.checkArgument(rows.length == columns.length, StringConstants.INVALID_ROW_LENGTH);
 
             for (int i = 0; i < rows.length; i++)
                 from(rows[i], columns[i]);
@@ -227,7 +230,7 @@ public class SlideAnimation {
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
         public @NotNull Builder from(@NotNull List<Integer> rows, @NotNull List<Integer> columns) throws IllegalArgumentException {
-            Preconditions.checkArgument(rows.size() == columns.size(), "Rows must have the same length as columns.");
+            Preconditions.checkArgument(rows.size() == columns.size(), StringConstants.INVALID_ROW_LENGTH);
 
             for (int i = 0; i < rows.size(); i++)
                 from(rows.get(i), columns.get(i));
@@ -244,7 +247,7 @@ public class SlideAnimation {
          */
         public @NotNull Builder to(@Nonnegative int slot) throws IllegalArgumentException {
             if (slot > 53)
-                throw new IllegalArgumentException("The slot must not be larger than 53.");
+                throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
             this.to.add(slot);
             return this;
@@ -260,10 +263,10 @@ public class SlideAnimation {
          */
         public @NotNull Builder to(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
             if (row > 5) {
-                throw new IllegalArgumentException("The row must not be larger than 5.");
+                throw new IllegalArgumentException(StringConstants.INVALID_ROW);
             }
             if (column > 8) {
-                throw new IllegalArgumentException("The column must not be larger than 9.");
+                throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
             }
 
             this.to.add(SlotUtils.toSlot(row, column));
@@ -293,7 +296,7 @@ public class SlideAnimation {
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
         public @NotNull Builder to(Integer @NotNull [] rows, Integer @NotNull [] columns) throws IllegalArgumentException {
-            Preconditions.checkArgument(rows.length == columns.length, "Rows must have the same length as columns.");
+            Preconditions.checkArgument(rows.length == columns.length, StringConstants.INVALID_ROW_LENGTH);
 
             for (int i = 0; i < rows.length; i++)
                 to(rows[i], columns[i]);
@@ -322,7 +325,7 @@ public class SlideAnimation {
          * @throws IllegalArgumentException if row is > 5 or if column > 8
          */
         public @NotNull Builder to(@NotNull List<Integer> rows, @NotNull List<Integer> columns) throws IllegalArgumentException {
-            Preconditions.checkArgument(rows.size() == columns.size(), "Rows must have the same length as columns.");
+            Preconditions.checkArgument(rows.size() == columns.size(), StringConstants.INVALID_ROW_LENGTH);
 
             for (int i = 0; i < rows.size(); i++)
                 to(rows.get(i), columns.get(i));
@@ -340,7 +343,7 @@ public class SlideAnimation {
             ItemStack itemStack = item.getItemStack();
 
             NBTItem nbtItem = new NBTItem(itemStack);
-            nbtItem.setString("RYSEINVENTORY_SLIDE_ANIMATION_KEY", UUID.randomUUID().toString());
+            nbtItem.setString(ANIMATION_KEY, UUID.randomUUID().toString());
 
             item.update(nbtItem.getItem());
 
@@ -462,10 +465,10 @@ public class SlideAnimation {
         RyseInventory inventory = contents.pagination().inventory();
 
         for (int i = 0; i < this.from.size(); i++) {
-            int from = this.from.get(i);
-            int to = this.to.get(i);
+            int fromSlot = this.from.get(i);
+            int toSlot = this.to.get(i);
 
-            checkIfInvalid(from, to, inventory);
+            checkIfInvalid(fromSlot, toSlot, inventory);
         }
 
         animateByTyp();
@@ -501,7 +504,7 @@ public class SlideAnimation {
 
             int finalI = i;
 
-            BukkitTask task = new BukkitRunnable() {
+            BukkitTask bukkitTask = new BukkitRunnable() {
                 int fromIndex = from.get(finalI);
                 final int toIndex = to.get(finalI);
                 int previousIndex = fromIndex;
@@ -550,7 +553,7 @@ public class SlideAnimation {
                     this.fromIndex -= 8;
                 }
             }.runTaskTimer(plugin, this.delay, this.period);
-            this.task.add(task);
+            this.task.add(bukkitTask);
         }
     }
 
@@ -566,7 +569,7 @@ public class SlideAnimation {
 
             int finalI = i;
 
-            BukkitTask task = new BukkitRunnable() {
+            BukkitTask bukkitTask = new BukkitRunnable() {
                 int fromIndex = from.get(finalI);
                 final int toIndex = to.get(finalI);
                 int previousIndex = fromIndex;
@@ -615,7 +618,7 @@ public class SlideAnimation {
                     this.fromIndex -= 10;
                 }
             }.runTaskTimer(plugin, this.delay, this.period);
-            this.task.add(task);
+            this.task.add(bukkitTask);
         }
     }
 
@@ -630,7 +633,7 @@ public class SlideAnimation {
             }
 
             int finalI = i;
-            BukkitTask task = new BukkitRunnable() {
+            BukkitTask bukkitTask = new BukkitRunnable() {
                 int fromIndex = from.get(finalI);
                 final int toIndex = to.get(finalI);
                 int previousIndex = fromIndex;
@@ -682,7 +685,7 @@ public class SlideAnimation {
 
                 }
             }.runTaskTimer(plugin, this.delay, this.period);
-            this.task.add(task);
+            this.task.add(bukkitTask);
         }
     }
 
@@ -698,7 +701,7 @@ public class SlideAnimation {
 
             int finalI = i;
 
-            BukkitTask task = new BukkitRunnable() {
+            BukkitTask bukkitTask = new BukkitRunnable() {
                 int fromIndex = from.get(finalI);
                 final int toIndex = to.get(finalI);
                 int previousIndex = fromIndex;
@@ -748,7 +751,7 @@ public class SlideAnimation {
 
                 }
             }.runTaskTimer(plugin, this.delay, this.period);
-            this.task.add(task);
+            this.task.add(bukkitTask);
         }
     }
 
@@ -756,7 +759,7 @@ public class SlideAnimation {
         ItemStack previousItemStack = item.getItemStack();
 
         NBTContainer container = NBTItem.convertItemtoNBT(previousItemStack);
-        return container.hasKey("RYSEINVENTORY_SLIDE_ANIMATION_KEY") ? container.getString("RYSEINVENTORY_SLIDE_ANIMATION_KEY") : "";
+        return container.hasKey(this.ANIMATION_KEY) ? container.getString(this.ANIMATION_KEY) : "";
     }
 
     private void checkIfInvalid(@Nonnegative int from, @Nonnegative int to, @NotNull RyseInventory inventory) {

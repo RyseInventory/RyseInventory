@@ -28,15 +28,18 @@ package io.github.rysefoxx.pagination;
 import io.github.rysefoxx.SlotIterator;
 import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.content.IntelligentItemData;
+import io.github.rysefoxx.util.StringConstants;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -67,18 +70,33 @@ public class Pagination implements Cloneable {
         this.page = 0;
     }
 
+    //Copy Constructor
+    public Pagination(@NotNull Pagination pagination) {
+        this.inventory = pagination.inventory;
+        this.itemsPerPage = pagination.itemsPerPage;
+        this.page = pagination.page;
+        this.inventoryData = pagination.inventoryData;
+    }
+
     /**
      * Clones the pagination so that the original is not changed.
      *
      * @return cloned pagination
+     * @deprecated use {@link #newInstance(Pagination)}} instead
      */
+    @Deprecated
     public Pagination copy() {
         try {
             return (Pagination) clone();
         } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Pagination clone failed", e);
         }
         return this;
+    }
+
+    //Copy Factory
+    public Pagination newInstance(@NotNull Pagination pagination) {
+        return new Pagination(pagination);
     }
 
     /**
@@ -190,7 +208,7 @@ public class Pagination implements Cloneable {
      */
     protected void setItem(@Nonnegative int slot, @NotNull IntelligentItem newItem) throws IllegalArgumentException {
         if (slot > 53)
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         remove(slot);
 
@@ -208,7 +226,7 @@ public class Pagination implements Cloneable {
      */
     protected void setItem(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem newItem) throws IllegalArgumentException {
         if (slot > 53)
-            throw new IllegalArgumentException("The slot must not be larger than 53.");
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         remove(slot, page);
 

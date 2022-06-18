@@ -150,11 +150,6 @@ public class InventoryManager {
         return this.inventories.containsKey(uuid);
     }
 
-    @Contract(pure = true)
-    private boolean hasContents(@NotNull UUID uuid) {
-        return this.content.containsKey(uuid);
-    }
-
     protected void removeInventoryFromPlayer(@NotNull UUID uuid) {
         this.inventories.remove(uuid);
         this.content.remove(uuid);
@@ -177,11 +172,11 @@ public class InventoryManager {
     }
 
     protected void setLastInventory(@NotNull UUID uuid, @NotNull RyseInventory inventory) {
-        List<RyseInventory> inventories = this.lastInventories.getOrDefault(uuid, new ArrayList<>());
+        List<RyseInventory> inventoryList = this.lastInventories.getOrDefault(uuid, new ArrayList<>());
 
-        inventories.add(inventory);
+        inventoryList.add(inventory);
 
-        this.lastInventories.put(uuid, inventories);
+        this.lastInventories.put(uuid, inventoryList);
     }
 
     protected void stopUpdate(@NotNull UUID uuid) {
@@ -212,6 +207,11 @@ public class InventoryManager {
     }
 
     public class InventoryListener implements Listener {
+
+        @Contract(pure = true)
+        private boolean hasContents(@NotNull UUID uuid) {
+            return content.containsKey(uuid);
+        }
 
         @EventHandler(ignoreCancelled = true)
         public void onEntityDamage(EntityDamageEvent event) {
@@ -338,10 +338,9 @@ public class InventoryManager {
                     event.setCancelled(true);
                     return;
                 }
-                if (action == InventoryAction.NOTHING && clickType != ClickType.MIDDLE) {
+                if (action == InventoryAction.NOTHING && clickType != ClickType.MIDDLE)
                     event.setCancelled(true);
-                    return;
-                }
+
                 return;
             }
 

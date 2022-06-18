@@ -37,6 +37,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.logging.Level;
 
 /**
  * @author AgustinnEzequiel2
@@ -116,7 +117,7 @@ public class TitleUpdater {
                 windowIdField = CONTAINER_CLASS.getField("windowId");
             }
         } catch (ReflectiveOperationException exception) {
-            exception.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Error while getting NMS fields", exception);
         }
 
         getHandle = handle;
@@ -190,7 +191,7 @@ public class TitleUpdater {
             // Update inventory.
             player.updateInventory();
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Error while updating inventory title", throwable);
         }
     }
 
@@ -274,7 +275,7 @@ public class TitleUpdater {
                 Field field = CONTAINERS_CLASS.getField(name);
                 return field.get(null);
             } catch (ReflectiveOperationException exception) {
-                exception.printStackTrace();
+                Bukkit.getLogger().log(Level.SEVERE,"Error while getting Object", exception);
             }
             return null;
         }

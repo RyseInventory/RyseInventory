@@ -29,6 +29,7 @@ import com.google.common.base.Preconditions;
 import io.github.rysefoxx.content.IntelligentItemAnimatorType;
 import io.github.rysefoxx.content.IntelligentItemColor;
 import io.github.rysefoxx.enums.TimeSetting;
+import io.github.rysefoxx.util.StringConstants;
 import io.github.rysefoxx.util.TimeUtils;
 import io.github.rysefoxx.util.VersionUtils;
 import org.bukkit.Bukkit;
@@ -141,7 +142,7 @@ public class IntelligentTitleAnimator {
          * @throws IllegalArgumentException If the parameters are not equal.
          */
         public @NotNull Builder colors(@NotNull List<Character> frames, IntelligentItemColor @NotNull ... color) {
-            Preconditions.checkArgument(frames.size() == color.length, "Frames must have the same length as color.");
+            Preconditions.checkArgument(frames.size() == color.length, StringConstants.INVALID_COLOR_FRAME);
 
             for (int i = 0; i < frames.size(); i++)
                 color(frames.get(i), color[i]);
@@ -158,7 +159,7 @@ public class IntelligentTitleAnimator {
          * @throws IllegalArgumentException If the parameters are not equal.
          */
         public @NotNull Builder colors(Character @NotNull [] frames, IntelligentItemColor @NotNull ... color) {
-            Preconditions.checkArgument(frames.length == color.length, "Frames must have the same length as color.");
+            Preconditions.checkArgument(frames.length == color.length, StringConstants.INVALID_COLOR_FRAME);
 
             for (int i = 0; i < frames.length; i++)
                 color(frames[i], color[i]);
@@ -175,7 +176,7 @@ public class IntelligentTitleAnimator {
          * @throws IllegalArgumentException If the parameters are not equal.
          */
         public @NotNull Builder colors(Character @NotNull [] frames, @NotNull List<IntelligentItemColor> color) {
-            Preconditions.checkArgument(frames.length == color.size(), "Frames must have the same length as color.");
+            Preconditions.checkArgument(frames.length == color.size(), StringConstants.INVALID_COLOR_FRAME);
 
             for (int i = 0; i < frames.length; i++)
                 color(frames[i], color.get(i));
@@ -272,28 +273,7 @@ public class IntelligentTitleAnimator {
                 this.loop = this.preset.loop;
             }
 
-            if (VersionUtils.isBelowAnd13()) {
-                if (!this.frameColor.isEmpty())
-                    throw new IllegalStateException("Anything less than inclusive with version 13 does not yet support titles with color. Please remove code with #color() or #colors()");
-
-                if (!this.frames.isEmpty())
-                    throw new IllegalArgumentException("Anything less than inclusive with version 13 does not yet support titles with color. Accordingly, the code can be removed with #frame or #frames.");
-
-            } else {
-                if (this.frameColor.isEmpty())
-                    throw new IllegalArgumentException("You must specify at least one frame with #color() or #colors()");
-
-                if (this.frames.isEmpty())
-                    throw new IllegalArgumentException("No frames have been defined yet!");
-
-                for (String frame : this.frames) {
-                    for (char c : frame.toCharArray()) {
-                        if (frameColor.containsKey(c)) continue;
-                        throw new IllegalArgumentException("You created the frame " + frame + ", but the letter " + c + " was not assigned a color.");
-                    }
-                }
-            }
-
+            checkIfValid();
 
             IntelligentTitleAnimator animator = new IntelligentTitleAnimator();
             animator.delay = this.delay;
@@ -306,6 +286,31 @@ public class IntelligentTitleAnimator {
             animator.inventory = contents.pagination().inventory();
             animator.title = contents.pagination().inventory().getTitle();
             return animator;
+        }
+
+        private void checkIfValid() {
+            if (VersionUtils.isBelowAnd13()) {
+                if (!this.frameColor.isEmpty())
+                    throw new IllegalStateException("Anything less than inclusive with version 13 does not yet support titles with color. Please remove code with #color() or #colors()");
+
+                if (!this.frames.isEmpty())
+                    throw new IllegalArgumentException("Anything less than inclusive with version 13 does not yet support titles with color. Accordingly, the code can be removed with #frame or #frames.");
+
+                return;
+            }
+
+            if (this.frameColor.isEmpty())
+                throw new IllegalArgumentException("You must specify at least one frame with #color() or #colors()");
+
+            if (this.frames.isEmpty())
+                throw new IllegalArgumentException("No frames have been defined yet!");
+
+            for (String frame : this.frames) {
+                for (char c : frame.toCharArray()) {
+                    if (frameColor.containsKey(c)) continue;
+                    throw new IllegalArgumentException("You created the frame " + frame + ", but the letter " + c + " was not assigned a color.");
+                }
+            }
         }
     }
 

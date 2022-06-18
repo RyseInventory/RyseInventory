@@ -25,9 +25,20 @@
 
 package io.github.rysefoxx;
 
+import io.github.rysefoxx.content.IntelligentItem;
+import io.github.rysefoxx.content.InventoryProvider;
+import io.github.rysefoxx.pagination.InventoryContents;
 import io.github.rysefoxx.pagination.InventoryManager;
+import io.github.rysefoxx.pagination.Pagination;
+import io.github.rysefoxx.pagination.RyseInventory;
+import io.github.rysefoxx.util.ItemBuilder;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.Arrays;
 
 public final class RyseInventoryPlugin extends JavaPlugin {
 
@@ -43,6 +54,49 @@ public final class RyseInventoryPlugin extends JavaPlugin {
         getLogger().severe(" -> https://github.com/Rysefoxx/RyseInventory");
         getLogger().info("");
 
-        Bukkit.getPluginManager().disablePlugin(this);
+//        Bukkit.getPluginManager().disablePlugin(this);
+
+        RyseInventory.builder()
+                .manager(inventoryManager)
+                .title("This is a paginated inventory")
+                .rows(6)
+                .provider(new InventoryProvider() {
+                    @Override
+                    public void init(Player player, InventoryContents contents) {
+                        Pagination pagination = contents.pagination();
+                        pagination.setItemsPerPage(10);
+                        pagination.iterator(SlotIterator.builder().startPosition(2, 2).type(SlotIterator.SlotIteratorType.HORIZONTAL).blackList(Arrays.asList(25, 26, 27, 28)).build());
+
+                        contents.set(5, 3, IntelligentItem.of(new ItemBuilder(Material.ARROW).amount((pagination.isFirst() ? 1 : pagination.page() - 1)).displayName(pagination.isFirst() ? "§c§oThis is the first page" : "§ePage §8⇒ §9" + pagination.newInstance(pagination).previous().page()).build(), event -> {
+                            if (pagination.isFirst()) {
+                                player.sendMessage("§c§oYou are already on the first page.");
+                                return;
+                            }
+
+                            RyseInventory currentInventory = pagination.inventory();
+                            currentInventory.open(player, pagination.previous().page());
+                        }));
+
+                        for (int i = 0; i < 13; i++) {
+                            pagination.addItem(IntelligentItem.of(new ItemStack(Material.STONE), event -> {
+                                event.getWhoClicked().sendMessage("You clicked on a stone!");
+                                event.getWhoClicked().sendMessage("Stone on slot " + event.getSlot());
+                            }));
+                        }
+
+                        int page = pagination.newInstance(pagination).next().page();
+                        contents.set(5, 5, IntelligentItem.of(new ItemBuilder(Material.ARROW).amount((pagination.isLast() ? 1 : page)).displayName((!pagination.isLast() ? "§ePage §8⇒ §9" + page : "§c§oThis is the last page")).build(), event -> {
+                            if (pagination.isLast()) {
+                                player.sendMessage("§c§oYou are already on the last page.");
+                                return;
+                            }
+
+                            RyseInventory currentInventory = pagination.inventory();
+                            currentInventory.open(player, pagination.next().page());
+                        }));
+                    }
+                })
+                .build(this).open(Bukkit.getPlayer("rysefoxx"));
+
     }
 }
