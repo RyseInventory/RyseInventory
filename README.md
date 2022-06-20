@@ -37,7 +37,7 @@ repositories {
     }
 }
 dependencies {
-    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.2.3'
+    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.2.4'
 }
 ```
 ### Gradle (Kotlin) 
@@ -47,7 +47,7 @@ repositories
     maven {url = uri("https://s01.oss.sonatype.org/content/groups/public/")}
 }
 dependencies {
-    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.2.3")
+    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.2.4")
 }
 ```
 
@@ -63,7 +63,7 @@ dependencies {
 <dependency>
   <groupId>io.github.rysefoxx</groupId>
   <artifactId>RyseInventory-Plugin</artifactId>
-  <version>1.2.3</version>
+  <version>1.2.4</version>
 </dependency>
 ```
 
@@ -78,7 +78,6 @@ dependencies {
 * [Click here](https://github.com/Rysefoxx/RyseInventory/tree/master/examples)
 
 # ToDo
- * Remove all deprecated method in update 1.2.3.
 
 # License
 This API is licensed under the MIT License.
