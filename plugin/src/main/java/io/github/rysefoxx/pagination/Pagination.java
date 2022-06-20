@@ -75,6 +75,7 @@ public class Pagination implements Cloneable {
         this.inventory = pagination.inventory;
         this.itemsPerPage = pagination.itemsPerPage;
         this.page = pagination.page;
+        this.slotIterator = pagination.slotIterator;
         this.inventoryData = pagination.inventoryData;
     }
 
@@ -292,7 +293,7 @@ public class Pagination implements Cloneable {
         if (this.slotIterator == null || this.slotIterator.getEndPosition() == -1) {
             value = this.itemsPerPage;
         } else {
-            value = this.slotIterator.getEndPosition() - (this.slotIterator.getSlot() == -1 ? 9 * this.slotIterator.getRow() + this.slotIterator.getColumn() : this.slotIterator.getSlot());
+            value = this.slotIterator.getEndPosition() - this.slotIterator.getSlot();
         }
         return value;
     }

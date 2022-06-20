@@ -344,38 +344,19 @@ public class IntelligentTitleAnimator {
             int colorState = 0;
             int subStringIndex = 0;
             int currentFrameIndex = 0;
-            String currentTitle = "";
 
             @Override
             public void run() {
-                if (this.subStringIndex >= this.letters.length) {
-                    if (!loop)
-                        this.framesCopy.remove(0);
-                    this.colorState = 0;
-                    this.subStringIndex = 0;
-                    this.currentTitle = "";
-                    if (this.currentFrameIndex + 1 >= this.framesCopy.size())
-                        this.currentFrameIndex = 0;
-                }
+                resetWhenFrameFinished();
 
-                if (this.framesCopy.isEmpty()) {
-                    inventory.removeTitleAnimator(IntelligentTitleAnimator.this);
-                    return;
-                }
+                if (cancelIfListIsEmpty()) return;
 
-                char[] currentFrames = framesCopy.get(this.currentFrameIndex).toCharArray();
-                if (this.colorState >= currentFrames.length) {
-                    this.colorState = 0;
-                    if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
-                        this.currentFrameIndex++;
-                        currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
-                    }
-                }
+                char[] currentFrames = updateFramesWhenRequired();
 
                 char singleFrame = currentFrames[this.colorState];
                 IntelligentItemColor itemColor = frameColor.get(singleFrame);
 
-                this.currentTitle =
+                String currentTitle =
                         itemColor.getColor()
                                 + (itemColor.isBold() ? "§l" : "")
                                 + (itemColor.isUnderline() ? "§n" : "")
@@ -386,7 +367,42 @@ public class IntelligentTitleAnimator {
 
                 this.colorState++;
                 this.subStringIndex++;
-                inventory.updateTitle(player, this.currentTitle);
+                inventory.updateTitle(player, currentTitle);
+            }
+
+            private char @NotNull [] updateFramesWhenRequired() {
+                char[] currentFrames = framesCopy.get(this.currentFrameIndex).toCharArray();
+
+                if (this.colorState < currentFrames.length)
+                    return currentFrames;
+
+                this.colorState = 0;
+                if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
+                    this.currentFrameIndex++;
+                    currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
+                }
+                return currentFrames;
+            }
+
+            private boolean cancelIfListIsEmpty() {
+                if (this.framesCopy.isEmpty()) {
+                    inventory.removeTitleAnimator(IntelligentTitleAnimator.this);
+                    return true;
+                }
+                return false;
+            }
+
+            private void resetWhenFrameFinished() {
+                if (this.subStringIndex < this.letters.length) return;
+
+                if (!loop)
+                    this.framesCopy.remove(0);
+                this.colorState = 0;
+                this.subStringIndex = 0;
+
+                if (this.currentFrameIndex + 1 < this.framesCopy.size())
+                    return;
+                this.currentFrameIndex = 0;
             }
         }, this.delay, this.period);
     }
@@ -405,31 +421,11 @@ public class IntelligentTitleAnimator {
 
             @Override
             public void run() {
-                if (this.subStringIndex >= this.letters.length) {
-                    if (!loop)
-                        this.framesCopy.remove(0);
-                    this.colorIndex = 0;
-                    this.subStringIndex = 0;
-                    this.previous.clear();
-                    this.currentTitle = title;
-                    if (this.currentFrameIndex + 1 >= this.framesCopy.size())
-                        this.currentFrameIndex = 0;
+                resetWhenFrameFinished();
 
-                }
+                if (cancelIfListIsEmpty()) return;
 
-                if (this.framesCopy.isEmpty()) {
-                    inventory.removeTitleAnimator(IntelligentTitleAnimator.this);
-                    return;
-                }
-
-                char[] currentFrames = framesCopy.get(this.currentFrameIndex).toCharArray();
-                if (this.colorIndex >= currentFrames.length) {
-                    this.colorIndex = 0;
-                    if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
-                        this.currentFrameIndex++;
-                        currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
-                    }
-                }
+                char[] currentFrames = updateFramesWhenRequired();
                 char singleFrame = currentFrames[this.colorIndex];
                 IntelligentItemColor itemColor = frameColor.get(singleFrame);
 
@@ -437,6 +433,24 @@ public class IntelligentTitleAnimator {
                 String rest = this.currentTitleFixed.substring(this.subStringIndex + 1);
                 boolean addColor = !letter.equals(" ");
 
+                StringBuilder newString = buildTitleBasedOnPreviousTitle(itemColor, letter);
+
+                this.currentTitle = newString
+                        .append(ChatColor.WHITE).append(rest)
+                        .toString();
+
+                this.previous.add(newString.toString());
+
+                this.subStringIndex++;
+
+                if (!addColor) return;
+
+                this.colorIndex++;
+                inventory.updateTitle(player, this.currentTitle);
+            }
+
+            @NotNull
+            private StringBuilder buildTitleBasedOnPreviousTitle(@NotNull IntelligentItemColor itemColor, @NotNull String letter) {
                 StringBuilder newString = new StringBuilder();
 
                 if (this.subStringIndex != 0)
@@ -449,25 +463,46 @@ public class IntelligentTitleAnimator {
                         .append(itemColor.isItalic() ? "§o" : "")
                         .append(itemColor.isObfuscated() ? "§k" : "")
                         .append(itemColor.isStrikeThrough() ? "§m" : "")
-                        .append(letter)
-                        .append(ChatColor.WHITE).append(rest);
-                this.currentTitle = newString.toString();
+                        .append(letter);
+                return newString;
+            }
 
-                this.previous.add(
-                        itemColor.getColor()
-                                + (itemColor.isBold() ? "§l" : "")
-                                + (itemColor.isUnderline() ? "§n" : "")
-                                + (itemColor.isItalic() ? "§o" : "")
-                                + (itemColor.isObfuscated() ? "§k" : "")
-                                + (itemColor.isStrikeThrough() ? "§m" : "")
-                                + letter);
+            private char @NotNull [] updateFramesWhenRequired() {
+                char[] currentFrames = framesCopy.get(this.currentFrameIndex).toCharArray();
 
-                this.subStringIndex++;
+                if (this.colorIndex < currentFrames.length)
+                    return currentFrames;
 
-                if (!addColor) return;
+                this.colorIndex = 0;
+                if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
+                    this.currentFrameIndex++;
+                    currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
+                }
+                return currentFrames;
+            }
 
-                this.colorIndex++;
-                inventory.updateTitle(player, this.currentTitle);
+            private boolean cancelIfListIsEmpty() {
+                if (this.framesCopy.isEmpty()) {
+                    inventory.removeTitleAnimator(IntelligentTitleAnimator.this);
+                    return true;
+                }
+                return false;
+            }
+
+            private void resetWhenFrameFinished() {
+                if (this.subStringIndex < this.letters.length) return;
+
+                if (!loop)
+                    this.framesCopy.remove(0);
+                this.colorIndex = 0;
+                this.subStringIndex = 0;
+                this.previous.clear();
+                this.currentTitle = title;
+
+                if (this.currentFrameIndex + 1 < this.framesCopy.size())
+                    return;
+
+                this.currentFrameIndex = 0;
             }
         }, this.delay, this.period);
     }
@@ -484,15 +519,7 @@ public class IntelligentTitleAnimator {
 
             @Override
             public void run() {
-                if (this.subStringIndex >= this.letters.length) {
-                    if (!loop)
-                        this.framesCopy.remove(0);
-                    this.colorState = 0;
-                    this.subStringIndex = 0;
-                    this.currentTitle = "";
-                    if (this.currentFrameIndex + 1 >= this.framesCopy.size())
-                        this.currentFrameIndex = 0;
-                }
+                resetWhenFrameFinished();
                 String letter = String.valueOf(this.letters[this.subStringIndex]);
 
                 if (VersionUtils.isBelowAnd13()) {
@@ -503,24 +530,25 @@ public class IntelligentTitleAnimator {
                     return;
                 }
 
-                if (this.framesCopy.isEmpty()) {
-                    inventory.removeTitleAnimator(IntelligentTitleAnimator.this);
-                    return;
-                }
+                if (cancelIfListIsEmpty()) return;
 
-                char[] currentFrames = framesCopy.get(this.currentFrameIndex).toCharArray();
-                if (this.colorState >= currentFrames.length) {
-                    this.colorState = 0;
-                    if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
-                        this.currentFrameIndex++;
-                        currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
-                    }
-                }
+                char[] currentFrames = updateFramesWhenRequired();
                 boolean addColor = !letter.equals(" ");
 
                 char singleFrame = currentFrames[this.colorState];
                 IntelligentItemColor itemColor = frameColor.get(singleFrame);
 
+                appendLetterToTitle(letter, itemColor);
+
+                this.subStringIndex++;
+
+                if (!addColor) return;
+
+                this.colorState++;
+                inventory.updateTitle(player, this.currentTitle);
+            }
+
+            private void appendLetterToTitle(@NotNull String letter, @NotNull IntelligentItemColor itemColor) {
                 this.currentTitle = this.currentTitle
                         + (itemColor.isBold() ? "§l" : "")
                         + (itemColor.isUnderline() ? "§n" : "")
@@ -529,13 +557,43 @@ public class IntelligentTitleAnimator {
                         + (itemColor.isStrikeThrough() ? "§m" : "")
                         + itemColor.getColor()
                         + letter;
+            }
 
-                this.subStringIndex++;
+            private char @NotNull [] updateFramesWhenRequired() {
+                char[] currentFrames = framesCopy.get(this.currentFrameIndex).toCharArray();
 
-                if (!addColor) return;
+                if (this.colorState < currentFrames.length)
+                    return currentFrames;
 
-                this.colorState++;
-                inventory.updateTitle(player, this.currentTitle);
+                this.colorState = 0;
+                if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
+                    this.currentFrameIndex++;
+                    currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
+                }
+                return currentFrames;
+            }
+
+            private boolean cancelIfListIsEmpty() {
+                if (this.framesCopy.isEmpty()) {
+                    inventory.removeTitleAnimator(IntelligentTitleAnimator.this);
+                    return true;
+                }
+                return false;
+            }
+
+            private void resetWhenFrameFinished() {
+                if (this.subStringIndex < this.letters.length) return;
+
+                if (!loop)
+                    this.framesCopy.remove(0);
+                this.colorState = 0;
+                this.subStringIndex = 0;
+                this.currentTitle = "";
+
+                if (this.currentFrameIndex + 1 < this.framesCopy.size())
+                    return;
+
+                this.currentFrameIndex = 0;
             }
         }, this.delay, this.period);
     }

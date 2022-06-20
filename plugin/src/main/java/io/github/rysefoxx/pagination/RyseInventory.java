@@ -824,7 +824,7 @@ public class RyseInventory {
 
     @Contract(pure = true)
     private @NotNull String buildTitle() {
-        if(this.loadTitle == -1) return this.title;
+        if (this.loadTitle == -1) return this.title;
         return this.titleHolder;
     }
 
@@ -891,7 +891,7 @@ public class RyseInventory {
         SlotIterator.SlotIteratorType type = iterator.getType();
         SlotIteratorPattern pattern = iterator.getPatternBuilder();
 
-        if(this.inventoryOpenerType != InventoryOpenerType.CHEST
+        if (this.inventoryOpenerType != InventoryOpenerType.CHEST
                 && this.inventoryOpenerType != InventoryOpenerType.ENDER_CHEST
                 && pattern != null) {
             throw new IllegalStateException("SlotIterator with PatternBuilder is not supported for InventoryOpenerType " + this.inventoryOpenerType.getType().toString());
@@ -928,7 +928,7 @@ public class RyseInventory {
                     char c = line.charAt(j);
                     patternSlot++;
 
-                    if(patternSlot >= size()) {
+                    if (patternSlot >= size()) {
                         j = -1;
                         patternLineIndex = 0;
                         patternSlot = -1;

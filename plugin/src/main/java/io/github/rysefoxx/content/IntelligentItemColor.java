@@ -297,7 +297,7 @@ public class IntelligentItemColor {
 
         @SneakyThrows
         @SuppressWarnings("unchecked")
-        private void tryToSetWrapper() {
+        private static void tryToSetWrapper() {
                 final Class<?> clazz = Class.forName("io.github.rysefoxx.v1_" + VersionUtils.getSubVersion() + ".ColorHandler");
                 if (IntelligentItemColorWrapper.class.isAssignableFrom(clazz)) {
                     colorWrapper = (IntelligentItemColorWrapper<net.md_5.bungee.api.ChatColor>) clazz.getConstructor().newInstance();

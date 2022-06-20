@@ -214,7 +214,7 @@ public class InventoryManager {
         }
 
         @EventHandler(ignoreCancelled = true)
-        public void onEntityDamage(EntityDamageEvent event) {
+        public void onEntityDamage(@NotNull EntityDamageEvent event) {
             if (!(event.getEntity() instanceof Player)) return;
             Player player = (Player) event.getEntity();
 
@@ -228,7 +228,7 @@ public class InventoryManager {
         }
 
         @EventHandler(ignoreCancelled = true)
-        public void onFoodLevelChange(FoodLevelChangeEvent event) {
+        public void onFoodLevelChange(@NotNull FoodLevelChangeEvent event) {
             if (!(event.getEntity() instanceof Player)) return;
             Player player = (Player) event.getEntity();
 
@@ -242,7 +242,7 @@ public class InventoryManager {
         }
 
         @EventHandler(ignoreCancelled = true)
-        public void onPlayerPickupItem(PlayerPickupItemEvent event) {
+        public void onPlayerPickupItem(@NotNull PlayerPickupItemEvent event) {
             Player player = event.getPlayer();
             if (!hasInventory(player.getUniqueId()))
                 return;
@@ -254,7 +254,7 @@ public class InventoryManager {
         }
 
         @EventHandler(ignoreCancelled = true)
-        public void onPotionSplash(PotionSplashEvent event) {
+        public void onPotionSplash(@NotNull PotionSplashEvent event) {
 
             for (LivingEntity entity : event.getAffectedEntities()) {
                 if (!(entity instanceof Player)) continue;
@@ -271,7 +271,7 @@ public class InventoryManager {
         }
 
         @EventHandler(ignoreCancelled = true)
-        public void onBlockBreak(BlockBreakEvent event) {
+        public void onBlockBreak(@NotNull BlockBreakEvent event) {
             Block block = event.getBlock();
             Location toCheck = block.getLocation().clone().add(0, 1, 0);
 
@@ -300,7 +300,7 @@ public class InventoryManager {
 
         @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
         @SuppressWarnings("unchecked")
-        public void onInventoryClick(InventoryClickEvent event) {
+        public void onInventoryClick(@NotNull InventoryClickEvent event) {
             if (!(event.getWhoClicked() instanceof Player)) return;
             Player player = (Player) event.getWhoClicked();
 
@@ -393,7 +393,7 @@ public class InventoryManager {
 
         @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
         @SuppressWarnings("unchecked")
-        public void onInventoryDrag(InventoryDragEvent event) {
+        public void onInventoryDrag(@NotNull InventoryDragEvent event) {
             if (!(event.getWhoClicked() instanceof Player)) return;
             Player player = (Player) event.getWhoClicked();
             if (!hasInventory(player.getUniqueId()))
@@ -416,7 +416,7 @@ public class InventoryManager {
 
         @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
         @SuppressWarnings("unchecked")
-        public void onInventoryClose(InventoryCloseEvent event) {
+        public void onInventoryClose(@NotNull InventoryCloseEvent event) {
             if (!(event.getPlayer() instanceof Player)) return;
             Player player = (Player) event.getPlayer();
             if (!hasInventory(player.getUniqueId()))
@@ -442,7 +442,7 @@ public class InventoryManager {
 
         @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
         @SuppressWarnings("unchecked")
-        public void onPlayerQuit(PlayerQuitEvent event) {
+        public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
             Player player = event.getPlayer();
             if (!hasInventory(player.getUniqueId()))
                 return;
@@ -456,7 +456,7 @@ public class InventoryManager {
         }
 
         @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-        public void onPluginDisable(PluginDisableEvent event) {
+        public void onPluginDisable(@NotNull PluginDisableEvent event) {
             Plugin disabledPlugin = event.getPlugin();
 
             if (disabledPlugin != plugin) return;

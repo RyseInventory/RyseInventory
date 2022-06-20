@@ -37,19 +37,22 @@ public class VersionUtils {
     @Contract(pure = true)
     private VersionUtils(){}
 
-    private static final String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
-    private static final int subVersion = Integer.parseInt(version.replaceAll("_R\\d", "").replace("v", "").replaceFirst("1_", ""));
+    private static final String VERSION = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
+    private static final int SUB_VERSION = Integer.parseInt(VERSION.replaceAll("_R\\d", "").replace("v", "").replaceFirst("1_", ""));
 
+    @Contract(pure = true)
     public static int getSubVersion() {
-        return subVersion;
+        return SUB_VERSION;
     }
 
+    @Contract(pure = true)
     public static boolean isAtleast16() {
-        return subVersion >= 16;
+        return SUB_VERSION >= 16;
     }
 
+    @Contract(pure = true)
     public static boolean isBelowAnd13() {
-        return subVersion <= 13;
+        return SUB_VERSION <= 13;
     }
 
 }

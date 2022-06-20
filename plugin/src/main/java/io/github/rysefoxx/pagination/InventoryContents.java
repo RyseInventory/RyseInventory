@@ -28,6 +28,7 @@ package io.github.rysefoxx.pagination;
 import com.google.common.base.Preconditions;
 import io.github.rysefoxx.SlotIterator;
 import io.github.rysefoxx.content.IntelligentItem;
+import io.github.rysefoxx.content.IntelligentItemData;
 import io.github.rysefoxx.enums.IntelligentType;
 import io.github.rysefoxx.enums.InventoryOpenerType;
 import io.github.rysefoxx.pattern.ContentPattern;
@@ -648,7 +649,7 @@ public class InventoryContents {
      */
     public void reload() {
         if (this.inventory.getProvider() == null) return;
-        clear();
+        clear(this.pagination.page() - 1);
 
         InventoryContents contents = new InventoryContents(this.player, this.inventory);
         this.inventory.getManager().setContents(this.player.getUniqueId(), contents);
@@ -1277,7 +1278,13 @@ public class InventoryContents {
         return Optional.ofNullable(this.pagination.get(slot, page));
     }
 
-    private void clear() {
-        this.pagination.getInventoryData().forEach(item -> removeItemWithConsumer(item.getModifiedSlot()));
+    private void clear(int page) {
+        for (int i = 0; i < this.pagination.getInventoryData().size(); i++) {
+            IntelligentItemData itemData = this.pagination.getInventoryData().get(i);
+            if (itemData.getPage() != page) continue;
+
+            int finalI = i;
+            get(i).ifPresent(item -> removeItemWithConsumer(finalI));
+        }
     }
 }

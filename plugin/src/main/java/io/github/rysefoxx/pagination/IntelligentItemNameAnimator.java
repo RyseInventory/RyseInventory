@@ -170,7 +170,7 @@ public class IntelligentItemNameAnimator {
          * Several frames are assigned individual colors.
          *
          * @param frames The frames that should receive the color.
-         * @param color The color you want the frames to have.
+         * @param color  The color you want the frames to have.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
@@ -187,7 +187,7 @@ public class IntelligentItemNameAnimator {
          * Several frames are assigned individual colors.
          *
          * @param frames The frames that should receive the color.
-         * @param color The color you want the frames to have.
+         * @param color  The color you want the frames to have.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
@@ -204,7 +204,7 @@ public class IntelligentItemNameAnimator {
          * Several frames are assigned individual colors.
          *
          * @param frames The frames that should receive the color.
-         * @param color The color you want the frames to have.
+         * @param color  The color you want the frames to have.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
@@ -384,48 +384,63 @@ public class IntelligentItemNameAnimator {
             int colorState = 0;
             int subStringIndex = 0;
             int currentFrameIndex = 0;
-            String currentName = "";
 
             @Override
             public void run() {
-                if (this.subStringIndex >= this.letters.length) {
-                    if (!loop)
-                        this.framesCopy.remove(0);
-                    this.colorState = 0;
-                    this.subStringIndex = 0;
-                    this.currentName = "";
-                    if (this.currentFrameIndex + 1 >= this.framesCopy.size())
-                        this.currentFrameIndex = 0;
-                }
+                resetWhenFrameFinished();
 
-                if (this.framesCopy.isEmpty()) {
-                    inventory.removeItemAnimator(IntelligentItemNameAnimator.this);
-                    return;
-                }
+                if (cancelIfListIsEmpty()) return;
 
-                char[] currentFrames = framesCopy.get(this.currentFrameIndex).toCharArray();
-                if (this.colorState >= currentFrames.length) {
-                    this.colorState = 0;
-                    if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
-                        this.currentFrameIndex++;
-                        currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
-                    }
-                }
+                char[] currentFrames = updateFramesWhenRequired();
 
                 char singleFrame = currentFrames[this.colorState];
                 IntelligentItemColor itemColor = frameColor.get(singleFrame);
 
-                this.currentName = itemColor.getColor()
+                String currentName = itemColor.getColor()
                         + (itemColor.isBold() ? "§l" : "")
                         + (itemColor.isUnderline() ? "§n" : "")
                         + (itemColor.isItalic() ? "§o" : "")
                         + (itemColor.isObfuscated() ? "§k" : "")
                         + (itemColor.isStrikeThrough() ? "§m" : "")
-                        + fixedDisplayName;
+                        + this.fixedDisplayName;
 
                 this.colorState++;
                 this.subStringIndex++;
-                updateDisplayName(contents, this.currentName);
+                updateDisplayName(contents, currentName);
+            }
+
+            private char @NotNull [] updateFramesWhenRequired() {
+                char[] currentFrames = framesCopy.get(this.currentFrameIndex).toCharArray();
+                if (this.colorState < currentFrames.length) return currentFrames;
+
+                this.colorState = 0;
+
+                if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
+                    this.currentFrameIndex++;
+                    currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
+                }
+                return currentFrames;
+            }
+
+            private boolean cancelIfListIsEmpty() {
+                if (this.framesCopy.isEmpty()) {
+                    inventory.removeItemAnimator(IntelligentItemNameAnimator.this);
+                    return true;
+                }
+                return false;
+            }
+
+            private void resetWhenFrameFinished() {
+                if (this.subStringIndex < this.letters.length) return;
+
+                if (!loop)
+                    this.framesCopy.remove(0);
+                this.colorState = 0;
+                this.subStringIndex = 0;
+
+                if (this.currentFrameIndex + 1 < this.framesCopy.size())
+                    return;
+                this.currentFrameIndex = 0;
             }
         }, this.delay, this.period);
     }
@@ -440,34 +455,15 @@ public class IntelligentItemNameAnimator {
             int colorState = 0;
             int subStringIndex = 0;
             int currentFrameIndex = 0;
-            String currentName = ChatColor.stripColor(displayName);
 
             @Override
             public void run() {
-                if (this.subStringIndex >= this.letters.length) {
-                    if (!loop)
-                        this.framesCopy.remove(0);
-                    this.colorState = 0;
-                    this.subStringIndex = 0;
-                    this.previous.clear();
-                    this.currentName = ChatColor.stripColor(displayName);
-                    if (this.currentFrameIndex + 1 >= this.framesCopy.size())
-                        this.currentFrameIndex = 0;
-                }
+                resetWhenFrameFinished();
 
-                if (this.framesCopy.isEmpty()) {
-                    inventory.removeItemAnimator(IntelligentItemNameAnimator.this);
-                    return;
-                }
+                if (cancelIfListIsEmpty()) return;
 
-                char[] currentFrames = framesCopy.get(this.currentFrameIndex).toCharArray();
-                if (this.colorState >= currentFrames.length) {
-                    this.colorState = 0;
-                    if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
-                        this.currentFrameIndex++;
-                        currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
-                    }
-                }
+                char[] currentFrames = updateFramesWhenRequired();
+
                 char singleFrame = currentFrames[this.colorState];
                 IntelligentItemColor itemColor = frameColor.get(singleFrame);
 
@@ -479,31 +475,62 @@ public class IntelligentItemNameAnimator {
                 if (this.subStringIndex != 0)
                     this.previous.forEach(newString::append);
 
-                newString
-                        .append(itemColor.getColor())
+                newString.append(itemColor.getColor())
                         .append(itemColor.isBold() ? "§l" : "")
                         .append(itemColor.isUnderline() ? "§n" : "")
                         .append(itemColor.isItalic() ? "§o" : "")
                         .append(itemColor.isObfuscated() ? "§k" : "")
                         .append(itemColor.isStrikeThrough() ? "§m" : "")
-                        .append(letter)
-                        .append(ChatColor.WHITE).append(rest);
-                this.currentName = newString.toString();
+                        .append(letter);
 
-                this.previous.add(itemColor.getColor()
-                        + (itemColor.isBold() ? "§l" : "")
-                        + (itemColor.isUnderline() ? "§n" : "")
-                        + (itemColor.isItalic() ? "§o" : "")
-                        + (itemColor.isObfuscated() ? "§k" : "")
-                        + (itemColor.isStrikeThrough() ? "§m" : "")
-                        + letter);
+                String currentName = newString
+                        .append(ChatColor.WHITE).append(rest)
+                        .toString();
+
+                this.previous.add(newString.toString());
 
                 this.subStringIndex++;
 
                 if (!addColor) return;
 
                 this.colorState++;
-                updateDisplayName(contents, this.currentName);
+                updateDisplayName(contents, currentName);
+            }
+
+            private boolean cancelIfListIsEmpty() {
+                if (this.framesCopy.isEmpty()) {
+                    inventory.removeItemAnimator(IntelligentItemNameAnimator.this);
+                    return true;
+                }
+                return false;
+            }
+
+            private char @NotNull [] updateFramesWhenRequired() {
+                char[] currentFrames = framesCopy.get(this.currentFrameIndex).toCharArray();
+
+                if (this.colorState < currentFrames.length) return currentFrames;
+
+                this.colorState = 0;
+                if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
+                    this.currentFrameIndex++;
+                    currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
+                }
+                return currentFrames;
+            }
+
+            private void resetWhenFrameFinished() {
+                if (this.subStringIndex < this.letters.length) return;
+
+                if (!loop)
+                    this.framesCopy.remove(0);
+                this.colorState = 0;
+                this.subStringIndex = 0;
+                this.previous.clear();
+
+                if (this.currentFrameIndex + 1 < this.framesCopy.size())
+                    return;
+
+                this.currentFrameIndex = 0;
             }
         }, this.delay, this.period);
     }
@@ -520,29 +547,12 @@ public class IntelligentItemNameAnimator {
 
             @Override
             public void run() {
-                if (this.subStringIndex >= this.letters.length) {
-                    if (!loop)
-                        this.framesCopy.remove(0);
-                    this.colorState = 0;
-                    this.subStringIndex = 0;
-                    this.currentName = "";
-                    if (this.currentFrameIndex + 1 >= this.framesCopy.size())
-                        this.currentFrameIndex = 0;
-                }
+                resetWhenFrameFinished();
 
-                if (this.framesCopy.isEmpty()) {
-                    inventory.removeItemAnimator(IntelligentItemNameAnimator.this);
-                    return;
-                }
+                if (cancelIfListIsEmpty()) return;
 
-                char[] currentFrames = framesCopy.get(this.currentFrameIndex).toCharArray();
-                if (this.colorState >= currentFrames.length) {
-                    this.colorState = 0;
-                    if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
-                        this.currentFrameIndex++;
-                        currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
-                    }
-                }
+                char[] currentFrames = updateFramesWhenRequired();
+
                 String letter = String.valueOf(this.letters[this.subStringIndex]);
                 boolean addColor = !letter.equals(" ");
 
@@ -563,6 +573,41 @@ public class IntelligentItemNameAnimator {
 
                 this.colorState++;
                 updateDisplayName(contents, this.currentName);
+            }
+
+            private char @NotNull [] updateFramesWhenRequired() {
+                char[] currentFrames = framesCopy.get(this.currentFrameIndex).toCharArray();
+                if (this.colorState < currentFrames.length) return currentFrames;
+
+                this.colorState = 0;
+                if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
+                    this.currentFrameIndex++;
+                    currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
+                }
+                return currentFrames;
+            }
+
+            private boolean cancelIfListIsEmpty() {
+                if (this.framesCopy.isEmpty()) {
+                    inventory.removeItemAnimator(IntelligentItemNameAnimator.this);
+                    return true;
+                }
+                return false;
+            }
+
+            private void resetWhenFrameFinished() {
+                if (this.subStringIndex < this.letters.length) return;
+
+                if (!loop)
+                    this.framesCopy.remove(0);
+                this.colorState = 0;
+                this.subStringIndex = 0;
+                this.currentName = "";
+
+                if (this.currentFrameIndex + 1 < this.framesCopy.size())
+                    return;
+
+                this.currentFrameIndex = 0;
             }
         }, this.delay, this.period);
     }

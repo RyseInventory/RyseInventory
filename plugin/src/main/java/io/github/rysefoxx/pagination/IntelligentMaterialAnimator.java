@@ -347,31 +347,11 @@ public class IntelligentMaterialAnimator {
             public void run() {
                 char[] currentFrames = framesCopy.get(this.currentFrameIndex).toCharArray();
 
-                if (this.subStringIndex >= finalLength) {
-                    if (!loop)
-                        this.framesCopy.remove(0);
-                    this.materialState = 0;
-                    this.subStringIndex = 0;
+                resetWhenFrameFinished(currentFrames);
 
-                    if (!this.framesCopy.isEmpty()) {
-                        this.currentMaterial = frameMaterial.get(currentFrames[this.materialState]);
-                    }
-                    if (this.currentFrameIndex + 1 >= this.framesCopy.size())
-                        this.currentFrameIndex = 0;
-                }
+                if (cancelIfListIsEmpty()) return;
 
-                if (this.framesCopy.isEmpty()) {
-                    inventory.removeMaterialAnimator(IntelligentMaterialAnimator.this);
-                    return;
-                }
-
-                if (this.materialState >= currentFrames.length) {
-                    this.materialState = 0;
-                    if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
-                        this.currentFrameIndex++;
-                        currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
-                    }
-                }
+                currentFrames = updateFramesWhenRequired(currentFrames);
 
                 char singleFrame = currentFrames[this.materialState];
 
@@ -381,6 +361,40 @@ public class IntelligentMaterialAnimator {
 
                 this.itemStack.setType(this.currentMaterial);
                 contents.update(slot, this.itemStack);
+            }
+
+            private char @NotNull [] updateFramesWhenRequired(char @NotNull [] currentFrames) {
+                if (this.materialState < currentFrames.length) return currentFrames;
+
+                this.materialState = 0;
+                if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
+                    this.currentFrameIndex++;
+                    currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
+                }
+                return currentFrames;
+            }
+
+            private boolean cancelIfListIsEmpty() {
+                if (this.framesCopy.isEmpty()) {
+                    inventory.removeMaterialAnimator(IntelligentMaterialAnimator.this);
+                    return true;
+                }
+                return false;
+            }
+
+            private void resetWhenFrameFinished(char[] currentFrames) {
+                if (this.subStringIndex < finalLength) return;
+
+                if (!loop)
+                    this.framesCopy.remove(0);
+                this.materialState = 0;
+                this.subStringIndex = 0;
+
+                if (!this.framesCopy.isEmpty())
+                    this.currentMaterial = frameMaterial.get(currentFrames[this.materialState]);
+
+                if (this.currentFrameIndex + 1 >= this.framesCopy.size())
+                    this.currentFrameIndex = 0;
             }
         }, this.delay, this.period);
     }

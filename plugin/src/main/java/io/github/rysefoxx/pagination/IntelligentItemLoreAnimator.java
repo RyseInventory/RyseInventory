@@ -305,7 +305,6 @@ public class IntelligentItemLoreAnimator {
             if (this.loreData.isEmpty())
                 throw new IllegalArgumentException("No lore data has been defined yet!");
 
-
             for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
                 for (char c : entry.getValue().toCharArray()) {
                     if (frameColor.containsKey(c)) continue;
@@ -358,14 +357,12 @@ public class IntelligentItemLoreAnimator {
 
     private void animateWithFlash() {
         for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
-            BukkitTask bukkitTask;
-            bukkitTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+            BukkitTask bukkitTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
                 final HashMap<Integer, String> framesCopy = loreData;
 
                 int subStringIndex = 0;
                 int colorState = 0;
                 int currentFrameIndex = 0;
-                String currentLore = "";
 
                 @Override
                 public void run() {
@@ -373,86 +370,83 @@ public class IntelligentItemLoreAnimator {
                     String frame = framesCopy.get(loreIndex);
                     char[] currentFrames = frame.toCharArray();
 
-                    if (this.subStringIndex >= currentFrames.length) {
-                        if (!loop)
-                            this.framesCopy.remove(loreIndex);
-                        this.colorState = 0;
-                        this.subStringIndex = 0;
-                        this.currentLore = "";
-                        if (this.currentFrameIndex + 1 >= this.framesCopy.size())
-                            this.currentFrameIndex = 0;
-                    }
+                    resetWhenFrameFinished(loreIndex, currentFrames);
 
-                    if (this.framesCopy.isEmpty()) {
-                        inventory.removeLoreAnimator(IntelligentItemLoreAnimator.this);
-                        return;
-                    }
+                    if (cancelIfListIsEmpty()) return;
 
                     char singleFrame = currentFrames[this.colorState];
                     IntelligentItemColor itemColor = frameColor.get(singleFrame);
 
-                    this.currentLore = itemColor.getColor()
+                    String currentLore = buildLore(loreIndex, itemColor);
+
+                    this.colorState++;
+                    this.subStringIndex++;
+                    updateLore(contents, currentLore, loreIndex);
+                }
+
+                @NotNull
+                private String buildLore(@Nonnegative int loreIndex, @NotNull IntelligentItemColor itemColor) {
+                    return itemColor.getColor()
                             + (itemColor.isBold() ? "§l" : "")
                             + (itemColor.isUnderline() ? "§n" : "")
                             + (itemColor.isItalic() ? "§o" : "")
                             + (itemColor.isObfuscated() ? "§k" : "")
                             + (itemColor.isStrikeThrough() ? "§m" : "")
                             + ChatColor.stripColor(lore.get(loreIndex));
-
-                    this.colorState++;
-                    this.subStringIndex++;
-                    updateLore(contents, this.currentLore, loreIndex);
                 }
+
+                private boolean cancelIfListIsEmpty() {
+                    if (this.framesCopy.isEmpty()) {
+                        inventory.removeLoreAnimator(IntelligentItemLoreAnimator.this);
+                        return true;
+                    }
+                    return false;
+                }
+
+                private void resetWhenFrameFinished(@Nonnegative int loreIndex, char @NotNull [] currentFrames) {
+                    if (this.subStringIndex < currentFrames.length) return;
+
+                    if (!loop)
+                        this.framesCopy.remove(loreIndex);
+                    this.colorState = 0;
+                    this.subStringIndex = 0;
+
+                    if (this.currentFrameIndex + 1 < this.framesCopy.size()) return;
+                    this.currentFrameIndex = 0;
+                }
+
             }, this.delay, this.period);
             this.task.add(bukkitTask);
         }
-
-
     }
 
     private void animateByFullWord() {
         for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
-            BukkitTask bukkitTask;
-            bukkitTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+            BukkitTask bukkitTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
                 final HashMap<Integer, String> framesCopy = loreData;
                 final List<String> previous = new ArrayList<>();
 
                 int colorState = 0;
                 int subStringIndex = 0;
                 int currentFrameIndex = 0;
-                String currentLore = "";
 
                 @Override
                 public void run() {
-
                     int loreIndex = entry.getKey();
                     String frame = framesCopy.get(loreIndex);
-                    char[] currentFrames = frame.toCharArray();
-                    currentLore = lore.get(loreIndex);
                     String currentLoreFixed = lore.get(loreIndex);
-                    char[] letters = this.currentLore.toCharArray();
 
+                    String currentLore = lore.get(loreIndex);
+                    char[] letters = currentLore.toCharArray();
+                    char[] currentFrames = frame.toCharArray();
 
-                    if (this.subStringIndex >= letters.length) {
-                        if (!loop)
-                            this.framesCopy.remove(0);
+                    resetWhenFrameFinished(letters);
+
+                    if (cancelIfListIsEmpty()) return;
+
+                    if (this.colorState >= currentFrames.length)
                         this.colorState = 0;
-                        this.subStringIndex = 0;
-                        this.previous.clear();
-                        this.currentLore = lore.get(loreIndex);
-                        if (this.currentFrameIndex + 1 >= this.framesCopy.size()) {
-                            this.currentFrameIndex = 0;
-                        }
-                    }
 
-                    if (this.framesCopy.isEmpty()) {
-                        inventory.removeLoreAnimator(IntelligentItemLoreAnimator.this);
-                        return;
-                    }
-
-                    if (this.colorState >= currentFrames.length) {
-                        this.colorState = 0;
-                    }
                     char singleFrame = currentFrames[this.colorState];
                     IntelligentItemColor itemColor = frameColor.get(singleFrame);
 
@@ -460,35 +454,57 @@ public class IntelligentItemLoreAnimator {
                     String rest = currentLoreFixed.substring(this.subStringIndex + 1);
                     boolean addColor = !letter.equals(" ");
 
-                    StringBuilder newString = new StringBuilder();
-                    if (this.subStringIndex != 0)
-                        this.previous.forEach(newString::append);
+                    StringBuilder newString = buildLoreBasedOnPrevious(itemColor, letter);
 
-                    newString
-                            .append(itemColor.getColor())
-                            .append(itemColor.isBold() ? "§l" : "")
-                            .append(itemColor.isUnderline() ? "§n" : "")
-                            .append(itemColor.isItalic() ? "§o" : "")
-                            .append(itemColor.isObfuscated() ? "§k" : "")
-                            .append(itemColor.isStrikeThrough() ? "§m" : "")
-                            .append(letter)
-                            .append(ChatColor.WHITE).append(rest);
-                    this.currentLore = newString.toString();
+                    currentLore = newString
+                            .append(ChatColor.WHITE).append(rest)
+                            .toString();
 
-                    this.previous.add(itemColor.getColor()
-                            + (itemColor.isBold() ? "§l" : "")
-                            + (itemColor.isUnderline() ? "§n" : "")
-                            + (itemColor.isItalic() ? "§o" : "")
-                            + (itemColor.isObfuscated() ? "§k" : "")
-                            + (itemColor.isStrikeThrough() ? "§m" : "")
-                            + letter);
+                    this.previous.add(newString.toString());
 
                     this.subStringIndex++;
 
                     if (!addColor) return;
 
                     this.colorState++;
-                    updateLore(contents, this.currentLore, loreIndex);
+                    updateLore(contents, currentLore, loreIndex);
+                }
+
+                @NotNull
+                private StringBuilder buildLoreBasedOnPrevious(IntelligentItemColor itemColor, String letter) {
+                    StringBuilder newString = new StringBuilder();
+                    if (this.subStringIndex != 0)
+                        this.previous.forEach(newString::append);
+
+                    newString.append(itemColor.getColor())
+                            .append(itemColor.isBold() ? "§l" : "")
+                            .append(itemColor.isUnderline() ? "§n" : "")
+                            .append(itemColor.isItalic() ? "§o" : "")
+                            .append(itemColor.isObfuscated() ? "§k" : "")
+                            .append(itemColor.isStrikeThrough() ? "§m" : "")
+                            .append(letter);
+                    return newString;
+                }
+
+                private boolean cancelIfListIsEmpty() {
+                    if (this.framesCopy.isEmpty()) {
+                        inventory.removeLoreAnimator(IntelligentItemLoreAnimator.this);
+                        return true;
+                    }
+                    return false;
+                }
+
+                private void resetWhenFrameFinished(char @NotNull [] letters) {
+                    if (this.subStringIndex < letters.length) return;
+
+                    if (!loop)
+                        this.framesCopy.remove(0);
+                    this.colorState = 0;
+                    this.subStringIndex = 0;
+                    this.previous.clear();
+
+                    if (this.currentFrameIndex + 1 < this.framesCopy.size()) return;
+                    this.currentFrameIndex = 0;
                 }
             }, this.delay, this.period);
             this.task.add(bukkitTask);
@@ -497,8 +513,7 @@ public class IntelligentItemLoreAnimator {
 
     private void animateWordByWord() {
         for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
-            BukkitTask bukkitTask;
-            bukkitTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+            BukkitTask bukkitTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
                 final HashMap<Integer, String> framesCopy = loreData;
 
                 int colorState = 0;
@@ -510,39 +525,33 @@ public class IntelligentItemLoreAnimator {
                 public void run() {
                     int loreIndex = entry.getKey();
                     String frame = framesCopy.get(loreIndex);
-                    char[] currentFrames = frame.toCharArray();
                     String savedLore = ChatColor.stripColor(lore.get(loreIndex));
+
+                    char[] currentFrames = frame.toCharArray();
                     char[] letters = !this.currentLore.isEmpty() ? ChatColor.stripColor(lore.get(loreIndex)).toCharArray() : savedLore.toCharArray();
 
-                    if (this.subStringIndex >= letters.length) {
-                        if (!loop)
-                            this.framesCopy.remove(0);
-                        this.colorState = 0;
-                        this.subStringIndex = 0;
-                        this.currentLore = "";
-                        if (this.currentFrameIndex + 1 >= this.framesCopy.size()) {
-                            this.currentFrameIndex = 0;
-                        }
-                    }
+                    resetWhenFrameFinished(letters);
 
-                    if (this.framesCopy.isEmpty()) {
-                        inventory.removeLoreAnimator(IntelligentItemLoreAnimator.this);
-                        return;
-                    }
+                    if (cancelWhenListIsEmpty()) return;
 
-                    if (this.colorState >= currentFrames.length) {
-                        this.colorState = 0;
-                        if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
-                            this.currentFrameIndex++;
-                            currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
-                        }
-                    }
+                    currentFrames = updateFramesWhenRequired(currentFrames);
                     String letter = String.valueOf(letters[this.subStringIndex]);
                     boolean addColor = !letter.equals(" ");
 
                     char singleFrame = currentFrames[this.colorState];
                     IntelligentItemColor itemColor = frameColor.get(singleFrame);
 
+                    appendLetterToLore(letter, itemColor);
+
+                    this.subStringIndex++;
+
+                    if (!addColor) return;
+
+                    this.colorState++;
+                    updateLore(contents, this.currentLore, loreIndex);
+                }
+
+                private void appendLetterToLore(String letter, @NotNull IntelligentItemColor itemColor) {
                     this.currentLore = this.currentLore +
                             itemColor.getColor() +
                             (itemColor.isBold() ? "§l" : "") +
@@ -551,13 +560,38 @@ public class IntelligentItemLoreAnimator {
                             (itemColor.isObfuscated() ? "§k" : "") +
                             (itemColor.isStrikeThrough() ? "§m" : "") +
                             letter;
+                }
 
-                    this.subStringIndex++;
+                private char @NotNull [] updateFramesWhenRequired(char @NotNull [] currentFrames) {
+                    if (this.colorState < currentFrames.length) return currentFrames;
 
-                    if (!addColor) return;
+                    this.colorState = 0;
+                    if (this.framesCopy.size() > 1 && (this.currentFrameIndex + 1 != this.framesCopy.size())) {
+                        this.currentFrameIndex++;
+                        currentFrames = this.framesCopy.get(this.currentFrameIndex).toCharArray();
+                    }
+                    return currentFrames;
+                }
 
-                    this.colorState++;
-                    updateLore(contents, this.currentLore, loreIndex);
+                private boolean cancelWhenListIsEmpty() {
+                    if (this.framesCopy.isEmpty()) {
+                        inventory.removeLoreAnimator(IntelligentItemLoreAnimator.this);
+                        return true;
+                    }
+                    return false;
+                }
+
+                private void resetWhenFrameFinished(char @NotNull [] letters) {
+                    if (this.subStringIndex < letters.length) return;
+
+                    if (!loop)
+                        this.framesCopy.remove(0);
+                    this.colorState = 0;
+                    this.subStringIndex = 0;
+                    this.currentLore = "";
+
+                    if (this.currentFrameIndex + 1 < this.framesCopy.size()) return;
+                    this.currentFrameIndex = 0;
                 }
             }, this.delay, this.period);
             this.task.add(bukkitTask);
