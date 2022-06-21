@@ -107,6 +107,25 @@ public class InventoryContents {
     }
 
     /**
+     * Removes the item from the inventory and the associated consumer.
+     *
+     * @param row    The row where the item is located.
+     * @param column The column where the item is located.
+     * @return true if the item was removed.
+     * @throws IllegalArgumentException When slot is greater than 53
+     */
+    public boolean removeItemWithConsumer(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
+        if (row > 5)
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
+
+        if (column > 8)
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
+
+        removeItemWithConsumer(SlotUtils.toSlot(row, column));
+        return true;
+    }
+
+    /**
      * Removes the first item that matches the parameter.
      *
      * @param item The item to filter for.
@@ -454,6 +473,51 @@ public class InventoryContents {
         return (T) this.data.get(key);
     }
 
+    public boolean isMiddle(@Nonnegative int slot) {
+        if (slot > 53)
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        InventoryOpenerType type = this.inventory.getInventoryOpenerType();
+        int inventorySize = this.inventory.size();
+
+        if (type != InventoryOpenerType.CHEST
+                && type != InventoryOpenerType.ENDER_CHEST
+                && type != InventoryOpenerType.DROPPER
+                && type != InventoryOpenerType.DISPENSER
+                && type != InventoryOpenerType.CRAFTING_TABLE
+                && type != InventoryOpenerType.HOPPER)
+            throw new IllegalStateException("isMiddle only works for chests, ender chests, hoppers, dispensers, crafting tables, and droppers");
+
+        int rows = inventorySize / 9;
+        double middle = rows / 2D;
+        int endSlot;
+        boolean even;
+
+        even = !String.valueOf(middle).contains(".") || Integer.parseInt(String.valueOf(middle).split("\\.")[1]) <= 0;
+
+        if(!even)
+            middle = Math.round(middle);
+
+        endSlot = even ? (int) (((middle * 9) + 9) - 1) : (int) ((middle * 9) - 1);
+
+        switch (type) {
+            case CHEST:
+            case ENDER_CHEST: {
+                return (even ? slot >= endSlot - 18 : slot >= endSlot - 9) && (slot <= endSlot);
+            }
+            case HOPPER: {
+                return slot == 2;
+            }
+            case DROPPER:
+            case DISPENSER:
+            case CRAFTING_TABLE: {
+                return slot >= 3 && slot <= 5;
+            }
+        }
+        return false;
+
+    }
+
     /**
      * @return true if the specified slot is on the right side.
      * @throws IllegalArgumentException if slot > 53
@@ -500,6 +564,163 @@ public class InventoryContents {
             throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
 
         return isRightBorder(SlotUtils.toSlot(row, column));
+    }
+
+    /**
+     * @param slot The slot to check
+     * @return true if the slot is in the corner, false if not
+     * @throws IllegalArgumentException if slot > 53
+     * @throws IllegalStateException    If the inventory type is not supported.
+     */
+    public boolean isCorner(@Nonnegative int slot) throws IllegalArgumentException, IllegalStateException {
+        if (slot > 53)
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        InventoryOpenerType type = this.inventory.getInventoryOpenerType();
+        int inventorySize = this.inventory.size();
+
+        if (type != InventoryOpenerType.CHEST
+                && type != InventoryOpenerType.ENDER_CHEST
+                && type != InventoryOpenerType.DROPPER
+                && type != InventoryOpenerType.DISPENSER
+                && type != InventoryOpenerType.CRAFTING_TABLE
+                && type != InventoryOpenerType.HOPPER)
+            throw new IllegalStateException("isCorner only works for chests, ender chests, hoppers, dispensers, crafting tables, and droppers");
+
+        switch (type) {
+            case CHEST:
+            case ENDER_CHEST: {
+                return slot == 0 || slot == 8 || slot == inventorySize - 1 || slot == inventorySize - 9;
+            }
+            case HOPPER: {
+                return slot == 0 || slot == 4;
+            }
+            case DROPPER:
+            case DISPENSER:
+            case CRAFTING_TABLE: {
+                return slot == 0 || slot == 2 || slot == 6 || slot == 8;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param row    The row to check
+     * @param column The column to check
+     * @return true if the slot is in the corner, false if not
+     * @throws IllegalArgumentException if slot > 53
+     * @throws IllegalStateException    If the inventory type is not supported.
+     */
+    public boolean isCorner(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException, IllegalStateException {
+        if (row > 5)
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
+
+        if (column > 8)
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
+
+
+        return isCorner(SlotUtils.toSlot(row, column));
+    }
+
+    /**
+     * @param slot The slot to check
+     * @return true when the slot is at the top of the inventory, false otherwise.
+     * @throws IllegalArgumentException if slot > 53
+     */
+    public boolean isTop(@Nonnegative int slot) {
+        if (slot > 53)
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        InventoryOpenerType type = this.inventory.getInventoryOpenerType();
+
+        switch (type) {
+            case CHEST:
+            case ENDER_CHEST: {
+                return slot <= 8;
+            }
+            case HOPPER:
+            case ENCHANTMENT_TABLE: {
+                return true;
+            }
+            case FURNACE: {
+                return slot == 0;
+            }
+            case BREWING_STAND: {
+                return slot == 3 || slot == 4;
+            }
+            case DROPPER:
+            case DISPENSER:
+            case CRAFTING_TABLE: {
+                return slot <= 2;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param row    The row to check
+     * @param column The column to check
+     * @return true when the slot is at the top of the inventory, false otherwise.
+     * @throws IllegalArgumentException if row is > 5 or if column > 8
+     */
+    public boolean isTop(@Nonnegative int row, @Nonnegative int column) {
+        if (row > 5)
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
+
+        if (column > 8)
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
+
+        return isTop(SlotUtils.toSlot(row, column));
+    }
+
+    /**
+     * @param slot The slot to check
+     * @return true when the slot is at the bottom of the inventory, false otherwise.
+     * @throws IllegalArgumentException if slot > 53
+     */
+    public boolean isBottom(@Nonnegative int slot) {
+        if (slot > 53)
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        InventoryOpenerType type = this.inventory.getInventoryOpenerType();
+        int inventorySize = this.inventory.size();
+
+        switch (type) {
+            case CHEST:
+            case ENDER_CHEST: {
+                return (slot >= inventorySize - 9) && (slot <= inventorySize);
+            }
+            case HOPPER:
+            case ENCHANTMENT_TABLE: {
+                return true;
+            }
+            case FURNACE:
+            case BREWING_STAND: {
+                return slot == 1;
+            }
+            case DROPPER:
+            case DISPENSER:
+            case CRAFTING_TABLE: {
+                return (slot >= inventorySize - 3) && (slot <= inventorySize);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param row    The row to check
+     * @param column The column to check
+     * @return true when the slot is at the bottom of the inventory, false otherwise.
+     * @throws IllegalArgumentException if row is > 5 or if column > 8
+     */
+    public boolean isBottom(@Nonnegative int row, @Nonnegative int column) {
+        if (row > 5)
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
+
+        if (column > 8)
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
+
+        return isBottom(SlotUtils.toSlot(row, column));
     }
 
     /**
