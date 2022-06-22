@@ -34,6 +34,7 @@ import io.github.rysefoxx.enums.TimeSetting;
 import io.github.rysefoxx.util.SlotUtils;
 import io.github.rysefoxx.util.StringConstants;
 import io.github.rysefoxx.util.TimeUtils;
+import lombok.ToString;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -49,6 +50,7 @@ import java.util.*;
  * @author Rysefoxx | Rysefoxx#6772
  * @since 4/15/2022
  */
+@ToString(exclude = {"contents", "task", "timeHandler"})
 public class SlideAnimation {
 
     private static final String ANIMATION_KEY = "RYSEINVENTORY_SLIDE_ANIMATION_KEY";

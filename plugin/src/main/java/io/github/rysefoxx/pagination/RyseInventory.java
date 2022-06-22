@@ -62,7 +62,7 @@ public class RyseInventory {
     private boolean clearAndSafe;
     private SlideAnimation slideAnimator;
     private Object identifier;
-    private Plugin plugin;
+    private transient Plugin plugin;
 
     private @Getter
     int size = -1;
@@ -89,6 +89,59 @@ public class RyseInventory {
     private final List<IntelligentItemLoreAnimator> loreAnimator = new ArrayList<>();
     private final HashMap<UUID, Inventory> privateInventory = new HashMap<>();
     private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
+
+    //Empty constructor for Builder
+    private RyseInventory() {
+    }
+
+    /**
+     * Copy constructor
+     * <br>
+     * See also: {@link #newInstance()}
+     */
+    private RyseInventory(@NotNull RyseInventory inventory) {
+        this.manager = inventory.manager;
+        this.provider = inventory.provider;
+        this.title = inventory.title;
+        this.inventory = inventory.inventory;
+        this.clearAndSafe = inventory.clearAndSafe;
+        this.slideAnimator = inventory.slideAnimator;
+        this.identifier = inventory.identifier;
+        this.plugin = inventory.plugin;
+        this.size = inventory.size;
+        this.delay = inventory.delay;
+        this.openDelay = inventory.openDelay;
+        this.period = inventory.period;
+        this.closeAfter = inventory.closeAfter;
+        this.loadDelay = inventory.loadDelay;
+        this.loadTitle = inventory.loadTitle;
+        this.closeAble = inventory.closeAble;
+        this.transferData = inventory.transferData;
+        this.backward = inventory.backward;
+        this.titleHolder = inventory.titleHolder;
+        this.inventoryOpenerType = inventory.inventoryOpenerType;
+        this.delayed.addAll(inventory.delayed);
+        this.options.addAll(inventory.options);
+        this.events.addAll(inventory.events);
+        this.ignoreClickEvent.addAll(inventory.ignoreClickEvent);
+        this.closeReasons.addAll(inventory.closeReasons);
+        this.itemAnimator.addAll(inventory.itemAnimator);
+        this.materialAnimator.addAll(inventory.materialAnimator);
+        this.titleAnimator.addAll(inventory.titleAnimator);
+        this.loreAnimator.addAll(inventory.loreAnimator);
+        this.privateInventory.putAll(inventory.privateInventory);
+        this.playerInventory.putAll(inventory.playerInventory);
+    }
+
+
+    /**
+     * Clones the current RyseInventory and returns the new RyseInventory instance.
+     *
+     * @return The new RyseInventory instance.
+     */
+    public @NotNull RyseInventory newInstance() {
+        return new RyseInventory(this);
+    }
 
     /**
      * This method allows you to retrieve the animation using the animation identifier.
@@ -367,6 +420,38 @@ public class RyseInventory {
         private final List<EventCreator<? extends Event>> events = new ArrayList<>();
         private final List<DisabledInventoryClick> ignoreClickEvent = new ArrayList<>();
         private final List<CloseReason> closeReasons = new ArrayList<>();
+
+        //Empty constructor for Copy Constructor
+        private Builder() {
+        }
+
+        private Builder(@NotNull Builder builder) {
+            this.slideAnimation = builder.slideAnimation;
+            this.manager = builder.manager;
+            this.title = builder.title;
+            this.provider = builder.provider;
+            this.identifier = builder.identifier;
+            this.clearAndSafe = builder.clearAndSafe;
+            this.titleHolder = builder.titleHolder;
+            this.inventoryOpenerType = builder.inventoryOpenerType;
+            this.closeAble = builder.closeAble;
+            this.transferData = builder.transferData;
+            this.size = builder.size;
+            this.delay = builder.delay;
+            this.openDelay = builder.openDelay;
+            this.period = builder.period;
+            this.closeAfter = builder.closeAfter;
+            this.loadDelay = builder.loadDelay;
+            this.loadTitle = builder.loadTitle;
+            this.options.addAll(builder.options);
+            this.events.addAll(builder.events);
+            this.ignoreClickEvent.addAll(builder.ignoreClickEvent);
+            this.closeReasons.addAll(builder.closeReasons);
+        }
+
+        public @NotNull Builder newInstance() {
+            return new Builder(this);
+        }
 
         /**
          * Adds a manager to the inventory.

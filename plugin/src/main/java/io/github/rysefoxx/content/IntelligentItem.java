@@ -25,11 +25,13 @@
 
 package io.github.rysefoxx.content;
 
+import io.github.rysefoxx.pagination.InventoryManager;
 import lombok.Getter;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -46,6 +48,7 @@ public class IntelligentItem {
     private final IntelligentItemError error;
     private boolean canClick = true;
     private boolean canSee = true;
+    private @Nullable Object id;
 
     @Contract(pure = true)
     public IntelligentItem(@NotNull ItemStack itemStack, Consumer<InventoryClickEvent> eventConsumer, IntelligentItemError error) {
@@ -97,6 +100,17 @@ public class IntelligentItem {
     public void clearConsumer() {
         this.consumer = event -> {
         };
+    }
+
+    /**
+     * Sets the id of an IntelligentItem
+     *
+     * @param id The id of the item
+     */
+    public IntelligentItem identifier(@NotNull Object id, @NotNull InventoryManager manager) {
+        this.id = id;
+        manager.register(this);
+        return this;
     }
 
     /**

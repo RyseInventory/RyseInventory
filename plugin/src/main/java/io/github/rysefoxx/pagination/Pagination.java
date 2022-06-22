@@ -32,14 +32,12 @@ import io.github.rysefoxx.util.StringConstants;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -47,7 +45,7 @@ import java.util.stream.Collectors;
  * @since 2/19/2022
  */
 
-public class Pagination implements Cloneable {
+public class Pagination{
 
     private
     @Getter
@@ -70,7 +68,6 @@ public class Pagination implements Cloneable {
         this.page = 0;
     }
 
-    //Copy Constructor
     public Pagination(@NotNull Pagination pagination) {
         this.inventory = pagination.inventory;
         this.itemsPerPage = pagination.itemsPerPage;
@@ -80,23 +77,11 @@ public class Pagination implements Cloneable {
     }
 
     /**
-     * Clones the pagination so that the original is not changed.
-     *
-     * @return cloned pagination
-     * @deprecated use {@link #newInstance(Pagination)}} instead
+     * Creates a new instance of Pagination where all data is transferred along.
+     * @param pagination The pagination to copy from.
+     * @return The new instance of Pagination.
      */
-    @Deprecated
-    public Pagination copy() {
-        try {
-            return (Pagination) clone();
-        } catch (CloneNotSupportedException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Pagination clone failed", e);
-        }
-        return this;
-    }
-
-    //Copy Factory
-    public Pagination newInstance(@NotNull Pagination pagination) {
+    public @NotNull Pagination newInstance(@NotNull Pagination pagination) {
         return new Pagination(pagination);
     }
 
@@ -163,6 +148,17 @@ public class Pagination implements Cloneable {
     }
 
     /**
+     * Sets the current page to the specified page.
+     * @param page The page to set to.
+     * @return the new Pagination
+     * @apiNote This will not check if the page is valid.
+     */
+    public Pagination page(@Nonnegative int page) {
+        this.page = page;
+        return this;
+    }
+
+    /**
      * Sets a complete list of smart ItemStacks
      *
      * @param items A list of intelligent ItemStacks
@@ -177,7 +173,7 @@ public class Pagination implements Cloneable {
      *
      * @param items An array of smart ItemStacks
      */
-    public void setItems(@NotNull IntelligentItem[] items) {
+    public void setItems(IntelligentItem @NotNull [] items) {
         for (IntelligentItem item : items)
             this.inventoryData.add(new IntelligentItemData(item, this.page, -1));
     }
@@ -240,15 +236,6 @@ public class Pagination implements Cloneable {
      */
     public void setItemsPerPage(@Nonnegative int itemsPerPage) {
         this.itemsPerPage = itemsPerPage;
-    }
-
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException e) {
-            return this;
-        }
     }
 
     protected void remove(@Nonnegative int slot) {

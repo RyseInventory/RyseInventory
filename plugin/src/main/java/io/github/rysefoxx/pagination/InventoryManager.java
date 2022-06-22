@@ -54,6 +54,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -66,10 +67,44 @@ public class InventoryManager {
 
     private final Plugin plugin;
 
+    private final Set<IntelligentItem> items = new HashSet<>();
+
     private final HashMap<UUID, RyseInventory> inventories = new HashMap<>();
     private final HashMap<UUID, InventoryContents> content = new HashMap<>();
     private final HashMap<UUID, BukkitTask> updaterTask = new HashMap<>();
     private final HashMap<UUID, List<RyseInventory>> lastInventories = new HashMap<>();
+
+    /**
+     * Adds the IntelligentItem to the list if this item has an ID.
+     * @param item The item to add.
+     * @throws NullPointerException If the item ID is null.
+     */
+    public void register(@NotNull final IntelligentItem item) throws NullPointerException {
+        if(item.getId() == null) throw new NullPointerException("The item has no ID!");
+        this.items.add(item);
+    }
+
+    /**
+     * @param id The id of the item
+     * @return Returns the first IntelligentItem that matches the ID. If no item is found, null is returned.
+     */
+    public @Nullable IntelligentItem getItemById(@NotNull Object id) {
+        return this.items.stream().filter(item -> item.getId() == id).findFirst().orElse(null);
+    }
+
+    /**
+     * @param id The id of the item
+     * @return Returns all IntelligentItems that match the ID. If no item is found, an empty list is returned.
+     */
+    public @NotNull List<IntelligentItem> getAllItemsById(@NotNull Object id) {
+        List<IntelligentItem> result = new ArrayList<>();
+        for (IntelligentItem item : this.items) {
+            if (item.getId() != id) continue;
+
+            result.add(item);
+        }
+        return result;
+    }
 
     /**
      * With this method you can get the inventory from the player.
