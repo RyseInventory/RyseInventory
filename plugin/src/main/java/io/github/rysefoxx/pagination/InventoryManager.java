@@ -293,7 +293,7 @@ public class InventoryManager {
 
             for (LivingEntity entity : event.getAffectedEntities()) {
                 if (!(entity instanceof Player)) continue;
-                Player player = (Player) event.getEntity();
+                Player player = (Player) entity;
                 if (!hasInventory(player.getUniqueId()))
                     continue;
 

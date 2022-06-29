@@ -36,8 +36,8 @@ import java.util.List;
 
 /**
  * @author Rysefoxx | Rysefoxx#6772
- * @since 6/11/2022
  * @apiNote The class is marked as 'beta' because of possible bugs.
+ * @since 6/11/2022
  */
 @Beta
 public class SlotIteratorPattern {
@@ -93,6 +93,18 @@ public class SlotIteratorPattern {
 
             if (this.attachedChar == null)
                 throw new IllegalStateException("No frame has been attached.");
+
+            boolean foundChar = false;
+            for (String line : this.lines) {
+                for (char c : line.toCharArray()) {
+                    if (c == this.attachedChar) {
+                        foundChar = true;
+                        break;
+                    }
+                }
+            }
+
+            if(!foundChar) throw new IllegalStateException("The attached frame is not in the pattern.");
 
             pattern.lines = this.lines;
             pattern.attachedChar = this.attachedChar;

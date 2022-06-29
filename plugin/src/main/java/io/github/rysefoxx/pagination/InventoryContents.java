@@ -492,6 +492,24 @@ public class InventoryContents {
     }
 
     /**
+     * Finds the right border based on the start slot and returns it.
+     *
+     * @param row    The row of the start slot.
+     * @param column The column of the start slot.
+     * @return the right border index.
+     * @throws IllegalArgumentException if row is > 5 or if column > 8
+     */
+    public int findRightBorder(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
+        if (row > 5)
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
+
+        if (column > 8)
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
+
+        return findRightBorder(SlotUtils.toSlot(row, column));
+    }
+
+    /**
      * Finds the left border based on the start slot and returns it.
      *
      * @param startSlot The start slot.
@@ -507,6 +525,24 @@ public class InventoryContents {
         while (!isLeftBorder(startSlot))
             startSlot--;
         return startSlot;
+    }
+
+    /**
+     * Finds the left border based on the start slot and returns it.
+     *
+     * @param row    The row of the start slot.
+     * @param column The column of the start slot.
+     * @return the left border index.
+     * @throws IllegalArgumentException if row is > 5 or if column > 8
+     */
+    public int findLeftBorder(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
+        if (row > 5)
+            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
+
+        if (column > 8)
+            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
+
+        return findLeftBorder(SlotUtils.toSlot(row, column));
     }
 
     /**

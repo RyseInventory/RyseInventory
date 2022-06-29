@@ -37,6 +37,7 @@ import io.github.rysefoxx.util.StringConstants;
 import io.github.rysefoxx.util.TimeUtils;
 import io.github.rysefoxx.util.TitleUpdater;
 import lombok.Getter;
+import lombok.ToString;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -51,6 +52,7 @@ import javax.annotation.Nonnegative;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@ToString(exclude = {"manager", "provider", "inventory", "plugin", "playerInventory", "privateInventory"})
 public class RyseInventory {
 
     private InventoryManager manager;
@@ -132,7 +134,6 @@ public class RyseInventory {
         this.privateInventory.putAll(inventory.privateInventory);
         this.playerInventory.putAll(inventory.playerInventory);
     }
-
 
     /**
      * Clones the current RyseInventory and returns the new RyseInventory instance.
@@ -716,7 +717,7 @@ public class RyseInventory {
          *
          * @param plugin Instance to your main class.
          * @return the RyseInventory
-         * @throws IllegalStateException if manager is null
+         * @throws IllegalStateException if manager is null or if the provider is null
          */
         public @NotNull RyseInventory build(@NotNull Plugin plugin) throws IllegalStateException {
             if (this.manager == null)
@@ -724,6 +725,9 @@ public class RyseInventory {
 
             if (!this.closeAble && !this.closeReasons.isEmpty())
                 throw new IllegalStateException("The #close() method could not be executed because you have forbidden closing the inventory by #preventClose.");
+
+            if (this.provider == null)
+                throw new IllegalStateException("No provider could be found. Make sure you pass a provider to the builder.");
 
             RyseInventory inventory = new RyseInventory();
             inventory.plugin = plugin;
