@@ -1,4 +1,4 @@
-# RyseInventory 1.8-1.18 ![](https://i.imgur.com/BS3gwxL.png)
+# RyseInventory 1.8-1.19 ![](https://i.imgur.com/BS3gwxL.png)
 
 Inventory System inspired by [SmartInventory](https://github.com/MinusKube/SmartInvs)!
 
@@ -37,7 +37,7 @@ repositories {
     }
 }
 dependencies {
-    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.2.7'
+    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.2.8'
 }
 ```
 ### Gradle (Kotlin) 
@@ -47,7 +47,7 @@ repositories
     maven {url = uri("https://s01.oss.sonatype.org/content/groups/public/")}
 }
 dependencies {
-    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.2.7")
+    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.2.8")
 }
 ```
 
@@ -63,7 +63,7 @@ dependencies {
 <dependency>
   <groupId>io.github.rysefoxx</groupId>
   <artifactId>RyseInventory-Plugin</artifactId>
-  <version>1.2.7</version>
+  <version>1.2.8</version>
 </dependency>
 ```
 
