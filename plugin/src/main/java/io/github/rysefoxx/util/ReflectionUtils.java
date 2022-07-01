@@ -70,6 +70,7 @@ public final class ReflectionUtils {
      * Performance is not a concern for these specific statically initialized values.
      */
     public static final String VERSION;
+    private final static MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
     static { // This needs to be right below VERSION because of initialization order.
         // This package loop is used to avoid implementation-dependant strings like Bukkit.getVersion() or Bukkit.getBukkitVersion()
@@ -346,7 +347,6 @@ public final class ReflectionUtils {
      * @apiNote https://github.com/kangarko/Foundation
      */
     public static Object toIChatBaseComponent(String json) {
-
         final Class<?> chatSerializer = ReflectionUtils.getNMSClass("network.chat", "IChatBaseComponent$ChatSerializer");
         final Method a = ReflectionUtils.getMethod(chatSerializer, "a", String.class);
 

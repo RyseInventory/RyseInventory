@@ -373,7 +373,7 @@ public class RyseInventory {
      * @author <a href="https://www.spigotmc.org/threads/change-inventory-title-reflection-1-8-1-18.489966/">Original code (Slightly Modified)</a>
      */
     public void updateTitle(@NotNull Player player, @NotNull String newTitle) {
-        TitleUpdater.updateTitle(player, newTitle);
+        TitleUpdater.updateInventory(player, newTitle);
     }
 
     /**
@@ -859,17 +859,17 @@ public class RyseInventory {
     }
 
     private void removeActiveAnimations() {
-        for (IntelligentItemNameAnimator intelligentItemNameAnimator : this.itemAnimator)
-            removeItemAnimator(intelligentItemNameAnimator);
+        for (int i = 0; i < this.itemAnimator.size(); i++)
+            removeItemAnimator(this.itemAnimator.get(i));
 
-        for (IntelligentTitleAnimator intelligentTitleAnimator : this.titleAnimator)
-            removeTitleAnimator(intelligentTitleAnimator);
+        for (int i = 0; i < this.titleAnimator.size(); i++)
+            removeTitleAnimator(this.titleAnimator.get(i));
 
-        for (IntelligentItemLoreAnimator intelligentItemLoreAnimator : this.loreAnimator)
-            removeLoreAnimator(intelligentItemLoreAnimator);
+        for (int i = 0; i < this.loreAnimator.size(); i++)
+            removeLoreAnimator(this.loreAnimator.get(i));
 
-        for (IntelligentMaterialAnimator intelligentMaterialAnimator : this.materialAnimator)
-            removeMaterialAnimator(intelligentMaterialAnimator);
+        for (int i = 0; i < this.materialAnimator.size(); i++)
+            removeMaterialAnimator(this.materialAnimator.get(i));
 
         removeSlideAnimator();
     }

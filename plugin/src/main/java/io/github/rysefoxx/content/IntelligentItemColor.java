@@ -280,7 +280,6 @@ public class IntelligentItemColor {
         public @Nullable IntelligentItemColor build() {
             tryToSetWrapper();
 
-
             if (this.hexColor != null)
                 return new IntelligentItemColor(this.hexColor, this.bold, this.underline, this.italic, this.obfuscated, this.strikeThrough);
 

@@ -348,9 +348,8 @@ public class IntelligentItemLoreAnimator {
         if (this.type == IntelligentItemAnimatorType.WORD_BY_WORD) {
             animateWordByWord();
             return;
-
         }
-        if (type == IntelligentItemAnimatorType.FLASH) {
+        if (this.type == IntelligentItemAnimatorType.FLASH) {
             animateWithFlash();
         }
     }
@@ -539,6 +538,7 @@ public class IntelligentItemLoreAnimator {
                     boolean addColor = !letter.equals(" ");
 
                     char singleFrame = currentFrames[this.colorState];
+                    System.out.println(singleFrame);
                     IntelligentItemColor itemColor = frameColor.get(singleFrame);
 
                     appendLetterToLore(letter, itemColor);
