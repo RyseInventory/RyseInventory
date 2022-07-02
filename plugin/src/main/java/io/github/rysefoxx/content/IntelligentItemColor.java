@@ -231,7 +231,7 @@ public class IntelligentItemColor {
          * @throws NullPointerException if an invalid character was passed.
          * @apiNote Transfer a char from the ChatColor of org.bukkit
          */
-        public Builder colorByChar(char number) throws NullPointerException {
+        public @NotNull Builder colorByChar(char number) throws NullPointerException {
             ChatColor color = ChatColor.getByChar(number);
 
             if (color == null)
@@ -249,7 +249,7 @@ public class IntelligentItemColor {
          * @throws IllegalArgumentException if the parameter is not invalid.
          * @throws NullPointerException     if no ChatColor could be found.
          */
-        public Builder paragraph(String paragraph) throws IllegalArgumentException, NullPointerException {
+        public @NotNull Builder paragraph(String paragraph) throws IllegalArgumentException, NullPointerException {
             if (paragraph.length() > 2)
                 throw new IllegalArgumentException("The parameter must not be longer than 2 characters. This is how a transfer could look like paragraph(§3).");
 
@@ -264,7 +264,7 @@ public class IntelligentItemColor {
          * @throws IllegalArgumentException     If it is not a valid hex string.
          * @throws UnsupportedClassVersionError If the server is running under 1.16.
          */
-        public Builder hexColor(String hexColor) throws IllegalArgumentException, UnsupportedClassVersionError {
+        public @NotNull Builder hexColor(String hexColor) throws IllegalArgumentException, UnsupportedClassVersionError {
             if (!VersionUtils.isAtleast16())
                 throw new UnsupportedClassVersionError("For Hex color, the server must be running on at least 1.16.");
 

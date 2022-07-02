@@ -172,7 +172,7 @@ public class IntelligentItemLoreAnimator {
         /**
          * This tells us in which slot the animation should take place.
          *
-         * @param slot
+         * @param slot The inventory slot
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot > 53
          */
@@ -538,7 +538,6 @@ public class IntelligentItemLoreAnimator {
                     boolean addColor = !letter.equals(" ");
 
                     char singleFrame = currentFrames[this.colorState];
-                    System.out.println(singleFrame);
                     IntelligentItemColor itemColor = frameColor.get(singleFrame);
 
                     appendLetterToLore(letter, itemColor);

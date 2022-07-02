@@ -165,18 +165,10 @@ public class SlideAnimation {
          * @param row    The row to start at.
          * @param column The column to start at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if row is > 5 or if column > 8
+         * @throws IllegalArgumentException if slot > 53
          */
         public @NotNull Builder from(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
-            if (row > 5)
-                throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-            if (column > 8)
-                throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
-
-            this.from.add(SlotUtils.toSlot(row, column));
-            return this;
+            return from(SlotUtils.toSlot(row, column));
         }
 
         /**
@@ -261,18 +253,10 @@ public class SlideAnimation {
          * @param row    The row to end at.
          * @param column The column to end at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if row is > 5 or if column > 8
+         * @throws IllegalArgumentException if slot is > 53
          */
         public @NotNull Builder to(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
-            if (row > 5) {
-                throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-            }
-            if (column > 8) {
-                throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-            }
-
-            this.to.add(SlotUtils.toSlot(row, column));
-            return this;
+            return to(SlotUtils.toSlot(row, column));
         }
 
         /**

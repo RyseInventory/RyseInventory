@@ -32,13 +32,8 @@ import lombok.experimental.UtilityClass;
  * @since 6/17/2022
  */
 @UtilityClass
-public class StringConstants {
+public class PlaceHolderConstants {
 
-    public final String INVALID_COLOR_FRAME = "Frames must have the same length as color.";
-    public final String INVALID_MATERIAL_FRAME = "Frames must have the same length as materials.";
-    public final String INVALID_SLOT = "The slot must not be larger than 53.";
-    public final String INVALID_AMOUNT = "Amount must not be larger than 64.";
-    public final String INVALID_OBJECT = "String[] and Object[] must have the same size";
-    public final String INVALID_ROW_LENGTH = "Rows must have the same length as columns.";
+    public final String INVALID_SLOT = "The slot must not be larger than %temp%. Check the inventory size.";
 
 }

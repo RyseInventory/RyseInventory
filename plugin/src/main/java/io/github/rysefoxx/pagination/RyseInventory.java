@@ -37,7 +37,6 @@ import io.github.rysefoxx.util.StringConstants;
 import io.github.rysefoxx.util.TimeUtils;
 import io.github.rysefoxx.util.TitleUpdater;
 import lombok.Getter;
-import lombok.ToString;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -52,7 +51,6 @@ import javax.annotation.Nonnegative;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@ToString(exclude = {"manager", "provider", "inventory", "plugin", "playerInventory", "privateInventory"})
 public class RyseInventory {
 
     private InventoryManager manager;
@@ -77,7 +75,7 @@ public class RyseInventory {
     private boolean closeAble = true;
     private boolean transferData = true;
     private boolean backward = false;
-    private String titleHolder = "§e§oLoading§8...";
+    private String titleHolder = "§e§oLoading§8...§r";
     private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
 
     protected final List<Player> delayed = new ArrayList<>();
@@ -85,10 +83,10 @@ public class RyseInventory {
     private List<EventCreator<? extends Event>> events = new ArrayList<>();
     private List<DisabledInventoryClick> ignoreClickEvent = new ArrayList<>();
     private List<CloseReason> closeReasons = new ArrayList<>();
-    private final List<IntelligentItemNameAnimator> itemAnimator = new ArrayList<>();
-    private final List<IntelligentMaterialAnimator> materialAnimator = new ArrayList<>();
-    private final List<IntelligentTitleAnimator> titleAnimator = new ArrayList<>();
-    private final List<IntelligentItemLoreAnimator> loreAnimator = new ArrayList<>();
+    private List<IntelligentItemNameAnimator> itemAnimator = new ArrayList<>();
+    private List<IntelligentMaterialAnimator> materialAnimator = new ArrayList<>();
+    private List<IntelligentTitleAnimator> titleAnimator = new ArrayList<>();
+    private List<IntelligentItemLoreAnimator> loreAnimator = new ArrayList<>();
     private final HashMap<UUID, Inventory> privateInventory = new HashMap<>();
     private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
 
@@ -133,6 +131,84 @@ public class RyseInventory {
         this.loreAnimator.addAll(inventory.loreAnimator);
         this.privateInventory.putAll(inventory.privateInventory);
         this.playerInventory.putAll(inventory.playerInventory);
+    }
+
+    /**
+     * Serializes the inventory to a map.
+     *
+     * @return The serialized inventory.
+     * @see #deserialize(Map, InventoryManager) to get back the inventory from the hashmap.
+     */
+    public @NotNull Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("title", this.title);
+        map.put("size", this.size);
+        map.put("delay", this.delay);
+        map.put("plugin", this.plugin.getName());
+        map.put("open-delay", this.openDelay);
+        map.put("period", this.period);
+        map.put("close-after", this.closeAfter);
+        map.put("load-delay", this.loadDelay);
+        map.put("load-title", this.loadTitle);
+        map.put("close-able", this.closeAble);
+        map.put("transfer-data", this.transferData);
+        map.put("backward", this.backward);
+        map.put("title-holder", this.titleHolder);
+        map.put("inventory-opener-type", this.inventoryOpenerType.toString());
+        map.put("options", this.options);
+        map.put("events", this.events);
+        map.put("ignore-click-event", this.ignoreClickEvent);
+        map.put("close-reasons", this.closeReasons);
+        map.put("item-animator", this.itemAnimator);
+        map.put("material-animator", this.materialAnimator);
+        map.put("title-animator", this.titleAnimator);
+        map.put("lore-animator", this.loreAnimator);
+        map.put("provider", this.provider);
+        map.put("identifier", this.identifier);
+        map.put("clear-and-safe", this.clearAndSafe);
+        return map;
+    }
+
+    /**
+     * Deserializes the inventory from a hashmap.
+     *
+     * @param data    The serialized inventory.
+     * @param manager The manager that will be used to create the inventory.
+     * @return The deserialized inventory.
+     */
+    @SuppressWarnings("unchecked")
+    public static @Nullable RyseInventory deserialize(@NotNull Map<String, Object> data, @NotNull InventoryManager manager) {
+        if (data.isEmpty()) return null;
+
+        RyseInventory inventory = new RyseInventory();
+        inventory.title = (String) data.get("title");
+        inventory.size = (int) data.get("size");
+        inventory.delay = (int) data.get("delay");
+        inventory.openDelay = (int) data.get("open-delay");
+        inventory.period = (int) data.get("period");
+        inventory.closeAfter = (int) data.get("close-after");
+        inventory.loadDelay = (int) data.get("load-delay");
+        inventory.loadTitle = (int) data.get("load-title");
+        inventory.closeAble = (boolean) data.get("close-able");
+        inventory.transferData = (boolean) data.get("transfer-data");
+        inventory.backward = (boolean) data.get("backward");
+        inventory.titleHolder = (String) data.get("title-holder");
+        inventory.inventoryOpenerType = InventoryOpenerType.valueOf((String) data.get("inventory-opener-type"));
+        inventory.options = (List<InventoryOptions>) data.get("options");
+        inventory.events = (List<EventCreator<? extends Event>>) data.get("events");
+        inventory.ignoreClickEvent = (List<DisabledInventoryClick>) data.get("ignore-click-event");
+        inventory.closeReasons = (List<CloseReason>) data.get("close-reasons");
+        inventory.itemAnimator = (List<IntelligentItemNameAnimator>) data.get("item-animator");
+        inventory.materialAnimator = (List<IntelligentMaterialAnimator>) data.get("material-animator");
+        inventory.titleAnimator = (List<IntelligentTitleAnimator>) data.get("title-animator");
+        inventory.loreAnimator = (List<IntelligentItemLoreAnimator>) data.get("lore-animator");
+        inventory.provider = (InventoryProvider) data.get("provider");
+        inventory.identifier = data.get("identifier");
+        inventory.clearAndSafe = (boolean) data.get("clear-and-safe");
+        inventory.manager = manager;
+        inventory.plugin = Bukkit.getPluginManager().getPlugin((String) data.get("plugin"));
+
+        return inventory;
     }
 
     /**

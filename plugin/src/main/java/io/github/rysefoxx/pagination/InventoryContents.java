@@ -33,8 +33,10 @@ import io.github.rysefoxx.enums.IntelligentType;
 import io.github.rysefoxx.enums.InventoryOpenerType;
 import io.github.rysefoxx.pattern.ContentPattern;
 import io.github.rysefoxx.pattern.SearchPattern;
+import io.github.rysefoxx.util.PlaceHolderConstants;
 import io.github.rysefoxx.util.SlotUtils;
 import io.github.rysefoxx.util.StringConstants;
+import io.github.rysefoxx.util.Utils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
@@ -48,6 +50,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -55,6 +58,7 @@ import java.util.function.Consumer;
  * @author Rysefoxx | Rysefoxx#6772
  * @since 2/17/2022
  */
+@SuppressWarnings("unused")
 public class InventoryContents {
 
     private final Player player;
@@ -76,13 +80,28 @@ public class InventoryContents {
      *
      * @param slot Which slot to look for.
      * @return true if the slot exists in the inventory.
-     * @throws IllegalArgumentException if slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public boolean hasSlot(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+
         return slot <= this.inventory.size();
+    }
+
+    /**
+     * With this method you can see if a slot exists in the inventory.
+     *
+     * @param row    Which row to look for.
+     * @param column Which column to look for.
+     * @return true if the slot exists in the inventory.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     */
+    public boolean hasSlot(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
+        return hasSlot(SlotUtils.toSlot(row, column));
     }
 
     /**
@@ -90,11 +109,15 @@ public class InventoryContents {
      *
      * @param slot Which slot should be removed?
      * @return true if the item was removed.
-     * @throws IllegalArgumentException When slot is greater than 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
+    @SuppressWarnings("UnusedReturnValue")
     public boolean removeItemWithConsumer(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         get(slot).ifPresent(IntelligentItem::clearConsumer);
         this.pagination.remove(slot);
@@ -113,17 +136,10 @@ public class InventoryContents {
      * @param row    The row where the item is located.
      * @param column The column where the item is located.
      * @return true if the item was removed.
-     * @throws IllegalArgumentException if row is > 5 or if column > 8
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public boolean removeItemWithConsumer(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
-        removeItemWithConsumer(SlotUtils.toSlot(row, column));
-        return true;
+        return removeItemWithConsumer(SlotUtils.toSlot(row, column));
     }
 
     /**
@@ -428,7 +444,7 @@ public class InventoryContents {
     /**
      * Removes all data in the inventory and returns all values in the consumer.
      */
-    public void clearData(@NotNull Consumer<List<?>> consumer) {
+    public void clearData(@NotNull Consumer<List<Object>> consumer) {
         List<Object> objects = Arrays.asList(this.data.values().toArray());
         consumer.accept(objects);
 
@@ -438,7 +454,7 @@ public class InventoryContents {
     /**
      * Removes all data in the inventory and returns all keys and values in the consumer.
      */
-    public void clearData(@NotNull BiConsumer<List<String>, List<?>> consumer) {
+    public void clearData(@NotNull BiConsumer<List<String>, List<Object>> consumer) {
         List<String> keys = new ArrayList<>(this.data.keySet());
         List<Object> values = Arrays.asList(this.data.values().toArray());
 
@@ -497,15 +513,9 @@ public class InventoryContents {
      * @param row    The row of the start slot.
      * @param column The column of the start slot.
      * @return the right border index.
-     * @throws IllegalArgumentException if row is > 5 or if column > 8
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public int findRightBorder(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
         return findRightBorder(SlotUtils.toSlot(row, column));
     }
 
@@ -533,27 +543,24 @@ public class InventoryContents {
      * @param row    The row of the start slot.
      * @param column The column of the start slot.
      * @return the left border index.
-     * @throws IllegalArgumentException if row is > 5 or if column > 8
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public int findLeftBorder(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
         return findLeftBorder(SlotUtils.toSlot(row, column));
     }
 
     /**
      * @param slot The slot to check
      * @return true if the slot is in the middle of the inventory, false if not.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      * @throws IllegalStateException    If the inventory type is not supported.
      */
     public boolean isMiddle(@Nonnegative int slot) throws IllegalArgumentException, IllegalStateException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
         int inventorySize = this.inventory.size();
@@ -600,26 +607,23 @@ public class InventoryContents {
      * @param row    The row to check
      * @param column The column to check
      * @return true if the slot is in the middle of the inventory, false if not.
-     * @throws IllegalArgumentException if row is > 5 or if column > 8
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      * @throws IllegalStateException    If the inventory type is not supported.
      */
     public boolean isMiddle(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException, IllegalStateException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
         return isMiddle(SlotUtils.toSlot(row, column));
     }
 
     /**
      * @return true if the specified slot is on the right side.
-     * @throws IllegalArgumentException if slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public boolean isRightBorder(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
 
@@ -649,27 +653,24 @@ public class InventoryContents {
 
     /**
      * @return true if the specified slot is on the right side.
-     * @throws IllegalArgumentException if row is > 5 or if column > 8
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public boolean isRightBorder(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
         return isRightBorder(SlotUtils.toSlot(row, column));
     }
 
     /**
      * @param slot The slot to check
      * @return true if the slot is in the corner, false if not
-     * @throws IllegalArgumentException if slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      * @throws IllegalStateException    If the inventory type is not supported.
      */
     public boolean isCorner(@Nonnegative int slot) throws IllegalArgumentException, IllegalStateException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
         int inventorySize = this.inventory.size();
@@ -703,28 +704,24 @@ public class InventoryContents {
      * @param row    The row to check
      * @param column The column to check
      * @return true if the slot is in the corner, false if not
-     * @throws IllegalArgumentException if slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      * @throws IllegalStateException    If the inventory type is not supported.
      */
     public boolean isCorner(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException, IllegalStateException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
-
         return isCorner(SlotUtils.toSlot(row, column));
     }
 
     /**
      * @param slot The slot to check
      * @return true when the slot is at the top of the inventory, false otherwise.
-     * @throws IllegalArgumentException if slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public boolean isTop(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
 
@@ -756,26 +753,23 @@ public class InventoryContents {
      * @param row    The row to check
      * @param column The column to check
      * @return true when the slot is at the top of the inventory, false otherwise.
-     * @throws IllegalArgumentException if row is > 5 or if column > 8
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public boolean isTop(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
         return isTop(SlotUtils.toSlot(row, column));
     }
 
     /**
      * @param slot The slot to check
      * @return true when the slot is at the bottom of the inventory, false otherwise.
-     * @throws IllegalArgumentException if slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public boolean isBottom(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
         int inventorySize = this.inventory.size();
@@ -806,25 +800,22 @@ public class InventoryContents {
      * @param row    The row to check
      * @param column The column to check
      * @return true when the slot is at the bottom of the inventory, false otherwise.
-     * @throws IllegalArgumentException if row is > 5 or if column > 8
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public boolean isBottom(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
         return isBottom(SlotUtils.toSlot(row, column));
     }
 
     /**
      * @return true if the specified slot is on the left side.
-     * @throws IllegalArgumentException if slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public boolean isLeftBorder(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
 
@@ -850,15 +841,9 @@ public class InventoryContents {
 
     /**
      * @return true if the specified slot is on the left side.
-     * @throws IllegalArgumentException if row is > 5 or if column > 8
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public boolean isLeftBorder(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
         return isLeftBorder(SlotUtils.toSlot(row, column));
     }
 
@@ -986,12 +971,15 @@ public class InventoryContents {
      * @param slot Where should the item be placed?
      * @param page On which page should the item be placed?
      * @param item The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException when slot > 53
-     * @apiNote When you define a page please start at 1.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @apiNote First page is 0, second page is 1, etc.
      */
     public void setWithinPage(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem item) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         this.pagination.setItem(slot, page, item);
     }
@@ -1003,16 +991,10 @@ public class InventoryContents {
      * @param column The column of the inventory
      * @param page   On which page should the item be placed?
      * @param item   The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException if row is > 5 or if column > 8
-     * @apiNote When you define a page please start at 1.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @apiNote First page is 0, second page is 1, etc.
      */
     public void setWithinPage(@Nonnegative int row, @Nonnegative int column, @Nonnegative int page, @NotNull IntelligentItem item) throws IllegalArgumentException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
         setWithinPage(SlotUtils.toSlot(row, column), page, item);
     }
 
@@ -1022,7 +1004,7 @@ public class InventoryContents {
      * @param slots Where should the item be placed everywhere?
      * @param page  On which page should the item be placed?
      * @param item  The ItemStack to be displayed in the inventory
-     * @apiNote When you define a page please start at 1.
+     * @apiNote First page is 0, second page is 1, etc.
      */
     public void setWithinPage(@NotNull List<Integer> slots, @Nonnegative int page, @NotNull IntelligentItem item) {
         slots.forEach(slot -> setWithinPage(slot, page, item));
@@ -1034,7 +1016,7 @@ public class InventoryContents {
      * @param slots Where should the item be placed everywhere?
      * @param pages On which pages should the item be placed?
      * @param item  The ItemStack to be displayed in the inventory
-     * @apiNote When you define a page please start at 1.
+     * @apiNote First page is 0, second page is 1, etc.
      */
     public void setWithinPage(@NotNull List<Integer> slots, @NotNull List<Integer> pages, @NotNull IntelligentItem item) {
         slots.forEach(slot -> pages.forEach(page -> setWithinPage(slot, page, item)));
@@ -1046,11 +1028,14 @@ public class InventoryContents {
      * @param slot The slot where the item should be placed
      * @param page On which page should the item be placed?
      * @param item The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillRow(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem item) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++)
@@ -1063,11 +1048,14 @@ public class InventoryContents {
      * @param slot The slot where the item should be placed
      * @param page On which page should the item be placed?
      * @param item The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillRow(@Nonnegative int slot, @Nonnegative int page, @NotNull ItemStack item) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++)
@@ -1081,11 +1069,14 @@ public class InventoryContents {
      * @param page On which page should the item be placed?
      * @param type The type of the item
      * @param item The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillRow(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentType type, @NotNull ItemStack item) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
         IntelligentItem intelligentItem;
@@ -1105,11 +1096,14 @@ public class InventoryContents {
      *
      * @param slot Where to start placing the items.
      * @param item The item to be placed.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillRow(@Nonnegative int slot, @NotNull IntelligentItem item) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++)
@@ -1122,11 +1116,14 @@ public class InventoryContents {
      * @param slot      Where to start placing the items.
      * @param item      The item to be placed.
      * @param appliedTo A consumer that returns slot and item.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillRow(@Nonnegative int slot, @NotNull IntelligentItem item, @NotNull BiConsumer<Integer, @NotNull IntelligentItem> appliedTo) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++) {
@@ -1140,11 +1137,14 @@ public class InventoryContents {
      *
      * @param slot Where to start placing the items.
      * @param item The item to be placed.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillRow(@Nonnegative int slot, @NotNull ItemStack item) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++)
@@ -1157,11 +1157,14 @@ public class InventoryContents {
      * @param slot      Where to start placing the items.
      * @param item      The item to be placed.
      * @param appliedTo A consumer that returns slot and item.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillRow(@Nonnegative int slot, @NotNull ItemStack item, @NotNull BiConsumer<Integer, @NotNull ItemStack> appliedTo) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++) {
@@ -1176,11 +1179,14 @@ public class InventoryContents {
      * @param slot Where to start placing the items.
      * @param item The item to be placed.
      * @param type The type of the item
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillRow(@Nonnegative int slot, @NotNull ItemStack item, @NotNull IntelligentType type) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++)
@@ -1194,11 +1200,14 @@ public class InventoryContents {
      * @param item      The item to be placed.
      * @param type      The type of the item
      * @param appliedTo A consumer that returns slot and item.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillRow(@Nonnegative int slot, @NotNull ItemStack item, @NotNull IntelligentType type, @NotNull BiConsumer<Integer, @NotNull ItemStack> appliedTo) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++) {
@@ -1212,11 +1221,14 @@ public class InventoryContents {
      *
      * @param slot Where to start placing the items.
      * @param item The item to be placed.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillColumn(@Nonnegative int slot, @NotNull IntelligentItem item) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9)
             set(i, item);
@@ -1228,11 +1240,14 @@ public class InventoryContents {
      * @param slot Where to start placing the items.
      * @param page On which page should the item be placed?
      * @param item The item to be placed.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillColumn(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem item) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9)
             setWithinPage(i, page, item);
@@ -1244,11 +1259,14 @@ public class InventoryContents {
      * @param slot Where to start placing the items.
      * @param page On which page should the item be placed?
      * @param item The item to be placed.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillColumn(@Nonnegative int slot, @Nonnegative int page, @NotNull ItemStack item) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9)
             setWithinPage(i, page, IntelligentItem.empty(item));
@@ -1261,11 +1279,14 @@ public class InventoryContents {
      * @param page On which page should the item be placed?
      * @param type The type of the item
      * @param item The item to be placed.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillColumn(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentType type, @NotNull ItemStack item) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         IntelligentItem intelligentItem;
 
@@ -1285,11 +1306,14 @@ public class InventoryContents {
      * @param slot      Where to start placing the items.
      * @param item      The item to be placed.
      * @param appliedTo A consumer that returns slot and item.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillColumn(@Nonnegative int slot, @NotNull IntelligentItem item, @NotNull BiConsumer<Integer, @NotNull IntelligentItem> appliedTo) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9) {
             set(i, item);
@@ -1302,11 +1326,14 @@ public class InventoryContents {
      *
      * @param slot Where to start placing the items.
      * @param item The item to be placed.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillColumn(@Nonnegative int slot, @NotNull ItemStack item) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9)
             set(i, item);
@@ -1318,11 +1345,14 @@ public class InventoryContents {
      * @param slot      Where to start placing the items.
      * @param item      The item to be placed.
      * @param appliedTo A consumer that returns slot and item.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillColumn(@Nonnegative int slot, @NotNull ItemStack item, @NotNull BiConsumer<Integer, @NotNull ItemStack> appliedTo) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9) {
             set(i, item);
@@ -1336,11 +1366,14 @@ public class InventoryContents {
      * @param slot Where to start placing the items.
      * @param item The item to be placed.
      * @param type The type of the item
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillColumn(@Nonnegative int slot, @NotNull ItemStack item, @NotNull IntelligentType type) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9)
             set(i, item, type);
@@ -1353,11 +1386,14 @@ public class InventoryContents {
      * @param item      The item to be placed.
      * @param type      The type of the item
      * @param appliedTo A consumer that returns slot and item.
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void fillColumn(@Nonnegative int slot, @NotNull ItemStack item, @NotNull IntelligentType type, @NotNull BiConsumer<Integer, @NotNull ItemStack> appliedTo) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9) {
             set(i, item, type);
@@ -1407,11 +1443,14 @@ public class InventoryContents {
      *
      * @param slot Where should the item be placed?
      * @param item The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void set(@Nonnegative int slot, @NotNull IntelligentItem item) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         this.pagination.setItem(slot, item);
     }
@@ -1421,7 +1460,7 @@ public class InventoryContents {
      *
      * @param slot      Where should the item be placed?
      * @param itemStack The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException when slot > 53 or > inventory size
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void set(@Nonnegative int slot, @NotNull ItemStack itemStack) throws IllegalArgumentException {
         set(slot, IntelligentItem.empty(itemStack));
@@ -1433,15 +1472,9 @@ public class InventoryContents {
      * @param row       The row where the item should be placed
      * @param column    The column where the item should be placed
      * @param itemStack The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void set(@Nonnegative int row, @Nonnegative int column, @NotNull ItemStack itemStack) throws IllegalArgumentException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
         set(SlotUtils.toSlot(row, column), IntelligentItem.empty(itemStack));
     }
 
@@ -1451,7 +1484,7 @@ public class InventoryContents {
      * @param slot      Where should the item be placed?
      * @param itemStack The ItemStack to be displayed in the inventory
      * @param type      The type of the item
-     * @throws IllegalArgumentException when slot > 53 or > inventory size
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void set(@Nonnegative int slot, @NotNull ItemStack itemStack, @NotNull IntelligentType type) throws IllegalArgumentException {
         if (type == IntelligentType.EMPTY) {
@@ -1469,15 +1502,9 @@ public class InventoryContents {
      * @param column    The column where the item should be placed
      * @param itemStack The ItemStack to be displayed in the inventory
      * @param type      The type of the item
-     * @throws IllegalArgumentException when slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void set(@Nonnegative int row, @Nonnegative int column, @NotNull ItemStack itemStack, @NotNull IntelligentType type) throws IllegalArgumentException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
         set(SlotUtils.toSlot(row, column), itemStack, type);
     }
 
@@ -1497,15 +1524,9 @@ public class InventoryContents {
      * @param row    The row
      * @param column The column
      * @param item   The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException if row > 5, column > 8
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void set(@Nonnegative int row, @Nonnegative int column, @NotNull IntelligentItem item) throws IllegalArgumentException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
         set(SlotUtils.toSlot(row, column), item);
     }
 
@@ -1577,15 +1598,59 @@ public class InventoryContents {
     }
 
     /**
+     * @param page The page to look for.
+     * @return All items on a given page.
+     */
+    public @NotNull List<IntelligentItem> getAllWithinPage(@Nonnegative int page) {
+        List<IntelligentItem> items = new ArrayList<>();
+        for (int i = 0; i < this.inventory.size(); i++)
+            getWithinPage(i, page).ifPresent(items::add);
+
+        return items;
+    }
+
+    /**
+     * @param slot The slot to get the item from.
+     * @param page The page to look for the item in.
+     * @return The item in the slot on the page, or empty Optional if the slot is empty.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @apiNote First page is 0, second page is 1, etc.
+     */
+    public Optional<IntelligentItem> getWithinPage(@Nonnegative int slot, @Nonnegative int page) throws IllegalArgumentException {
+        if (slot > 53)
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+
+        return Optional.ofNullable(this.pagination.get(slot, page));
+    }
+
+    /**
+     * @param row    The row to get the item from.
+     * @param column The column to look for the item in.
+     * @param page   The page to look for the item in.
+     * @return The item in the slot on the page, or empty Optional if the slot is empty.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @apiNote First page is 0, second page is 1, etc.
+     */
+    public Optional<IntelligentItem> getWithinPage(@Nonnegative int row, @Nonnegative int column, @Nonnegative int page) throws IllegalArgumentException {
+        return getWithinPage(SlotUtils.toSlot(row, column), page);
+    }
+
+    /**
      * Fetches a intelligent ItemStack based on the slot.
      *
      * @param slot The slot
      * @return The intelligent ItemStack or an empty Optional instance.
-     * @throws IllegalArgumentException if slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public Optional<IntelligentItem> get(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         return Optional.ofNullable(this.pagination.get(slot));
     }
@@ -1596,15 +1661,9 @@ public class InventoryContents {
      * @param row    The row
      * @param column The column
      * @return The intelligent ItemStack or an empty Optional instance.
-     * @throws IllegalArgumentException if row > 5 or column > 8
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public @NotNull Optional<IntelligentItem> get(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
         return get(SlotUtils.toSlot(row, column));
     }
 
@@ -1614,25 +1673,11 @@ public class InventoryContents {
      * @param slots All slots where you want to watch.
      * @return All intelligent ItemStacks that could be found.
      */
-    public List<IntelligentItem> get(@NotNull List<Integer> slots) {
+    public @NotNull List<IntelligentItem> get(@NotNull List<Integer> slots) {
         List<IntelligentItem> items = new ArrayList<>();
         slots.forEach(slot -> get(slot).ifPresent(items::add));
 
         return items;
-    }
-
-    /**
-     * Get multiple Intelligent ItemStacks within the specified range.
-     *
-     * @param areaStart The start slot
-     * @param areaStop  The end slot
-     * @return All intelligent ItemStacks that could be found.
-     * @throws IllegalArgumentException if areaStart, areaStop > 53
-     * @deprecated use {@link #findInArea(int, int)}} instead
-     */
-    @Deprecated
-    public List<IntelligentItem> getInArea(@Nonnegative int areaStart, @Nonnegative int areaStop) throws IllegalArgumentException {
-        return findInArea(areaStart, areaStop);
     }
 
     /**
@@ -1664,11 +1709,12 @@ public class InventoryContents {
      *
      * @param index Where in the lore should the new line be located.
      * @param line  The new line in the ItemStack
-     * @throws IllegalArgumentException if slot > 53 or index >= lore.size()
+     * @return true if the lore was updated, false if the lore was not updated.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size or index >= lore.size()
      * @throws IllegalStateException    if ItemStack has no ItemMeta or no Lore
      */
-    public void updateLore(@Nonnegative int row, @Nonnegative int column, @Nonnegative int index, @NotNull String line) throws IllegalArgumentException, IllegalStateException {
-        updateLore(SlotUtils.toSlot(row, column), index, line);
+    public boolean updateLore(@Nonnegative int row, @Nonnegative int column, @Nonnegative int index, @NotNull String line) throws IllegalArgumentException, IllegalStateException {
+        return updateLore(SlotUtils.toSlot(row, column), index, line);
     }
 
     /**
@@ -1676,15 +1722,19 @@ public class InventoryContents {
      *
      * @param slot In which slot in the inventory is the ItemStack located.
      * @param lore The new lore
-     * @throws IllegalArgumentException if slot > 53 or index >= lore.size()
+     * @return true if the lore was updated, false if the lore was not updated.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size or index >= lore.size()
      * @throws IllegalStateException    if ItemStack has no ItemMeta or no Lore
      */
-    public void updateLore(@Nonnegative int slot, @NotNull List<String> lore) throws IllegalArgumentException, IllegalStateException {
+    public boolean updateLore(@Nonnegative int slot, @NotNull List<String> lore) throws IllegalArgumentException, IllegalStateException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+
         Optional<IntelligentItem> itemOptional = get(slot);
-        if (!itemOptional.isPresent()) return;
+        if (!itemOptional.isPresent()) return false;
 
         IntelligentItem item = itemOptional.get();
         ItemStack itemStack = item.getItemStack();
@@ -1699,6 +1749,7 @@ public class InventoryContents {
 
         itemStack.setItemMeta(itemMeta);
         update(slot, itemStack);
+        return true;
     }
 
     /**
@@ -1707,15 +1758,19 @@ public class InventoryContents {
      * @param slot  In which slot in the inventory is the ItemStack located.
      * @param index Where in the lore should the new line be located.
      * @param line  The new line in the ItemStack
-     * @throws IllegalArgumentException if slot > 53 or index >= lore.size()
+     * @return true if the lore was updated, false if the lore was not updated.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size or index >= lore.size()
      * @throws IllegalStateException    if ItemStack has no ItemMeta or no Lore
      */
-    public void updateLore(@Nonnegative int slot, @Nonnegative int index, @NotNull String line) throws IllegalArgumentException, IllegalStateException {
+    public boolean updateLore(@Nonnegative int slot, @Nonnegative int index, @NotNull String line) throws IllegalArgumentException, IllegalStateException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+
         Optional<IntelligentItem> itemOptional = get(slot);
-        if (!itemOptional.isPresent()) return;
+        if (!itemOptional.isPresent()) return false;
 
         IntelligentItem item = itemOptional.get();
         ItemStack itemStack = item.getItemStack();
@@ -1736,6 +1791,7 @@ public class InventoryContents {
         itemStack.setItemMeta(itemMeta);
 
         update(slot, itemStack);
+        return true;
     }
 
     /**
@@ -1744,10 +1800,11 @@ public class InventoryContents {
      * @param slots   The slots where the items are located.
      * @param indexes The indexes where the lines should be located.
      * @param lines   The lines that should be updated.
-     * @throws IllegalArgumentException if slot > 53 or index >= lore.size() or lines.size() != slots.size() or indexes.size() != slots.size()
+     * @return true if all lines of all items were updated, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size or index >= lore.size() or lines.size() != slots.size() or indexes.size() != slots.size()
      * @throws IllegalStateException    if ItemStack has no ItemMeta or no Lore
      */
-    public void updateLore(@NotNull List<Integer> slots, @NotNull List<Integer> indexes, @NotNull List<String> lines) throws IllegalArgumentException, IllegalStateException {
+    public boolean updateLore(@NotNull List<Integer> slots, @NotNull List<Integer> indexes, @NotNull List<String> lines) throws IllegalArgumentException, IllegalStateException {
         int slotsSize = slots.size();
         int indexesSize = indexes.size();
         int linesSize = lines.size();
@@ -1755,8 +1812,13 @@ public class InventoryContents {
         if (slotsSize != indexesSize || slotsSize != linesSize)
             throw new IllegalArgumentException("slots, indexes and lines must have the same size.");
 
-        for (int i = 0; i < slotsSize; i++)
+        int updated = 0;
+
+        for (int i = 0; i < slotsSize; i++) {
             updateLore(slots.get(i), indexes.get(i), lines.get(i));
+            updated++;
+        }
+        return updated >= slotsSize;
     }
 
     /**
@@ -1764,14 +1826,18 @@ public class InventoryContents {
      *
      * @param slot      The slot
      * @param itemStack The new ItemStack what should be displayed.
-     * @throws IllegalArgumentException if slot > 53
+     * @return true if the ItemStack was updated, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
-    public void update(@Nonnegative int slot, @NotNull ItemStack itemStack) throws IllegalArgumentException {
+    public boolean update(@Nonnegative int slot, @NotNull ItemStack itemStack) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+
         Optional<IntelligentItem> itemOptional = get(slot);
-        if (!itemOptional.isPresent()) return;
+        if (!itemOptional.isPresent()) return false;
 
         IntelligentItem item = itemOptional.get();
         IntelligentItem newItem = item.update(itemStack);
@@ -1780,6 +1846,7 @@ public class InventoryContents {
 
         Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
         inventoryOptional.ifPresent(savedInventory -> savedInventory.setItem(slot, newItem.getItemStack()));
+        return true;
     }
 
     /**
@@ -1787,14 +1854,18 @@ public class InventoryContents {
      *
      * @param slot        In which slot is the item located?
      * @param displayName The new display name
-     * @throws IllegalArgumentException if slot > 53
+     * @return true if the display name was updated, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
-    public void updateDisplayName(@Nonnegative int slot, @NotNull String displayName) throws IllegalArgumentException {
+    public boolean updateDisplayName(@Nonnegative int slot, @NotNull String displayName) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+
         Optional<IntelligentItem> itemOptional = get(slot);
-        if (!itemOptional.isPresent()) return;
+        if (!itemOptional.isPresent()) return false;
 
         IntelligentItem item = itemOptional.get();
         ItemStack itemStack = item.getItemStack();
@@ -1807,6 +1878,7 @@ public class InventoryContents {
         itemStack.setItemMeta(itemMeta);
 
         update(slot, itemStack);
+        return true;
     }
 
     /**
@@ -1815,11 +1887,14 @@ public class InventoryContents {
      * @param slot        Where should the item be placed?
      * @param item        The item which display name should be updated.
      * @param displayName The new display name
-     * @throws IllegalArgumentException if slot > 53
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void updateDisplayName(@Nonnegative int slot, @NotNull IntelligentItem item, @NotNull String displayName) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if(slot > this.inventory.size())
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         ItemStack itemStack = item.getItemStack();
 
@@ -1876,10 +1951,11 @@ public class InventoryContents {
      *
      * @param slot            The slot
      * @param intelligentItem The new IntelligentItem what should be displayed.
-     * @throws IllegalArgumentException if slot > 53
+     * @return true if the ItemStack was updated, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
-    public void update(@Nonnegative int slot, @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
-        update(slot, intelligentItem.getItemStack());
+    public boolean update(@Nonnegative int slot, @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
+        return update(slot, intelligentItem.getItemStack());
     }
 
     /**
@@ -1888,16 +1964,11 @@ public class InventoryContents {
      * @param row             The row
      * @param column          The column
      * @param intelligentItem The new IntelligentItem what should be displayed.
-     * @throws IllegalArgumentException if row > 5 or column > 9
+     * @return true if the ItemStack was updated, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
-    public void update(@Nonnegative int row, @Nonnegative int column, @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
-        if (row > 5)
-            throw new IllegalArgumentException(StringConstants.INVALID_ROW);
-
-        if (column > 8)
-            throw new IllegalArgumentException(StringConstants.INVALID_COLUMN);
-
-        update(SlotUtils.toSlot(row, column), intelligentItem.getItemStack());
+    public boolean update(@Nonnegative int row, @Nonnegative int column, @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
+        return update(SlotUtils.toSlot(row, column), intelligentItem.getItemStack());
     }
 
     /**
@@ -1905,10 +1976,16 @@ public class InventoryContents {
      *
      * @param slots     The slots
      * @param itemStack The new ItemStack what should be displayed.
-     * @throws IllegalArgumentException if slot > 53
+     * @return true if all items were updated, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
-    public void update(@NotNull List<Integer> slots, @NotNull ItemStack itemStack) throws IllegalArgumentException {
-        slots.forEach(integer -> update(integer, itemStack));
+    public boolean update(@NotNull List<Integer> slots, @NotNull ItemStack itemStack) throws IllegalArgumentException {
+        AtomicInteger updated = new AtomicInteger();
+        slots.forEach(integer -> {
+            update(integer, itemStack);
+            updated.getAndIncrement();
+        });
+        return updated.get() >= slots.size();
     }
 
     /**
@@ -1917,10 +1994,12 @@ public class InventoryContents {
      * @param column    The column
      * @param row       The row
      * @param itemStack The new ItemStack what should be displayed.
-     * @throws IllegalArgumentException if slot > 53 or row > 5 or column > 9
+     * @return true if the ItemStack was updated, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
-    public void updateViaCoordination(@Nonnegative int row, @Nonnegative int column, @NotNull ItemStack itemStack) throws IllegalArgumentException {
-        update(SlotUtils.toSlot(row, column), itemStack);
+    @SuppressWarnings("UnusedReturnValue")
+    public boolean updateViaCoordination(@Nonnegative int row, @Nonnegative int column, @NotNull ItemStack itemStack) throws IllegalArgumentException {
+        return update(SlotUtils.toSlot(row, column), itemStack);
     }
 
     /**
@@ -1928,9 +2007,15 @@ public class InventoryContents {
      *
      * @param pairs     First value is your row, second value is your column.
      * @param itemStack The new ItemStack what should be displayed.
+     * @return true if all items were updated, false if not.
      */
-    public void updateViaCoordination(@NotNull Collection<ImmutablePair<Integer, Integer>> pairs, @NotNull ItemStack itemStack) {
-        pairs.forEach(pair -> updateViaCoordination(pair.getLeft(), pair.getRight(), itemStack));
+    public boolean updateViaCoordination(@NotNull Collection<ImmutablePair<Integer, Integer>> pairs, @NotNull ItemStack itemStack) {
+        AtomicInteger updated = new AtomicInteger();
+        pairs.forEach(pair -> {
+            updateViaCoordination(pair.getLeft(), pair.getRight(), itemStack);
+            updated.getAndIncrement();
+        });
+        return updated.get() >= pairs.size();
     }
 
     /**
@@ -1939,9 +2024,10 @@ public class InventoryContents {
      * @param itemSlot  The slot from the old ItemStack
      * @param newSlot   The slot where the new ItemStack will be placed.
      * @param itemStack The new ItemStack what should be displayed.
+     * @return true if the ItemStack was updated, false if not.
      * @throws IllegalArgumentException if itemSlot > 53 or newSlot > 53
      */
-    public void update(@Nonnegative int itemSlot, @Nonnegative int newSlot, @NotNull ItemStack itemStack) throws IllegalArgumentException {
+    public boolean update(@Nonnegative int itemSlot, @Nonnegative int newSlot, @NotNull ItemStack itemStack) throws IllegalArgumentException {
         if (itemSlot > 53)
             throw new IllegalArgumentException("The itemSlot must not be larger than 53.");
 
@@ -1949,7 +2035,7 @@ public class InventoryContents {
             throw new IllegalArgumentException("The newSlot must not be larger than 53.");
 
         Optional<IntelligentItem> itemOptional = get(itemSlot);
-        if (!itemOptional.isPresent()) return;
+        if (!itemOptional.isPresent()) return false;
 
         IntelligentItem item = itemOptional.get();
         IntelligentItem newItem = item.update(itemStack);
@@ -1961,6 +2047,7 @@ public class InventoryContents {
             savedInventory.setItem(itemSlot, null);
             savedInventory.setItem(newSlot, newItem.getItemStack());
         });
+        return true;
     }
 
     /**
@@ -1968,10 +2055,11 @@ public class InventoryContents {
      *
      * @param itemSlot The slot from the old ItemStack
      * @param newSlot  The slot where the new ItemStack will be placed.
+     * @return true if the ItemStack was updated, false if not.
      * @throws IllegalArgumentException if itemSlot > 53 or newSlot > 53
      */
-    public void updatePosition(@Nonnegative int itemSlot, @Nonnegative int newSlot) throws IllegalArgumentException {
-        update(itemSlot, newSlot, new ItemStack(Material.AIR));
+    public boolean updatePosition(@Nonnegative int itemSlot, @Nonnegative int newSlot) throws IllegalArgumentException {
+        return update(itemSlot, newSlot, new ItemStack(Material.AIR));
     }
 
     /**

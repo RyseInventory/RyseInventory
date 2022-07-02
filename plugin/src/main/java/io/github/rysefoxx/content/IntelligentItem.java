@@ -33,6 +33,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -49,6 +51,12 @@ public class IntelligentItem {
     private boolean canClick = true;
     private boolean canSee = true;
     private @Nullable Object id;
+
+    //For serialization
+    private IntelligentItem(@NotNull ItemStack itemStack, @NotNull IntelligentItemError error) {
+        this.itemStack = itemStack;
+        this.error = error;
+    }
 
     @Contract(pure = true)
     public IntelligentItem(@NotNull ItemStack itemStack, Consumer<InventoryClickEvent> eventConsumer, IntelligentItemError error) {
@@ -153,5 +161,38 @@ public class IntelligentItem {
      */
     public @NotNull IntelligentItem update(@NotNull IntelligentItem newIntelligentItem) {
         return new IntelligentItem(newIntelligentItem.getItemStack(), newIntelligentItem.getConsumer(), this.error);
+    }
+
+    /**
+     * Serializes the IntelligentItem to a map.
+     *
+     * @return The serialized map.
+     * @see #deserialize(Map) to get back the IntelligentItem.
+     */
+    public @NotNull Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("item", this.itemStack);
+        map.put("consumer", this.consumer);
+        map.put("error", this.error);
+        map.put("can-click", this.canClick);
+        map.put("can-see", this.canSee);
+        map.put("id", this.id);
+        return map;
+    }
+
+    /**
+     * Deserializes a map to an IntelligentItem.
+     * @param map The map to deserialize.
+     * @return The deserialized IntelligentItem.
+     */
+    @SuppressWarnings("unchecked")
+    public static @Nullable IntelligentItem deserialize(@NotNull Map<String, Object> map) {
+        if (map.isEmpty()) return null;
+        IntelligentItem intelligentItem = new IntelligentItem((ItemStack) map.get("item"), (IntelligentItemError) map.get("error"));
+        intelligentItem.consumer = (Consumer<InventoryClickEvent>) map.get("consumer");
+        intelligentItem.canClick = (boolean) map.get("can-click");
+        intelligentItem.canSee = (boolean) map.get("can-see");
+        intelligentItem.id = map.get("id");
+        return intelligentItem;
     }
 }
