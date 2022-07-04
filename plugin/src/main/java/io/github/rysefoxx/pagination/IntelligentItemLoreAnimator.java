@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author Rysefoxx(Rysefoxx # 6772) | eazypaulcode(eazypaulCode#0001) |
+ * @author Rysefoxx(Rysefoxx # 6772)
  * @since 4/12/2022
  */
 public class IntelligentItemLoreAnimator {

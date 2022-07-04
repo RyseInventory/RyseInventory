@@ -31,6 +31,9 @@ import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.content.IntelligentItemData;
 import io.github.rysefoxx.content.InventoryProvider;
 import io.github.rysefoxx.enums.*;
+import io.github.rysefoxx.events.RyseInventoryCloseEvent;
+import io.github.rysefoxx.events.RyseInventoryOpenEvent;
+import io.github.rysefoxx.events.RyseInventoryTitleChangeEvent;
 import io.github.rysefoxx.other.EventCreator;
 import io.github.rysefoxx.pattern.SlotIteratorPattern;
 import io.github.rysefoxx.util.StringConstants;
@@ -270,6 +273,12 @@ public class RyseInventory {
      * @param player The player which inventory should be closed.
      */
     public void close(@NotNull Player player) {
+        RyseInventoryCloseEvent event = new RyseInventoryCloseEvent(player, this);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) return;
+
+
         if (this.playerInventory.containsKey(player.getUniqueId())) {
             player.getInventory().setContents(this.playerInventory.remove(player.getUniqueId()));
         }
@@ -311,9 +320,9 @@ public class RyseInventory {
      * Opens the inventory with the first page.
      *
      * @param player The player where the inventory should be opened.
-     * @return the Bukkit Inventory object.
+     * @return Returns the Bukkit Inventory object. Null if the RyseInventoryOpenEvent is canceled.
      */
-    public @NotNull Inventory open(@NotNull Player player) {
+    public @Nullable Inventory open(@NotNull Player player) {
         return open(player, 1);
     }
 
@@ -357,9 +366,9 @@ public class RyseInventory {
      *
      * @param player The player where the inventory should be opened.
      * @param page   Which page should be opened?
-     * @return Returns the Bukkit Inventory object.
+     * @return Returns the Bukkit Inventory object. Null if the RyseInventoryOpenEvent is canceled.
      */
-    public @NotNull Inventory open(@NotNull Player player, @Nonnegative int page) {
+    public @Nullable Inventory open(@NotNull Player player, @Nonnegative int page) {
         return initInventory(player, page, null, null);
     }
 
@@ -370,10 +379,10 @@ public class RyseInventory {
      * @param page   Which page should be opened?
      * @param keys   The keys
      * @param values The values
-     * @return Returns the Bukkit Inventory object.
+     * @return Returns the Bukkit Inventory object. Null if the RyseInventoryOpenEvent is canceled.
      * @throws IllegalArgumentException if the two arrays do not have the same size.
      */
-    public @NotNull Inventory open(@NotNull Player player, @Nonnegative int page, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
+    public @Nullable Inventory open(@NotNull Player player, @Nonnegative int page, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
         Preconditions.checkArgument(keys.length == values.length, StringConstants.INVALID_OBJECT);
 
         return initInventory(player, page, keys, values);
@@ -385,16 +394,25 @@ public class RyseInventory {
      * @param player The player where the inventory should be opened.
      * @param keys   The keys
      * @param values The values
-     * @return Returns the Bukkit Inventory object.
+     * @return Returns the Bukkit Inventory object. Null if the RyseInventoryOpenEvent is canceled.
      * @throws IllegalArgumentException if the two arrays do not have the same size.
      */
-    public @NotNull Inventory open(@NotNull Player player, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
+    public @Nullable Inventory open(@NotNull Player player, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
         Preconditions.checkArgument(keys.length == values.length, StringConstants.INVALID_OBJECT);
 
         return initInventory(player, 1, keys, values);
     }
 
-    private @NotNull Inventory initInventory(@NotNull Player player, @Nonnegative int page, @Nullable String[] keys, @Nullable Object[] values) {
+    private @Nullable Inventory initInventory(@NotNull Player player, @Nonnegative int page, @Nullable String[] keys, @Nullable Object[] values) {
+        RyseInventoryOpenEvent event = new RyseInventoryOpenEvent(player, this);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled())
+            return null;
+
+        if (!equals(event.getInventory()))
+            return event.getInventory().open(player);
+
         finishSavedInventory(player);
         removeActiveAnimations();
 
@@ -449,7 +467,11 @@ public class RyseInventory {
      * @author <a href="https://www.spigotmc.org/threads/change-inventory-title-reflection-1-8-1-18.489966/">Original code (Slightly Modified)</a>
      */
     public void updateTitle(@NotNull Player player, @NotNull String newTitle) {
-        TitleUpdater.updateInventory(player, newTitle);
+        RyseInventoryTitleChangeEvent event = new RyseInventoryTitleChangeEvent(player, this.title, newTitle);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) return;
+        TitleUpdater.updateInventory(player, event.getNewTitle());
     }
 
     /**
@@ -913,6 +935,15 @@ public class RyseInventory {
         return Optional.of(this.privateInventory.get(uuid));
     }
 
+    @Contract(value = "null -> false", pure = true)
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RyseInventory)) return false;
+        RyseInventory that = (RyseInventory) o;
+        return clearAndSafe == that.clearAndSafe && size == that.size && delay == that.delay && openDelay == that.openDelay && period == that.period && closeAfter == that.closeAfter && loadDelay == that.loadDelay && loadTitle == that.loadTitle && closeAble == that.closeAble && transferData == that.transferData && Objects.equals(title, that.title) && Objects.equals(inventory, that.inventory) && Objects.equals(slideAnimator, that.slideAnimator) && Objects.equals(identifier, that.identifier) && Objects.equals(titleHolder, that.titleHolder) && inventoryOpenerType == that.inventoryOpenerType && Objects.equals(options, that.options) && Objects.equals(events, that.events) && Objects.equals(ignoreClickEvent, that.ignoreClickEvent) && Objects.equals(closeReasons, that.closeReasons) && Objects.equals(itemAnimator, that.itemAnimator) && Objects.equals(materialAnimator, that.materialAnimator) && Objects.equals(titleAnimator, that.titleAnimator) && Objects.equals(loreAnimator, that.loreAnimator) && Objects.equals(privateInventory, that.privateInventory) && Objects.equals(playerInventory, that.playerInventory);
+    }
+
     protected void load(@NotNull Pagination pagination, @NotNull Player player, @Nonnegative int page) {
         pagination.getDataByPage(page).forEach(item -> placeItem(player, item.getModifiedSlot(), item.getItem()));
     }
@@ -996,6 +1027,7 @@ public class RyseInventory {
     private void transferData(InventoryContents oldContents, @NotNull InventoryContents newContents, @Nullable String[] keys, @Nullable Object[] values) {
         if (this.transferData && oldContents != null)
             oldContents.transferData(newContents);
+
 
         if (keys != null && values != null) {
             Arrays.stream(keys).filter(Objects::nonNull).forEach(s -> Arrays.stream(values).filter(Objects::nonNull).forEach(o -> newContents.setData(s, o)));
@@ -1158,7 +1190,7 @@ public class RyseInventory {
         contents.pagination().setInventoryData(data);
     }
 
-    private @Nullable IntelligentItem get(List<IntelligentItemData> inventoryData, @Nonnegative int slot, @Nonnegative int page) {
+    private @Nullable IntelligentItem get(@NotNull List<IntelligentItemData> inventoryData, @Nonnegative int slot, @Nonnegative int page) {
         for (IntelligentItemData data : inventoryData) {
             if (data.getPage() == page && data.getModifiedSlot() == slot)
                 return data.getItem();

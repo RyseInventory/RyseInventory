@@ -53,6 +53,7 @@ public class IntelligentItem {
     private @Nullable Object id;
 
     //For serialization
+    @Contract(pure = true)
     private IntelligentItem(@NotNull ItemStack itemStack, @NotNull IntelligentItemError error) {
         this.itemStack = itemStack;
         this.error = error;

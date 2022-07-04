@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @author Rysefoxx(Rysefoxx # 6772) | eazypaulcode(eazypaulCode#0001) |
+ * @author Rysefoxx(Rysefoxx # 6772)
  * @apiNote The title animation is currently only available for Chest or EnderChest. Other inventory types like BREWING_STAND will not work!
  * @since 4/12/2022
  */
