@@ -352,6 +352,17 @@ public class RyseInventory {
     }
 
     /**
+     * Opens the inventory with the first page for multiple players with defined properties.
+     *
+     * @param players The players for whom the inventory should be opened.
+     * @param data    The predefined data
+     */
+    public void open(@NotNull Map<String, Object> data, Player @NotNull ... players) {
+        for (Player player : players)
+            open(player, 1, data);
+    }
+
+    /**
      * Opens the inventory with a specific page for multiple players.
      *
      * @param players The players for whom the inventory should be opened.
@@ -392,6 +403,21 @@ public class RyseInventory {
      * Opens an inventory with a specific page and defined properties.
      *
      * @param player The player where the inventory should be opened.
+     * @param page   Which page should be opened?
+     * @param data   The predefined data
+     * @return Returns the Bukkit Inventory object. Null if the RyseInventoryOpenEvent is canceled.
+     */
+    public @Nullable Inventory open(@NotNull Player player, @Nonnegative int page, @NotNull Map<String, Object> data) {
+        String[] keys = data.keySet().toArray(new String[0]);
+        Object[] values = data.values().toArray();
+
+        return initInventory(player, page, keys, values);
+    }
+
+    /**
+     * Opens an inventory with a specific page and defined properties.
+     *
+     * @param player The player where the inventory should be opened.
      * @param keys   The keys
      * @param values The values
      * @return Returns the Bukkit Inventory object. Null if the RyseInventoryOpenEvent is canceled.
@@ -399,6 +425,20 @@ public class RyseInventory {
      */
     public @Nullable Inventory open(@NotNull Player player, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
         Preconditions.checkArgument(keys.length == values.length, StringConstants.INVALID_OBJECT);
+
+        return initInventory(player, 1, keys, values);
+    }
+
+    /**
+     * Opens an inventory with a specific page and defined properties.
+     *
+     * @param player The player where the inventory should be opened.
+     * @param data   The predefined data
+     * @return Returns the Bukkit Inventory object. Null if the RyseInventoryOpenEvent is canceled.
+     */
+    public @Nullable Inventory open(@NotNull Player player, @NotNull Map<String, Object> data) {
+        String[] keys = data.keySet().toArray(new String[0]);
+        Object[] values = data.values().toArray();
 
         return initInventory(player, 1, keys, values);
     }
@@ -1028,9 +1068,14 @@ public class RyseInventory {
         if (this.transferData && oldContents != null)
             oldContents.transferData(newContents);
 
-
         if (keys != null && values != null) {
-            Arrays.stream(keys).filter(Objects::nonNull).forEach(s -> Arrays.stream(values).filter(Objects::nonNull).forEach(o -> newContents.setData(s, o)));
+            for (int n = 0; n < keys.length; n++) {
+                String key = keys[n];
+                Object value = values[n];
+                if (key == null || value == null) continue;
+
+                newContents.setData(key, value);
+            }
         }
     }
 
