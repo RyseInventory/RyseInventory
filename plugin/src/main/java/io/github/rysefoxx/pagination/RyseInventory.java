@@ -300,7 +300,7 @@ public class RyseInventory {
         List<UUID> players = new ArrayList<>();
         Bukkit.getOnlinePlayers().forEach(player -> {
             this.manager.getInventory(player.getUniqueId()).ifPresent(savedInventory -> {
-                if (this != savedInventory) return;
+                if (!this.equals(savedInventory)) return;
                 players.add(player.getUniqueId());
             });
         });
@@ -981,7 +981,8 @@ public class RyseInventory {
         if (this == o) return true;
         if (!(o instanceof RyseInventory)) return false;
         RyseInventory that = (RyseInventory) o;
-        return clearAndSafe == that.clearAndSafe && size == that.size && delay == that.delay && openDelay == that.openDelay && period == that.period && closeAfter == that.closeAfter && loadDelay == that.loadDelay && loadTitle == that.loadTitle && closeAble == that.closeAble && transferData == that.transferData && Objects.equals(title, that.title) && Objects.equals(inventory, that.inventory) && Objects.equals(slideAnimator, that.slideAnimator) && Objects.equals(identifier, that.identifier) && Objects.equals(titleHolder, that.titleHolder) && inventoryOpenerType == that.inventoryOpenerType && Objects.equals(options, that.options) && Objects.equals(events, that.events) && Objects.equals(ignoreClickEvent, that.ignoreClickEvent) && Objects.equals(closeReasons, that.closeReasons) && Objects.equals(itemAnimator, that.itemAnimator) && Objects.equals(materialAnimator, that.materialAnimator) && Objects.equals(titleAnimator, that.titleAnimator) && Objects.equals(loreAnimator, that.loreAnimator) && Objects.equals(privateInventory, that.privateInventory) && Objects.equals(playerInventory, that.playerInventory);
+
+        return clearAndSafe == that.clearAndSafe && size == that.size && delay == that.delay && openDelay == that.openDelay && period == that.period && closeAfter == that.closeAfter && loadDelay == that.loadDelay && loadTitle == that.loadTitle && closeAble == that.closeAble && transferData == that.transferData && Objects.equals(title, that.title) && Objects.equals(slideAnimator, that.slideAnimator) && Objects.equals(identifier, that.identifier) && Objects.equals(titleHolder, that.titleHolder) && inventoryOpenerType == that.inventoryOpenerType && Objects.equals(options, that.options) && Objects.equals(events, that.events) && Objects.equals(ignoreClickEvent, that.ignoreClickEvent) && Objects.equals(closeReasons, that.closeReasons);
     }
 
     protected void load(@NotNull Pagination pagination, @NotNull Player player, @Nonnegative int page) {

@@ -1733,7 +1733,7 @@ public class InventoryContents {
 
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
-                if (updateLore(SlotUtils.toSlot(row, column), index, line)) updated.getAndIncrement();
+                if (contents.updateLore(SlotUtils.toSlot(row, column), index, line)) updated.getAndIncrement();
             });
         }
         return updated.get() == this.inventory.getOpenedPlayers().size();
@@ -1790,7 +1790,7 @@ public class InventoryContents {
 
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
-                if (updateLore(slot, lore)) updated.getAndIncrement();
+                if (contents.updateLore(slot, lore)) updated.getAndIncrement();
             });
         }
         return updated.get() == this.inventory.getOpenedPlayers().size();
@@ -1855,7 +1855,7 @@ public class InventoryContents {
 
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
-                if (updateLore(slot, index, line)) updated.getAndIncrement();
+                if (contents.updateLore(slot, index, line)) updated.getAndIncrement();
             });
         }
         return updated.get() == this.inventory.getOpenedPlayers().size();
@@ -1905,7 +1905,7 @@ public class InventoryContents {
 
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
-                if (updateLore(slots, indexes, lines)) updated.getAndIncrement();
+                if (contents.updateLore(slots, indexes, lines)) updated.getAndIncrement();
             });
         }
         return updated.get() == this.inventory.getOpenedPlayers().size();
@@ -1954,7 +1954,7 @@ public class InventoryContents {
 
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
-                if (update(slot, itemStack)) updated.getAndIncrement();
+                if (contents.update(slot, itemStack)) updated.getAndIncrement();
             });
         }
         return updated.get() == this.inventory.getOpenedPlayers().size();
@@ -2007,7 +2007,7 @@ public class InventoryContents {
 
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
-                if (updateDisplayName(slot, displayName)) updated.getAndIncrement();
+                if (contents.updateDisplayName(slot, displayName)) updated.getAndIncrement();
             });
         }
         return updated.get() == this.inventory.getOpenedPlayers().size();
@@ -2055,7 +2055,7 @@ public class InventoryContents {
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
 
-                updateDisplayName(slot, item, displayName);
+                contents.updateDisplayName(slot, item, displayName);
             });
         }
     }
@@ -2126,7 +2126,7 @@ public class InventoryContents {
 
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
-                if (update(slot, intelligentItem)) updated.getAndIncrement();
+                if (contents.update(slot, intelligentItem)) updated.getAndIncrement();
             });
         }
         return updated.get() == this.inventory.getOpenedPlayers().size();
@@ -2161,7 +2161,7 @@ public class InventoryContents {
 
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
-                if (update(SlotUtils.toSlot(row, column), intelligentItem.getItemStack())) updated.getAndIncrement();
+                if (contents.update(SlotUtils.toSlot(row, column), intelligentItem.getItemStack())) updated.getAndIncrement();
             });
         }
         return updated.get() == this.inventory.getOpenedPlayers().size();
@@ -2199,7 +2199,7 @@ public class InventoryContents {
 
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
-                if (update(slots, itemStack)) updated.getAndIncrement();
+                if (contents.update(slots, itemStack)) updated.getAndIncrement();
             });
         }
         return updated.get() == this.inventory.getOpenedPlayers().size();
@@ -2236,7 +2236,7 @@ public class InventoryContents {
 
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
-                if (update(SlotUtils.toSlot(row, column), itemStack)) updated.getAndIncrement();
+                if (contents.update(SlotUtils.toSlot(row, column), itemStack)) updated.getAndIncrement();
             });
         }
         return updated.get() == this.inventory.getOpenedPlayers().size();
@@ -2272,7 +2272,7 @@ public class InventoryContents {
 
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
-                if (updateViaCoordination(pairs, itemStack)) updated.getAndIncrement();
+                if (contents.updateViaCoordination(pairs, itemStack)) updated.getAndIncrement();
             });
         }
         return updated.get() == this.inventory.getOpenedPlayers().size();
@@ -2328,7 +2328,7 @@ public class InventoryContents {
 
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
-                if (update(itemSlot, newSlot, itemStack)) updated.getAndIncrement();
+                if (contents.update(itemSlot, newSlot, itemStack)) updated.getAndIncrement();
             });
         }
         return updated.get() == this.inventory.getOpenedPlayers().size();

@@ -129,7 +129,7 @@ public class InventoryManager {
             Optional<RyseInventory> optional = getInventory(player.getUniqueId());
 
             optional.ifPresent(savedInventory -> {
-                if (inventory != savedInventory) return;
+                if(!inventory.equals(savedInventory)) return;
                 players.add(player.getUniqueId());
             });
         });
