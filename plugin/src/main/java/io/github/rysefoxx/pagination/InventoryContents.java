@@ -86,7 +86,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         return slot <= this.inventory.size();
@@ -116,7 +116,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         get(slot).ifPresent(IntelligentItem::clearConsumer);
@@ -559,7 +559,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
@@ -622,7 +622,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
@@ -669,7 +669,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
@@ -720,7 +720,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
@@ -768,7 +768,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
@@ -814,7 +814,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
@@ -978,7 +978,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         this.pagination.setItem(slot, page, item);
@@ -1034,7 +1034,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
@@ -1054,7 +1054,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
@@ -1075,7 +1075,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
@@ -1102,7 +1102,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
@@ -1122,7 +1122,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
@@ -1143,7 +1143,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
@@ -1163,7 +1163,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
@@ -1185,7 +1185,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
@@ -1206,7 +1206,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         int difference = slot + (findRightBorder(slot) - slot);
@@ -1227,7 +1227,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9)
@@ -1246,7 +1246,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9)
@@ -1265,7 +1265,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9)
@@ -1285,7 +1285,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         IntelligentItem intelligentItem;
@@ -1312,7 +1312,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9) {
@@ -1332,7 +1332,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9)
@@ -1351,7 +1351,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9) {
@@ -1372,7 +1372,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9)
@@ -1392,7 +1392,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         for (int i = slot; i < this.inventory.size(); i += 9) {
@@ -1449,7 +1449,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         this.pagination.setItem(slot, item);
@@ -1620,7 +1620,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         return Optional.ofNullable(this.pagination.get(slot, page));
@@ -1649,7 +1649,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         return Optional.ofNullable(this.pagination.get(slot));
@@ -1718,6 +1718,28 @@ public class InventoryContents {
     }
 
     /**
+     * Updates the lore of the item for all players with the same inventory.
+     *
+     * @param index Where in the lore should the new line be located.
+     * @param line  The new line in the ItemStack
+     * @return true if the lore was updated for all players, false if the lore was not updated.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size or index >= lore.size()
+     * @throws IllegalStateException    if ItemStack has no ItemMeta or no Lore
+     */
+    public boolean updateLoreForAll(@Nonnegative int row, @Nonnegative int column, @Nonnegative int index, @NotNull String line) throws IllegalArgumentException, IllegalStateException {
+        AtomicInteger updated = new AtomicInteger();
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+                if (updateLore(SlotUtils.toSlot(row, column), index, line)) updated.getAndIncrement();
+            });
+        }
+        return updated.get() == this.inventory.getOpenedPlayers().size();
+    }
+
+    /**
      * Updates the lore of the item.
      *
      * @param slot In which slot in the inventory is the ItemStack located.
@@ -1730,7 +1752,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         Optional<IntelligentItem> itemOptional = get(slot);
@@ -1753,6 +1775,28 @@ public class InventoryContents {
     }
 
     /**
+     * Updates the lore of the item for all players with the same inventory.
+     *
+     * @param slot In which slot in the inventory is the ItemStack located.
+     * @param lore The new lore
+     * @return true if the lore was updated for all players, false if the lore was not updated.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size or index >= lore.size()
+     * @throws IllegalStateException    if ItemStack has no ItemMeta or no Lore
+     */
+    public boolean updateLoreForAll(@Nonnegative int slot, @NotNull List<String> lore) throws IllegalArgumentException, IllegalStateException {
+        AtomicInteger updated = new AtomicInteger();
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+                if (updateLore(slot, lore)) updated.getAndIncrement();
+            });
+        }
+        return updated.get() == this.inventory.getOpenedPlayers().size();
+    }
+
+    /**
      * Updates the lore of the item.
      *
      * @param slot  In which slot in the inventory is the ItemStack located.
@@ -1766,7 +1810,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         Optional<IntelligentItem> itemOptional = get(slot);
@@ -1792,6 +1836,29 @@ public class InventoryContents {
 
         update(slot, itemStack);
         return true;
+    }
+
+    /**
+     * Updates the lore of the item for all players with the same inventory.
+     *
+     * @param slot  In which slot in the inventory is the ItemStack located.
+     * @param index Where in the lore should the new line be located.
+     * @param line  The new line in the ItemStack
+     * @return true if the lore was updated for all players, false if the lore was not updated.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size or index >= lore.size()
+     * @throws IllegalStateException    if ItemStack has no ItemMeta or no Lore
+     */
+    public boolean updateLoreForAll(@Nonnegative int slot, @Nonnegative int index, @NotNull String line) throws IllegalArgumentException, IllegalStateException {
+        AtomicInteger updated = new AtomicInteger();
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+                if (updateLore(slot, index, line)) updated.getAndIncrement();
+            });
+        }
+        return updated.get() == this.inventory.getOpenedPlayers().size();
     }
 
     /**
@@ -1822,6 +1889,29 @@ public class InventoryContents {
     }
 
     /**
+     * Updates multiple lore lines at once for all players with the same inventory.
+     *
+     * @param slots   The slots where the items are located.
+     * @param indexes The indexes where the lines should be located.
+     * @param lines   The lines that should be updated.
+     * @return true if all lines of all items were updated for all players, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size or index >= lore.size() or lines.size() != slots.size() or indexes.size() != slots.size()
+     * @throws IllegalStateException    if ItemStack has no ItemMeta or no Lore
+     */
+    public boolean updateLoreForAll(@NotNull List<Integer> slots, @NotNull List<Integer> indexes, @NotNull List<String> lines) throws IllegalArgumentException, IllegalStateException {
+        AtomicInteger updated = new AtomicInteger();
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+                if (updateLore(slots, indexes, lines)) updated.getAndIncrement();
+            });
+        }
+        return updated.get() == this.inventory.getOpenedPlayers().size();
+    }
+
+    /**
      * Updates the ItemStack in the same place with a new ItemStack.
      *
      * @param slot      The slot
@@ -1833,7 +1923,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         Optional<IntelligentItem> itemOptional = get(slot);
@@ -1850,6 +1940,27 @@ public class InventoryContents {
     }
 
     /**
+     * Updates the ItemStack in the same place with a new ItemStack for all players with the same inventory.
+     *
+     * @param slot      The slot
+     * @param itemStack The new ItemStack what should be displayed.
+     * @return true if the ItemStack was updated for all players, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     */
+    public boolean updateForAll(@Nonnegative int slot, @NotNull ItemStack itemStack) throws IllegalArgumentException {
+        AtomicInteger updated = new AtomicInteger();
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+                if (update(slot, itemStack)) updated.getAndIncrement();
+            });
+        }
+        return updated.get() == this.inventory.getOpenedPlayers().size();
+    }
+
+    /**
      * The display name of the ItemStack is updated.
      *
      * @param slot        In which slot is the item located?
@@ -1861,7 +1972,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         Optional<IntelligentItem> itemOptional = get(slot);
@@ -1882,6 +1993,27 @@ public class InventoryContents {
     }
 
     /**
+     * The display name of the ItemStack is updated for all players with the same inventory.
+     *
+     * @param slot        In which slot is the item located?
+     * @param displayName The new display name
+     * @return true if the display name was updated for all players, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     */
+    public boolean updateDisplayNameForAll(@Nonnegative int slot, @NotNull String displayName) throws IllegalArgumentException {
+        AtomicInteger updated = new AtomicInteger();
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+                if (updateDisplayName(slot, displayName)) updated.getAndIncrement();
+            });
+        }
+        return updated.get() == this.inventory.getOpenedPlayers().size();
+    }
+
+    /**
      * Updates the display name of the passed item and places it at the slot.
      *
      * @param slot        Where should the item be placed?
@@ -1893,7 +2025,7 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if(slot > this.inventory.size())
+        if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
         ItemStack itemStack = item.getItemStack();
@@ -1906,6 +2038,26 @@ public class InventoryContents {
         itemStack.setItemMeta(itemMeta);
 
         update(slot, itemStack);
+    }
+
+    /**
+     * Updates the display name of the passed item and places it at the slot for all players with the same inventory.
+     *
+     * @param slot        Where should the item be placed?
+     * @param item        The item which display name should be updated.
+     * @param displayName The new display name
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     */
+    public void updateDisplayNameForAll(@Nonnegative int slot, @NotNull IntelligentItem item, @NotNull String displayName) throws IllegalArgumentException {
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+
+                updateDisplayName(slot, item, displayName);
+            });
+        }
     }
 
     /**
@@ -1927,6 +2079,7 @@ public class InventoryContents {
 
         return item.update(itemStack);
     }
+
 
     /**
      * Updates the display name of the passed item.
@@ -1959,6 +2112,27 @@ public class InventoryContents {
     }
 
     /**
+     * Updates the ItemStack in the same place with a new IntelligentItem for all players with the same inventory.
+     *
+     * @param slot            The slot
+     * @param intelligentItem The new IntelligentItem what should be displayed.
+     * @return true if the ItemStack was updated for all players, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     */
+    public boolean updateForAll(@Nonnegative int slot, @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
+        AtomicInteger updated = new AtomicInteger();
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+                if (update(slot, intelligentItem)) updated.getAndIncrement();
+            });
+        }
+        return updated.get() == this.inventory.getOpenedPlayers().size();
+    }
+
+    /**
      * Updates the ItemStack in the same place with a new IntelligentItem.
      *
      * @param row             The row
@@ -1969,6 +2143,28 @@ public class InventoryContents {
      */
     public boolean update(@Nonnegative int row, @Nonnegative int column, @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
         return update(SlotUtils.toSlot(row, column), intelligentItem.getItemStack());
+    }
+
+    /**
+     * Updates the ItemStack in the same place with a new IntelligentItem for all players with the same inventory.
+     *
+     * @param row             The row
+     * @param column          The column
+     * @param intelligentItem The new IntelligentItem what should be displayed.
+     * @return true if the ItemStack was updated for all players, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     */
+    public boolean updateForAll(@Nonnegative int row, @Nonnegative int column, @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
+        AtomicInteger updated = new AtomicInteger();
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+                if (update(SlotUtils.toSlot(row, column), intelligentItem.getItemStack())) updated.getAndIncrement();
+            });
+        }
+        return updated.get() == this.inventory.getOpenedPlayers().size();
     }
 
     /**
@@ -1989,6 +2185,27 @@ public class InventoryContents {
     }
 
     /**
+     * Update multiple items at once, with a new ItemStack for all players with the same inventory.
+     *
+     * @param slots     The slots
+     * @param itemStack The new ItemStack what should be displayed.
+     * @return true if all items were updated for all players, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     */
+    public boolean updateForAll(@NotNull List<Integer> slots, @NotNull ItemStack itemStack) throws IllegalArgumentException {
+        AtomicInteger updated = new AtomicInteger();
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+                if (update(slots, itemStack)) updated.getAndIncrement();
+            });
+        }
+        return updated.get() == this.inventory.getOpenedPlayers().size();
+    }
+
+    /**
      * Updates the ItemStack in the same place with a new ItemStack.
      *
      * @param column    The column
@@ -2000,6 +2217,29 @@ public class InventoryContents {
     @SuppressWarnings("UnusedReturnValue")
     public boolean updateViaCoordination(@Nonnegative int row, @Nonnegative int column, @NotNull ItemStack itemStack) throws IllegalArgumentException {
         return update(SlotUtils.toSlot(row, column), itemStack);
+    }
+
+    /**
+     * Updates the ItemStack in the same place with a new ItemStack for all players with the same inventory.
+     *
+     * @param column    The column
+     * @param row       The row
+     * @param itemStack The new ItemStack what should be displayed.
+     * @return true if the ItemStack was updated for all players, false if not.
+     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public boolean updateViaCoordinationForAll(@Nonnegative int row, @Nonnegative int column, @NotNull ItemStack itemStack) throws IllegalArgumentException {
+        AtomicInteger updated = new AtomicInteger();
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+                if (update(SlotUtils.toSlot(row, column), itemStack)) updated.getAndIncrement();
+            });
+        }
+        return updated.get() == this.inventory.getOpenedPlayers().size();
     }
 
     /**
@@ -2016,6 +2256,26 @@ public class InventoryContents {
             updated.getAndIncrement();
         });
         return updated.get() >= pairs.size();
+    }
+
+    /**
+     * Update multiple items at once, with a new ItemStack for all players with the same inventory.
+     *
+     * @param pairs     First value is your row, second value is your column.
+     * @param itemStack The new ItemStack what should be displayed.
+     * @return true if all items were updated for all players, false if not.
+     */
+    public boolean updateViaCoordinationForAll(@NotNull Collection<ImmutablePair<Integer, Integer>> pairs, @NotNull ItemStack itemStack) {
+        AtomicInteger updated = new AtomicInteger();
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+                if (updateViaCoordination(pairs, itemStack)) updated.getAndIncrement();
+            });
+        }
+        return updated.get() == this.inventory.getOpenedPlayers().size();
     }
 
     /**
@@ -2037,8 +2297,10 @@ public class InventoryContents {
         Optional<IntelligentItem> itemOptional = get(itemSlot);
         if (!itemOptional.isPresent()) return false;
 
+        removeItemWithConsumer(itemSlot);
+
         IntelligentItem item = itemOptional.get();
-        IntelligentItem newItem = item.update(itemStack);
+        IntelligentItem newItem = item.update(itemStack.getType() == Material.AIR ? item.getItemStack() : itemStack);
 
         set(newSlot, newItem);
 
@@ -2051,6 +2313,28 @@ public class InventoryContents {
     }
 
     /**
+     * Updates item and puts it in a new place in the inventory for all players in the inventory.
+     *
+     * @param itemSlot  The slot from the old ItemStack
+     * @param newSlot   The slot where the new ItemStack will be placed.
+     * @param itemStack The new ItemStack what should be displayed.
+     * @return true if the ItemStack was updated for all players, false if not.
+     * @throws IllegalArgumentException if itemSlot > 53 or newSlot > 53
+     */
+    public boolean updateForAll(@Nonnegative int itemSlot, @Nonnegative int newSlot, @NotNull ItemStack itemStack) throws IllegalArgumentException {
+        AtomicInteger updated = new AtomicInteger();
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+                if (update(itemSlot, newSlot, itemStack)) updated.getAndIncrement();
+            });
+        }
+        return updated.get() == this.inventory.getOpenedPlayers().size();
+    }
+
+    /**
      * Updates item position and puts it in a new place in the inventory.
      *
      * @param itemSlot The slot from the old ItemStack
@@ -2060,6 +2344,28 @@ public class InventoryContents {
      */
     public boolean updatePosition(@Nonnegative int itemSlot, @Nonnegative int newSlot) throws IllegalArgumentException {
         return update(itemSlot, newSlot, new ItemStack(Material.AIR));
+    }
+
+    /**
+     * Updates the item position to a new position for all players who have the same inventory open.
+     *
+     * @param itemSlot The slot from the old ItemStack
+     * @param newSlot  The slot where the new ItemStack will be placed.
+     * @return true if the ItemStack was updated for all players, false if not.
+     * @throws IllegalArgumentException if itemSlot > 53 or newSlot > 53
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public boolean updatePositionForAll(@Nonnegative int itemSlot, @Nonnegative int newSlot) throws IllegalArgumentException {
+        AtomicInteger updated = new AtomicInteger();
+        for (UUID openedPlayer : this.inventory.getOpenedPlayers()) {
+            Optional<InventoryContents> inventoryContents = this.inventory.getManager().getContents(openedPlayer);
+
+            inventoryContents.ifPresent(contents -> {
+                if (this.pagination.page() != contents.pagination().page()) return;
+                if (contents.updatePosition(itemSlot, newSlot)) updated.getAndIncrement();
+            });
+        }
+        return updated.get() == this.inventory.getOpenedPlayers().size();
     }
 
     /**
