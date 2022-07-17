@@ -1035,7 +1035,7 @@ public class RyseInventory {
 
         savedInventory.ifPresent(mainInventory -> {
             if (!this.backward)
-                this.manager.setLastInventory(player.getUniqueId(), mainInventory);
+                this.manager.setLastInventory(player.getUniqueId(), mainInventory, this);
 
             this.manager.removeInventory(player.getUniqueId());
 

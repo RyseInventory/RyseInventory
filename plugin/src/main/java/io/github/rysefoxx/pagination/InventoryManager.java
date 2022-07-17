@@ -76,11 +76,12 @@ public class InventoryManager {
 
     /**
      * Adds the IntelligentItem to the list if this item has an ID.
+     *
      * @param item The item to add.
      * @throws NullPointerException If the item ID is null.
      */
     public void register(@NotNull final IntelligentItem item) throws NullPointerException {
-        if(item.getId() == null) throw new NullPointerException("The item has no ID!");
+        if (item.getId() == null) throw new NullPointerException("The item has no ID!");
         this.items.add(item);
     }
 
@@ -129,7 +130,7 @@ public class InventoryManager {
             Optional<RyseInventory> optional = getInventory(player.getUniqueId());
 
             optional.ifPresent(savedInventory -> {
-                if(!inventory.equals(savedInventory)) return;
+                if (!inventory.equals(savedInventory)) return;
                 players.add(player.getUniqueId());
             });
         });
@@ -206,8 +207,10 @@ public class InventoryManager {
         this.inventories.put(uuid, inventory);
     }
 
-    protected void setLastInventory(@NotNull UUID uuid, @NotNull RyseInventory inventory) {
+    protected void setLastInventory(@NotNull UUID uuid, @NotNull RyseInventory inventory, @NotNull RyseInventory newInventory) {
         List<RyseInventory> inventoryList = this.lastInventories.getOrDefault(uuid, new ArrayList<>());
+
+        if(inventory.equals(newInventory))return;
 
         inventoryList.add(inventory);
 
