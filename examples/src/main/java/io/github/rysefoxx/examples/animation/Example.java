@@ -32,7 +32,6 @@ import io.github.rysefoxx.content.InventoryProvider;
 import io.github.rysefoxx.enums.AnimatorDirection;
 import io.github.rysefoxx.enums.TimeSetting;
 import io.github.rysefoxx.pagination.*;
-import io.github.rysefoxx.util.ItemBuilder;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

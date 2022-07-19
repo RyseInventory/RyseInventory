@@ -962,7 +962,7 @@ public class InventoryContents {
         }
 
         this.inventory.loadByPage(contents);
-        this.inventory.load(contents.pagination(), this.player, contents.pagination().page() - 1);
+        this.inventory.load(contents.pagination(), this.player, contents.pagination.page() - 1);
     }
 
     /**
@@ -2161,7 +2161,8 @@ public class InventoryContents {
 
             inventoryContents.ifPresent(contents -> {
                 if (this.pagination.page() != contents.pagination().page()) return;
-                if (contents.update(SlotUtils.toSlot(row, column), intelligentItem.getItemStack())) updated.getAndIncrement();
+                if (contents.update(SlotUtils.toSlot(row, column), intelligentItem.getItemStack()))
+                    updated.getAndIncrement();
             });
         }
         return updated.get() == this.inventory.getOpenedPlayers().size();

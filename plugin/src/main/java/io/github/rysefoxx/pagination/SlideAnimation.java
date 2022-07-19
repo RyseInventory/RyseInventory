@@ -646,6 +646,7 @@ public class SlideAnimation {
 
                     if (this.fromIndex == from.get(finalI)) {
                         contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
                     } else {
 
                         Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
@@ -659,8 +660,8 @@ public class SlideAnimation {
                             }
                         });
                         contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
                     }
-
 
                     this.previousIndex = this.fromIndex;
                     if (this.leftToRight) {

@@ -32,7 +32,6 @@ import io.github.rysefoxx.pagination.InventoryManager;
 import io.github.rysefoxx.pagination.RyseInventory;
 import io.github.rysefoxx.pattern.ContentPattern;
 import io.github.rysefoxx.pattern.SearchPattern;
-import io.github.rysefoxx.util.ItemBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

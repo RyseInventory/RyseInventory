@@ -30,7 +30,6 @@ import io.github.rysefoxx.content.InventoryProvider;
 import io.github.rysefoxx.pagination.InventoryContents;
 import io.github.rysefoxx.pagination.InventoryManager;
 import io.github.rysefoxx.pagination.RyseInventory;
-import io.github.rysefoxx.util.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
