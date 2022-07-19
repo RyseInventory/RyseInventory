@@ -516,6 +516,7 @@ public class SlideAnimation {
 
                     if (this.fromIndex == from.get(finalI)) {
                         contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
                     } else {
 
                         Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
@@ -529,6 +530,7 @@ public class SlideAnimation {
                             }
                         });
                         contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
                     }
 
                     this.previousIndex = this.fromIndex;
@@ -581,6 +583,7 @@ public class SlideAnimation {
 
                     if (this.fromIndex == from.get(finalI)) {
                         contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
                     } else {
 
                         Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
@@ -594,6 +597,7 @@ public class SlideAnimation {
                             }
                         });
                         contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
                     }
 
                     this.previousIndex = this.fromIndex;
@@ -714,6 +718,7 @@ public class SlideAnimation {
 
                     if (this.fromIndex == from.get(finalI)) {
                         contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
                     } else {
 
                         Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
@@ -727,6 +732,7 @@ public class SlideAnimation {
                             }
                         });
                         contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
                     }
 
                     this.previousIndex = this.fromIndex;
@@ -746,7 +752,7 @@ public class SlideAnimation {
         ItemStack previousItemStack = item.getItemStack();
 
         NBTContainer container = NBTItem.convertItemtoNBT(previousItemStack);
-        return container.hasKey(this.ANIMATION_KEY) ? container.getString(this.ANIMATION_KEY) : "";
+        return container.hasKey(ANIMATION_KEY) ? container.getString(ANIMATION_KEY) : "";
     }
 
     private void checkIfInvalid(@Nonnegative int from, @Nonnegative int to, @NotNull RyseInventory inventory) {
