@@ -29,6 +29,7 @@ import com.google.common.base.Preconditions;
 import io.github.rysefoxx.SlotIterator;
 import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.content.IntelligentItemData;
+import io.github.rysefoxx.enums.Alignment;
 import io.github.rysefoxx.enums.IntelligentType;
 import io.github.rysefoxx.enums.InventoryOpenerType;
 import io.github.rysefoxx.pattern.ContentPattern;
@@ -353,6 +354,67 @@ public class InventoryContents {
      */
     public void updateTitle(@NotNull String newTitle) {
         this.inventory.updateTitle(this.player, newTitle);
+    }
+
+    /**
+     * It fills a certain amount of rows or columns with a certain item, depending on the alignment
+     *
+     * @param alignment The alignment of the inventory to fill.
+     * @param howMuch   The amount of rows/columns to fill.
+     * @param item      The item to fill the inventory with.
+     * @throws IllegalArgumentException if howMuch > 9
+     */
+    public void fillAligned(@NotNull Alignment alignment, @Nonnegative int howMuch, @NotNull IntelligentItem item) throws IllegalArgumentException {
+        if (howMuch > 9)
+            throw new IllegalArgumentException(StringConstants.INVALID_AMOUNT);
+
+        switch (alignment) {
+            case TOP:
+                for (int i = 0, j = 0; i < howMuch; i++, j += 9)
+                    fillRow(j, item);
+                break;
+            case BOTTOM:
+                for (int i = howMuch, j = this.inventory.size() - 9; i > 0; i--, j -= 9)
+                    fillRow(j, item);
+                break;
+            case LEFT:
+                for (int i = 0; i < howMuch; i++)
+                    fillColumn(i, item);
+                break;
+            case RIGHT:
+                for (int i = howMuch, j = 8; i > 0; i--, j--)
+                    fillColumn(j, item);
+                break;
+        }
+    }
+
+    /**
+     * It fills a certain amount of rows or columns with a certain item, depending on the alignment
+     *
+     * @param alignment The alignment of the inventory to fill.
+     * @param howMuch   The amount of rows/columns to fill.
+     * @param item      The item to fill the inventory with.
+     * @throws IllegalArgumentException if howMuch > 9
+     */
+    public void fillAligned(@NotNull Alignment alignment, @Nonnegative int howMuch, @NotNull ItemStack item) throws IllegalArgumentException {
+        fillAligned(alignment, howMuch, IntelligentItem.empty(item));
+    }
+
+    /**
+     * It fills a certain amount of rows or columns with a certain item, depending on the alignment
+     *
+     * @param alignment The alignment of the inventory to fill.
+     * @param howMuch   The amount of rows/columns to fill.
+     * @param item      The item to fill the inventory with.
+     * @param type      The type of the item.
+     * @throws IllegalArgumentException if howMuch > 9
+     */
+    public void fillAligned(@NotNull Alignment alignment, @Nonnegative int howMuch, @NotNull ItemStack item, @NotNull IntelligentType type) throws IllegalArgumentException {
+        if (type == IntelligentType.EMPTY) {
+            fillAligned(alignment, howMuch, item);
+            return;
+        }
+        fillAligned(alignment, howMuch, IntelligentItem.ignored(item));
     }
 
     /**
