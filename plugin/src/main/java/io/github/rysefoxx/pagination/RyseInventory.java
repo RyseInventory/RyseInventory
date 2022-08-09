@@ -1230,6 +1230,7 @@ public class RyseInventory {
                 slot = startSlot;
                 page++;
             }
+
             if (pattern != null) {
                 String line = pattern.getLines().get(patternLineIndex);
 
@@ -1291,6 +1292,8 @@ public class RyseInventory {
                 page = dataArray[0];
                 slot = dataArray[1];
             }
+
+            pagination.remove(slot, page);
 
             itemData.setPage(page);
             itemData.setModifiedSlot(slot);
