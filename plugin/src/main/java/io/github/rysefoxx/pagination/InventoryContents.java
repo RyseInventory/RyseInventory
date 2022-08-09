@@ -1701,6 +1701,60 @@ public class InventoryContents {
     }
 
     /**
+     * Get the item inside the slot. If not available, the item will be added.
+     *
+     * @param slot      The slot to get the item from.
+     * @param itemToAdd The item to add if the slot is empty.
+     * @return The item from the slot, or the item that was added.
+     */
+    public Optional<IntelligentItem> getOrAdd(@Nonnegative int slot, @NotNull IntelligentItem itemToAdd) {
+        if (get(slot).isPresent())
+            return Optional.of(get(slot).get());
+
+        add(itemToAdd);
+        return Optional.of(itemToAdd);
+    }
+
+    /**
+     * Get the item inside the slot. If not available, the item will be added.
+     *
+     * @param row       The row to look for the item in.
+     * @param column    The column to look for the item in.
+     * @param itemToAdd The item to add if the slot is empty.
+     * @return The item from the slot, or the item that was added.
+     */
+    public Optional<IntelligentItem> getOrAdd(@Nonnegative int row, @Nonnegative int column, @NotNull IntelligentItem itemToAdd) {
+        return getOrAdd(SlotUtils.toSlot(row, column), itemToAdd);
+    }
+
+    /**
+     * Get the item inside the slot. If not available, the item will be set.
+     *
+     * @param slot      The slot to get the item from.
+     * @param itemToSet The item to set if the slot is empty.
+     * @return The item from the slot, or the item that was set.
+     */
+    public Optional<IntelligentItem> getOrSet(@Nonnegative int slot, @NotNull IntelligentItem itemToSet) {
+        if (get(slot).isPresent())
+            return Optional.of(get(slot).get());
+
+        set(slot, itemToSet);
+        return Optional.of(itemToSet);
+    }
+
+    /**
+     * Get the item inside the slot. If not available, the item will be set.
+     *
+     * @param row       The row to look for the item in.
+     * @param column    The column to look for the item in.
+     * @param itemToSet The item to set if the slot is empty.
+     * @return The item from the slot, or the item that was set.
+     */
+    public Optional<IntelligentItem> getOrSet(@Nonnegative int row, @Nonnegative int column, @NotNull IntelligentItem itemToSet) {
+        return getOrSet(SlotUtils.toSlot(row, column), itemToSet);
+    }
+
+    /**
      * Fetches a intelligent ItemStack based on the slot.
      *
      * @param slot The slot

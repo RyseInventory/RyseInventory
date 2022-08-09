@@ -317,6 +317,74 @@ public class RyseInventory {
     }
 
     /**
+     * Opens the inventory for all players.
+     */
+    public void openAll() {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+            open(onlinePlayer);
+    }
+
+    /**
+     * Opens the inventory for all players.
+     *
+     * @param page The page to open.
+     */
+    public void openAll(@Nonnegative int page) {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+            open(onlinePlayer, page);
+    }
+
+    /**
+     * Opens the inventory with the first page for all players with defined properties.
+     *
+     * @param keys   The keys
+     * @param values The values
+     * @throws IllegalArgumentException if the two arrays do not have the same size.
+     */
+    public void openAll(String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
+        Preconditions.checkArgument(keys.length == values.length, StringConstants.INVALID_OBJECT);
+
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+            open(onlinePlayer, keys, values);
+    }
+
+    /**
+     * Opens the inventory with the first page for all players.
+     *
+     * @param data The predefined data.
+     */
+    public void openAll(@NotNull Map<String, Object> data) {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+            open(onlinePlayer, data);
+    }
+
+    /**
+     * Opens the inventory with the first page for all players.
+     *
+     * @param data The predefined data.
+     * @param page The page to open.
+     */
+    public void openAll(@Nonnegative int page, @NotNull Map<String, Object> data) {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+            open(onlinePlayer, page, data);
+    }
+
+    /**
+     * Opens the inventory for all players with defined properties.
+     *
+     * @param page   The page to open.
+     * @param keys   The keys
+     * @param values The values
+     * @throws IllegalArgumentException if the two arrays do not have the same size.
+     */
+    public void openAll(@Nonnegative int page, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
+        Preconditions.checkArgument(keys.length == values.length, StringConstants.INVALID_OBJECT);
+
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+            open(onlinePlayer, page, keys, values);
+    }
+
+    /**
      * Opens the inventory with the first page.
      *
      * @param player The player where the inventory should be opened.
