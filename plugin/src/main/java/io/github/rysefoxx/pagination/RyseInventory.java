@@ -54,21 +54,31 @@ import javax.annotation.Nonnegative;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@SuppressWarnings("unused")
 public class RyseInventory {
 
     private InventoryManager manager;
-    private @Getter
-    InventoryProvider provider;
+
+    @Getter
+    private InventoryProvider provider;
     private String title;
-    private @Getter
-    Inventory inventory;
+
+    @Getter
+    @Nullable
+    private Inventory inventory;
+
+    @NotNull
+    private String titleHolder = "§e§oLoading§8...§r";
+    @NotNull
+    private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
+
     private boolean clearAndSafe;
     private SlideAnimation slideAnimator;
     private Object identifier;
     private transient Plugin plugin;
 
-    private @Getter
-    int size = -1;
+    @Getter
+    private int size = -1;
     private int delay = 0;
     private int openDelay = -1;
     private int period = 1;
@@ -78,8 +88,6 @@ public class RyseInventory {
     private boolean closeAble = true;
     private boolean transferData = true;
     private boolean backward = false;
-    private String titleHolder = "§e§oLoading§8...§r";
-    private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
 
     protected final List<Player> delayed = new ArrayList<>();
     private List<InventoryOptions> options = new ArrayList<>();
@@ -298,12 +306,10 @@ public class RyseInventory {
      */
     public @NotNull List<UUID> getOpenedPlayers() {
         List<UUID> players = new ArrayList<>();
-        Bukkit.getOnlinePlayers().forEach(player -> {
-            this.manager.getInventory(player.getUniqueId()).ifPresent(savedInventory -> {
-                if (!this.equals(savedInventory)) return;
-                players.add(player.getUniqueId());
-            });
-        });
+        Bukkit.getOnlinePlayers().forEach(player -> this.manager.getInventory(player.getUniqueId()).ifPresent(savedInventory -> {
+            if (!this.equals(savedInventory)) return;
+            players.add(player.getUniqueId());
+        }));
         return players;
     }
 
@@ -311,9 +317,10 @@ public class RyseInventory {
      * Closes the inventory for all players.
      */
     public void closeAll() {
-        getOpenedPlayers().stream().map(Bukkit::getPlayer).filter(Objects::nonNull).forEach(player -> {
-            this.manager.getInventory(player.getUniqueId()).ifPresent(mainInventory -> mainInventory.close(player));
-        });
+        getOpenedPlayers().stream()
+                .map(Bukkit::getPlayer)
+                .filter(Objects::nonNull).forEach(player ->
+                        this.manager.getInventory(player.getUniqueId()).ifPresent(mainInventory -> mainInventory.close(player)));
     }
 
     /**
@@ -585,8 +592,8 @@ public class RyseInventory {
     /**
      * @return the size of the inventory.
      */
-    public @Nonnegative
-    int size() {
+    @Nonnegative
+    public int size() {
         return this.size;
     }
 
@@ -604,56 +611,35 @@ public class RyseInventory {
      * Builder to create an inventory.
      */
     public static class Builder {
-        private SlideAnimation slideAnimation;
-        private InventoryManager manager;
-        private String title;
-        private InventoryProvider provider;
-        private Object identifier;
-        private boolean clearAndSafe;
 
-        private String titleHolder = "§e§oLoading§8...";
-        private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
-        private boolean closeAble = true;
-        private boolean transferData = true;
-        private int size = -1;
-        private int delay = 0;
-        private int openDelay = -1;
-        private int period = 1;
-        private int closeAfter = -1;
-        private int loadDelay = -1;
-        private int loadTitle = -1;
-
-        private final List<InventoryOptions> options = new ArrayList<>();
-        private final List<EventCreator<? extends Event>> events = new ArrayList<>();
-        private final List<DisabledInventoryClick> ignoreClickEvent = new ArrayList<>();
-        private final List<CloseReason> closeReasons = new ArrayList<>();
+        private final RyseInventory ryseInventory = new RyseInventory();
 
         //Empty constructor for Copy Constructor
         private Builder() {
         }
 
         private Builder(@NotNull Builder builder) {
-            this.slideAnimation = builder.slideAnimation;
-            this.manager = builder.manager;
-            this.title = builder.title;
-            this.provider = builder.provider;
-            this.identifier = builder.identifier;
-            this.clearAndSafe = builder.clearAndSafe;
-            this.titleHolder = builder.titleHolder;
-            this.inventoryOpenerType = builder.inventoryOpenerType;
-            this.closeAble = builder.closeAble;
-            this.transferData = builder.transferData;
-            this.size = builder.size;
-            this.delay = builder.delay;
-            this.openDelay = builder.openDelay;
-            this.period = builder.period;
-            this.closeAfter = builder.closeAfter;
-            this.loadDelay = builder.loadDelay;
-            this.loadTitle = builder.loadTitle;
-            this.options.addAll(builder.options);
-            this.events.addAll(builder.events);
-            this.ignoreClickEvent.addAll(builder.ignoreClickEvent);
-            this.closeReasons.addAll(builder.closeReasons);
+            this.ryseInventory.slideAnimator = builder.ryseInventory.slideAnimator;
+            this.ryseInventory.manager = builder.ryseInventory.manager;
+            this.ryseInventory.title = builder.ryseInventory.title;
+            this.ryseInventory.provider = builder.ryseInventory.provider;
+            this.ryseInventory.identifier = builder.ryseInventory.identifier;
+            this.ryseInventory.clearAndSafe = builder.ryseInventory.clearAndSafe;
+            this.ryseInventory.titleHolder = builder.ryseInventory.titleHolder;
+            this.ryseInventory.inventoryOpenerType = builder.ryseInventory.inventoryOpenerType;
+            this.ryseInventory.closeAble = builder.ryseInventory.closeAble;
+            this.ryseInventory.transferData = builder.ryseInventory.transferData;
+            this.ryseInventory.size = builder.ryseInventory.size;
+            this.ryseInventory.delay = builder.ryseInventory.delay;
+            this.ryseInventory.openDelay = builder.ryseInventory.openDelay;
+            this.ryseInventory.period = builder.ryseInventory.period;
+            this.ryseInventory.closeAfter = builder.ryseInventory.closeAfter;
+            this.ryseInventory.loadDelay = builder.ryseInventory.loadDelay;
+            this.ryseInventory.loadTitle = builder.ryseInventory.loadTitle;
+            this.ryseInventory.options.addAll(builder.ryseInventory.options);
+            this.ryseInventory.events.addAll(builder.ryseInventory.events);
+            this.ryseInventory.ignoreClickEvent.addAll(builder.ryseInventory.ignoreClickEvent);
+            this.ryseInventory.closeReasons.addAll(builder.ryseInventory.closeReasons);
         }
 
         public @NotNull Builder newInstance() {
@@ -667,7 +653,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder manager(@NotNull InventoryManager manager) {
-            this.manager = manager;
+            this.ryseInventory.manager = manager;
             return this;
         }
 
@@ -678,7 +664,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder options(InventoryOptions @NotNull ... options) {
-            this.options.addAll(new ArrayList<>(Arrays.asList(options)));
+            this.ryseInventory.options.addAll(new ArrayList<>(Arrays.asList(options)));
             return this;
         }
 
@@ -690,7 +676,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder closeAfter(@Nonnegative int time, @NotNull TimeSetting setting) {
-            this.closeAfter = TimeUtils.buildTime(time, setting);
+            this.ryseInventory.closeAfter = TimeUtils.buildTime(time, setting);
             return this;
         }
 
@@ -701,7 +687,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder close(CloseReason @NotNull ... reasons) {
-            this.closeReasons.addAll(new ArrayList<>(Arrays.asList(reasons)));
+            this.ryseInventory.closeReasons.addAll(new ArrayList<>(Arrays.asList(reasons)));
             return this;
         }
 
@@ -713,7 +699,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder loadDelay(@Nonnegative int time, @NotNull TimeSetting setting) {
-            this.loadDelay = TimeUtils.buildTime(time, setting);
+            this.ryseInventory.loadDelay = TimeUtils.buildTime(time, setting);
             return this;
         }
 
@@ -725,7 +711,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder loadTitle(@Nonnegative int time, @NotNull TimeSetting setting) {
-            this.loadTitle = TimeUtils.buildTime(time, setting);
+            this.ryseInventory.loadTitle = TimeUtils.buildTime(time, setting);
             return this;
         }
 
@@ -737,8 +723,8 @@ public class RyseInventory {
          * @apiNote By default, the type is CHEST
          */
         public @NotNull Builder type(@NotNull InventoryOpenerType type) {
-            this.inventoryOpenerType = type;
-            this.size = type.getType().getDefaultSize();
+            this.ryseInventory.inventoryOpenerType = type;
+            this.ryseInventory.size = type.getType().getDefaultSize();
             return this;
         }
 
@@ -749,7 +735,7 @@ public class RyseInventory {
          * @apiNote By default, the inventory is not emptied and saved.
          */
         public @NotNull Builder clearAndSafe() {
-            this.clearAndSafe = true;
+            this.ryseInventory.clearAndSafe = true;
             return this;
         }
 
@@ -762,7 +748,7 @@ public class RyseInventory {
             if (size < 9 || size > 54)
                 throw new IllegalArgumentException(size < 9 ? "The size can not be less than 9" : "The size can not be greater than 54");
 
-            this.size = size;
+            this.ryseInventory.size = size;
             return this;
         }
 
@@ -773,7 +759,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder identifier(@NotNull Object identifier) {
-            this.identifier = identifier;
+            this.ryseInventory.identifier = identifier;
             return this;
         }
 
@@ -784,7 +770,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder provider(@NotNull InventoryProvider provider) {
-            this.provider = provider;
+            this.ryseInventory.provider = provider;
             return this;
         }
 
@@ -795,7 +781,7 @@ public class RyseInventory {
          * @apiNote The inventory is always closable by default.
          */
         public @NotNull Builder preventClose() {
-            this.closeAble = false;
+            this.ryseInventory.closeAble = false;
             return this;
         }
 
@@ -806,7 +792,7 @@ public class RyseInventory {
          * @apiNote The data is always transferred by default.
          */
         public @NotNull Builder preventTransferData() {
-            this.transferData = false;
+            this.ryseInventory.transferData = false;
             return this;
         }
 
@@ -818,7 +804,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder delay(@Nonnegative int time, @NotNull TimeSetting setting) {
-            this.delay = TimeUtils.buildTime(time, setting);
+            this.ryseInventory.delay = TimeUtils.buildTime(time, setting);
             return this;
         }
 
@@ -830,7 +816,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder openDelay(@Nonnegative int time, @NotNull TimeSetting setting) {
-            this.openDelay = TimeUtils.buildTime(time, setting);
+            this.ryseInventory.openDelay = TimeUtils.buildTime(time, setting);
             return this;
         }
 
@@ -842,7 +828,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder period(@Nonnegative int time, @NotNull TimeSetting setting) {
-            this.period = TimeUtils.buildTime(time, setting);
+            this.ryseInventory.period = TimeUtils.buildTime(time, setting);
             return this;
         }
 
@@ -870,7 +856,7 @@ public class RyseInventory {
          * @apiNote The title can also be changed later when the inventory is open.
          */
         public @NotNull Builder title(@NotNull String title) {
-            this.title = title;
+            this.ryseInventory.title = title;
             return this;
         }
 
@@ -881,7 +867,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder animation(@NotNull SlideAnimation animation) {
-            this.slideAnimation = animation;
+            this.ryseInventory.slideAnimator = animation;
             return this;
         }
 
@@ -893,7 +879,7 @@ public class RyseInventory {
          * @apiNote This title is used when the {@link Builder#loadTitle(int, TimeSetting)} method is used.
          */
         public @NotNull Builder titleHolder(@NotNull String title) {
-            this.titleHolder = title;
+            this.ryseInventory.titleHolder = title;
             return this;
         }
 
@@ -904,7 +890,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder listener(@NotNull EventCreator<? extends Event> event) {
-            this.events.add(event);
+            this.ryseInventory.events.add(event);
             return this;
         }
 
@@ -914,7 +900,7 @@ public class RyseInventory {
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder ignoreClickEvent(DisabledInventoryClick @NotNull ... clicks) {
-            this.ignoreClickEvent.addAll(new ArrayList<>(Arrays.asList(clicks)));
+            this.ryseInventory.ignoreClickEvent.addAll(new ArrayList<>(Arrays.asList(clicks)));
             return this;
         }
 
@@ -926,39 +912,18 @@ public class RyseInventory {
          * @throws IllegalStateException if manager is null or if the provider is null
          */
         public @NotNull RyseInventory build(@NotNull Plugin plugin) throws IllegalStateException {
-            if (this.manager == null)
+            if (this.ryseInventory.manager == null)
                 throw new IllegalStateException("No manager could be found. Make sure you pass a manager to the builder.");
 
-            if (!this.closeAble && !this.closeReasons.isEmpty())
+            if (!this.ryseInventory.closeAble && !this.ryseInventory.closeReasons.isEmpty())
                 throw new IllegalStateException("The #close() method could not be executed because you have forbidden closing the inventory by #preventClose.");
 
-            if (this.provider == null)
+            if (this.ryseInventory.provider == null)
                 throw new IllegalStateException("No provider could be found. Make sure you pass a provider to the builder.");
 
-            RyseInventory inventory = new RyseInventory();
-            inventory.plugin = plugin;
-            inventory.manager = this.manager;
-            inventory.size = this.size;
-            inventory.closeAble = this.closeAble;
-            inventory.title = this.title;
-            inventory.events = this.events;
-            inventory.loadTitle = this.loadTitle;
-            inventory.ignoreClickEvent = this.ignoreClickEvent;
-            inventory.provider = this.provider;
-            inventory.delay = this.delay;
-            inventory.openDelay = this.openDelay;
-            inventory.period = this.period;
-            inventory.identifier = this.identifier;
-            inventory.closeAfter = this.closeAfter;
-            inventory.loadDelay = this.loadDelay;
-            inventory.transferData = this.transferData;
-            inventory.inventoryOpenerType = this.inventoryOpenerType;
-            inventory.titleHolder = this.titleHolder;
-            inventory.clearAndSafe = this.clearAndSafe;
-            inventory.options = this.options;
-            inventory.slideAnimator = this.slideAnimation;
-            inventory.closeReasons = this.closeReasons;
-            return inventory;
+            this.ryseInventory.plugin = plugin;
+
+            return this.ryseInventory;
         }
     }
 
@@ -1058,7 +1023,9 @@ public class RyseInventory {
     }
 
     private void placeItem(@NotNull Player player, @Nonnegative int integer, @NotNull IntelligentItem item) {
-        if (integer >= this.inventory.getSize()) return;
+        if (this.inventory != null)
+            if (integer >= this.inventory.getSize()) return;
+
         if (!item.isCanSee()) {
             item.getError().cantSee(player, item);
             return;
@@ -1090,8 +1057,8 @@ public class RyseInventory {
         removeSlideAnimator();
     }
 
-    protected void setBackward(boolean bool) {
-        this.backward = bool;
+    protected void setBackward() {
+        this.backward = true;
     }
 
     protected @NotNull InventoryManager getManager() {

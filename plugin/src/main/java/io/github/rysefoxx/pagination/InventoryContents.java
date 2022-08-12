@@ -941,38 +941,56 @@ public class InventoryContents {
      * Adds an item to the inventory in the first free place.
      *
      * @param item The ItemStack to be displayed in the inventory
+     * @return true if the item was added, false otherwise.
      */
-    public void add(@NotNull IntelligentItem item) {
-        firstEmpty().ifPresent(slot -> this.pagination.setItem(slot, item));
+    public boolean add(@NotNull IntelligentItem item) {
+        Optional<Integer> optional = firstEmpty();
+
+        if (!optional.isPresent()) return false;
+
+        int slot = optional.get();
+        this.pagination.setItem(slot, item);
+        return true;
     }
 
     /**
      * Add multiple items to the inventory in the first free place.
      *
      * @param items The ItemStacks to be displayed in the inventory
+     * @return true if the items were added, false otherwise.
      */
-    public void add(IntelligentItem @NotNull ... items) {
+    public boolean add(IntelligentItem @NotNull ... items) {
+        int success = 0;
+
         for (IntelligentItem item : items)
-            add(item);
+            if (add(item)) success++;
+
+        return success == items.length;
     }
 
     /**
      * Adds an item to the inventory in the first free place.
      *
      * @param itemStack The ItemStack to be displayed in the inventory
+     * @return true if the item was added, false otherwise.
      */
-    public void add(@NotNull ItemStack itemStack) {
-        add(IntelligentItem.empty(itemStack));
+    public boolean add(@NotNull ItemStack itemStack) {
+        return add(IntelligentItem.empty(itemStack));
     }
 
     /**
      * Add multiple items to the inventory in the first free place.
      *
      * @param items The ItemStacks to be displayed in the inventory
+     * @return true if the items were added, false otherwise.
      */
-    public void add(ItemStack @NotNull ... items) {
+    public boolean add(ItemStack @NotNull ... items) {
+        int sucess = 0;
+
         for (ItemStack item : items)
-            add(IntelligentItem.empty(item));
+            if (add(IntelligentItem.empty(item))) sucess++;
+
+        return sucess == items.length;
     }
 
     /**
@@ -980,14 +998,16 @@ public class InventoryContents {
      *
      * @param itemStack The ItemStack to be displayed in the inventory
      * @param type      The type of the item
+     * @return true if the item was added, false otherwise.
      */
-    public void add(@NotNull ItemStack itemStack, @NotNull IntelligentType type) {
-        if (type == IntelligentType.EMPTY) {
-            add(IntelligentItem.empty(itemStack));
-            return;
-        }
+    public boolean add(@NotNull ItemStack itemStack, @NotNull IntelligentType type) {
+        if (type == IntelligentType.EMPTY)
+            return add(IntelligentItem.empty(itemStack));
+
         if (type == IntelligentType.IGNORED)
-            add(IntelligentItem.ignored(itemStack));
+            return add(IntelligentItem.ignored(itemStack));
+
+        return false;
     }
 
     /**
@@ -995,40 +1015,44 @@ public class InventoryContents {
      *
      * @param items The ItemStacks to be displayed in the inventory
      * @param type  The type of the item
+     * @return true if the items were added, false otherwise.
      */
-    public void add(@NotNull IntelligentType type, ItemStack @NotNull ... items) {
+    public boolean add(@NotNull IntelligentType type, ItemStack @NotNull ... items) {
+        int success = 0;
+
         for (ItemStack item : items) {
             if (type == IntelligentType.EMPTY) {
-                add(IntelligentItem.empty(item));
+                if (add(IntelligentItem.empty(item))) success++;
                 continue;
             }
             if (type == IntelligentType.IGNORED)
-                add(IntelligentItem.ignored(item));
+                if (add(IntelligentItem.ignored(item))) success++;
         }
+
+        return success == items.length;
     }
 
     /**
      * This method allows you to reload the contents of the inventory.
      */
     public void reload() {
-        if (this.inventory.getProvider() == null) return;
         clear(this.pagination.page() - 1);
 
         InventoryContents contents = new InventoryContents(this.player, this.inventory);
         this.inventory.getManager().setContents(this.player.getUniqueId(), contents);
 
-        if (this.inventory.getSlideAnimator() == null) {
+        if (this.inventory.getSlideAnimator() == null)
             this.inventory.getProvider().init(this.player, contents);
-        } else {
+        else
             this.inventory.getProvider().init(this.player, contents, this.inventory.getSlideAnimator());
-        }
+
 
         this.inventory.loadByPage(contents);
         this.inventory.load(contents.pagination(), this.player, contents.pagination.page() - 1);
     }
 
     /**
-     * Sets a fixed smart ItemStack in the inventory on a specified page.
+     * Sets a fixed intelligent ItemStack in the inventory on a specified page.
      *
      * @param slot Where should the item be placed?
      * @param page On which page should the item be placed?
@@ -2490,6 +2514,7 @@ public class InventoryContents {
      *
      * @return The pagination
      */
+    @NotNull
     public Pagination pagination() {
         return this.pagination;
     }
@@ -2499,6 +2524,7 @@ public class InventoryContents {
      *
      * @return null if SlotIterator is not defined
      */
+    @NotNull
     public SlotIterator iterator() {
         return this.pagination.getSlotIterator();
     }
@@ -2506,6 +2532,7 @@ public class InventoryContents {
     /**
      * @return The SearchPattern of the inventory.
      */
+    @NotNull
     public SearchPattern searchPattern() {
         return this.searchPattern;
     }
@@ -2513,6 +2540,7 @@ public class InventoryContents {
     /**
      * @return The ContentPattern of the inventory.
      */
+    @NotNull
     public ContentPattern contentPattern() {
         return this.contentPattern;
     }

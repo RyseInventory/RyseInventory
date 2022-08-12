@@ -28,7 +28,6 @@ package io.github.rysefoxx.v1_18;
 
 import io.github.rysefoxx.IntelligentItemColorWrapper;
 import net.md_5.bungee.api.ChatColor;
-import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -37,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ColorHandler implements IntelligentItemColorWrapper<ChatColor> {
 
-    private @NotNull String toHex(int value) {
+    private String toHex(int value) {
         StringBuilder hex = new StringBuilder(Integer.toHexString(value));
         while (hex.length() < 2) {
             hex.append("0");

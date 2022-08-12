@@ -31,7 +31,7 @@
 
     <groupId>io.github.rysefoxx</groupId>
     <artifactId>RyseInventory-Plugin</artifactId>
-    <version>1.3.9</version>
+    <version>1.4.0</version>
     <packaging>jar</packaging>
 
     <name>RyseInventory</name>
@@ -160,19 +160,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 
@@ -181,13 +168,18 @@
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
+        <repository>
+            <id>codemc-repo</id>
+            <url>https://repo.codemc.org/repository/maven-public/</url>
+            <layout>default</layout>
+        </repository>
     </repositories>
 
     <dependencies>
         <dependency>
             <groupId>io.github.rysefoxx.v1_19</groupId>
             <artifactId>RyseInventory-v1_19</artifactId>
-            <version>1.3.9</version>
+            <version>1.4.0</version>
             <type>jar</type>
             <scope>compile</scope>
             <optional>true</optional>
@@ -195,7 +187,7 @@
         <dependency>
             <groupId>io.github.rysefoxx.v1_18</groupId>
             <artifactId>RyseInventory-v1_18</artifactId>
-            <version>1.3.9</version>
+            <version>1.4.0</version>
             <type>jar</type>
             <scope>compile</scope>
             <optional>true</optional>
@@ -203,7 +195,7 @@
         <dependency>
             <groupId>io.github.rysefoxx.v1_17</groupId>
             <artifactId>RyseInventory-v1_17</artifactId>
-            <version>1.3.9</version>
+            <version>1.4.0</version>
             <type>jar</type>
             <scope>compile</scope>
             <optional>true</optional>
@@ -211,7 +203,7 @@
         <dependency>
             <groupId>io.github.rysefoxx.v1_16</groupId>
             <artifactId>RyseInventory-v1_16</artifactId>
-            <version>1.3.9</version>
+            <version>1.4.0</version>
             <type>jar</type>
             <scope>compile</scope>
             <optional>true</optional>
@@ -240,6 +232,24 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.12.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>23.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.tr7zw</groupId>
+            <artifactId>item-nbt-api-plugin</artifactId>
+            <version>2.10.0</version>
         </dependency>
     </dependencies>
 

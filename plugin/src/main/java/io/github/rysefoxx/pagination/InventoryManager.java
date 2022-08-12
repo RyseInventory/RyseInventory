@@ -147,7 +147,7 @@ public class InventoryManager {
         if (!this.lastInventories.containsKey(uuid)) return Optional.empty();
         if (this.lastInventories.get(uuid).isEmpty()) return Optional.empty();
         RyseInventory inventory = this.lastInventories.get(uuid).remove(this.lastInventories.get(uuid).size() - 1);
-        inventory.setBackward(true);
+        inventory.setBackward();
 
         return Optional.of(inventory);
     }

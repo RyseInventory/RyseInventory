@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  * @since 2/19/2022
  */
 
-public class Pagination{
+public class Pagination {
 
     private
     @Getter
@@ -78,6 +78,7 @@ public class Pagination{
 
     /**
      * Creates a new instance of Pagination where all data is transferred along.
+     *
      * @param pagination The pagination to copy from.
      * @return The new instance of Pagination.
      */
@@ -112,8 +113,8 @@ public class Pagination{
      * @return true if you are on the last page.
      */
     public boolean isLast() {
-        int value = calculateValueForPage();
-        int slide = (int) Math.ceil((double) this.inventoryData.stream().filter(data -> data.getOriginalSlot() == -1).count() / value);
+        int slide = (int) Math.ceil((double) this.inventoryData.stream()
+                .filter(data -> data.getOriginalSlot() == -1).count() / calculateValueForPage());
 
         return this.page >= (slide != 0 ? slide - 1 : 0);
     }
@@ -149,6 +150,7 @@ public class Pagination{
 
     /**
      * Sets the current page to the specified page.
+     *
      * @param page The page to set to.
      * @return the new Pagination
      * @apiNote This will not check if the page is valid.
@@ -247,19 +249,15 @@ public class Pagination{
     }
 
     protected @Nullable IntelligentItem get(@Nonnegative int slot) {
-        for (IntelligentItemData data : this.inventoryData) {
-            if (data.getPage() == this.page && data.getModifiedSlot() == slot)
-                return data.getItem();
-        }
-        return null;
+        return get(slot, this.page);
     }
 
     protected @Nullable IntelligentItem get(@Nonnegative int slot, @Nonnegative int page) {
-        for (IntelligentItemData data : this.inventoryData) {
-            if (data.getPage() == page && data.getModifiedSlot() == slot)
-                return data.getItem();
-        }
-        return null;
+        return this.inventoryData.stream()
+                .filter(data -> data.getPage() == page && data.getModifiedSlot() == slot)
+                .findFirst()
+                .map(IntelligentItemData::getItem)
+                .orElse(null);
     }
 
     protected @NotNull List<IntelligentItemData> getInventoryData() {
@@ -275,14 +273,9 @@ public class Pagination{
     }
 
     private int calculateValueForPage() {
-        int value;
-
-        if (this.slotIterator == null || this.slotIterator.getEndPosition() == -1) {
-            value = this.itemsPerPage;
-        } else {
-            value = this.slotIterator.getEndPosition() - this.slotIterator.getSlot();
-        }
-        return value;
+        return this.slotIterator == null || this.slotIterator.getEndPosition() == -1
+                ? this.itemsPerPage
+                : this.slotIterator.getEndPosition() - this.slotIterator.getSlot();
     }
 
 }
