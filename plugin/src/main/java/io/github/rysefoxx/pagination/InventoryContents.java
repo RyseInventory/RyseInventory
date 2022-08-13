@@ -1488,6 +1488,41 @@ public class InventoryContents {
     }
 
     /**
+     * Fills all empty slots within the inventory
+     *
+     * @param item The item to be placed.
+     */
+    public void fillEmpty(@NotNull IntelligentItem item) {
+        for (int i = 0; i < this.inventory.size(); i++) {
+            if (get(i).isPresent()) continue;
+            set(i, item);
+        }
+    }
+
+    /**
+     * Fills all empty slots within the inventory
+     *
+     * @param itemStack The item to be placed.
+     */
+    public void fillEmpty(@NotNull ItemStack itemStack) {
+        fillEmpty(IntelligentItem.empty(itemStack));
+    }
+
+    /**
+     * Fills all empty slots within the inventory
+     *
+     * @param itemStack The item to be placed.
+     * @param type      The type of the item
+     */
+    public void fillEmpty(@NotNull ItemStack itemStack, @NotNull IntelligentType type) {
+        if (type == IntelligentType.IGNORED) {
+            fillEmpty(IntelligentItem.ignored(itemStack));
+            return;
+        }
+        fillEmpty(IntelligentItem.empty(itemStack));
+    }
+
+    /**
      * Fills the whole inventory with an ItemStack.
      *
      * @param item The item with which the inventory should be filled.
