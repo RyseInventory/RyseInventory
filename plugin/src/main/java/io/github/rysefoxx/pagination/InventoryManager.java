@@ -475,6 +475,7 @@ public class InventoryManager {
                 return;
             }
 
+            mainInventory.getProvider().close(player);
             mainInventory.close(player);
         }
 

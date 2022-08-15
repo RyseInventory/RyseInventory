@@ -42,6 +42,12 @@ public interface InventoryProvider {
     }
 
     /**
+     * A method to close the inventory.
+     */
+    default void close(Player player) {
+    }
+
+    /**
      * This method is called 1x. Namely, when the inventory is opened for the player.
      */
     default void init(Player player, InventoryContents contents) {
