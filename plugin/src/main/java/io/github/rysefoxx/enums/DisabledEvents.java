@@ -23,41 +23,13 @@
  *
  */
 
-package io.github.rysefoxx.content;
+package io.github.rysefoxx.enums;
 
-import io.github.rysefoxx.pagination.InventoryContents;
-import io.github.rysefoxx.pagination.RyseInventory;
-import io.github.rysefoxx.pagination.SlideAnimation;
-import org.bukkit.entity.Player;
-
-/**
- * @author Rysefoxx | Rysefoxx#6772
- * @since 2/17/2022
- */
-public interface InventoryProvider {
+public enum DisabledEvents {
 
     /**
-     * A method to update the contents of the inventory. By default, this method is executed 20 times a second.
+     * Disables the InventoryDragEvent
      */
-    default void update(Player player, InventoryContents contents) {
-    }
-
-    /**
-     * A method to close the inventory.
-     */
-    default void close(Player player, RyseInventory inventory) {
-    }
-
-    /**
-     * This method is called 1x. Namely, when the inventory is opened for the player.
-     */
-    default void init(Player player, InventoryContents contents) {
-    }
-
-    /**
-     * This method is called 1x. Namely, when the inventory is opened for the player. Another parameter is the animation that can be started.
-     */
-    default void init(Player player, InventoryContents contents, SlideAnimation animation) {
-    }
+    INVENTORY_DRAG
 
 }

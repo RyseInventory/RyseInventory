@@ -93,6 +93,7 @@ public class RyseInventory {
     private List<InventoryOptions> options = new ArrayList<>();
     private List<EventCreator<? extends Event>> events = new ArrayList<>();
     private List<DisabledInventoryClick> ignoreClickEvent = new ArrayList<>();
+    private List<DisabledEvents> disabledEvents = new ArrayList<>();
     private List<CloseReason> closeReasons = new ArrayList<>();
     private List<IntelligentItemNameAnimator> itemAnimator = new ArrayList<>();
     private List<IntelligentMaterialAnimator> materialAnimator = new ArrayList<>();
@@ -905,6 +906,16 @@ public class RyseInventory {
         }
 
         /**
+         * Disables events according to wishes.
+         *
+         * @return The Inventory Builder to set additional options.
+         */
+        public @NotNull Builder ignoreEvents(DisabledEvents @NotNull ... events) {
+            this.ryseInventory.disabledEvents.addAll(new ArrayList<>(Arrays.asList(events)));
+            return this;
+        }
+
+        /**
          * Builds the RyseInventory
          *
          * @param plugin Instance to your main class.
@@ -960,6 +971,13 @@ public class RyseInventory {
      */
     public @NotNull List<DisabledInventoryClick> getIgnoreClickEvent() {
         return this.ignoreClickEvent;
+    }
+
+    /**
+     * @return A list of DisabledEvents objects.
+     */
+    public List<DisabledEvents> getDisabledEvents() {
+        return disabledEvents;
     }
 
     /**

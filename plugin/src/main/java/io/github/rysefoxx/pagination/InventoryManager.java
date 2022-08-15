@@ -26,10 +26,7 @@
 package io.github.rysefoxx.pagination;
 
 import io.github.rysefoxx.content.IntelligentItem;
-import io.github.rysefoxx.enums.CloseReason;
-import io.github.rysefoxx.enums.DisabledInventoryClick;
-import io.github.rysefoxx.enums.InventoryOpenerType;
-import io.github.rysefoxx.enums.InventoryOptions;
+import io.github.rysefoxx.enums.*;
 import io.github.rysefoxx.other.EventCreator;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
@@ -419,6 +416,9 @@ public class InventoryManager {
                         return;
                     }
 
+                    if(list.contains(DisabledInventoryClick.TOP) || list.contains(DisabledInventoryClick.BOTH))
+                        event.setCancelled(true);
+
                     if (!item.isCanClick()) {
                         item.getError().cantClick(player, item);
                         return;
@@ -445,6 +445,9 @@ public class InventoryManager {
                 customEvent.accept(event);
                 return;
             }
+
+            if(mainInventory.getDisabledEvents().contains(DisabledEvents.INVENTORY_DRAG))
+                return;
 
             event.getRawSlots().forEach(integer -> {
                 if (integer >= topInventory.getSize()) return;
@@ -475,7 +478,7 @@ public class InventoryManager {
                 return;
             }
 
-            mainInventory.getProvider().close(player);
+            mainInventory.getProvider().close(player, mainInventory);
             mainInventory.close(player);
         }
 

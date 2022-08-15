@@ -1488,6 +1488,43 @@ public class InventoryContents {
     }
 
     /**
+     * Specify the area in which items should be filled.
+     *
+     * @param areaStart The start of the area.
+     * @param areaStop  The end of the area.
+     * @param item      The item to be placed.
+     */
+    public void fillArea(@Nonnegative int areaStart, @Nonnegative int areaStop, @NotNull IntelligentItem item) {
+        for (int i = areaStart; i <= areaStop; i++)
+            set(i, item);
+    }
+
+    /**
+     * Specify the area in which items should be filled.
+     *
+     * @param areaStart The start of the area.
+     * @param areaStop  The end of the area.
+     * @param item      The item to be placed.
+     */
+    public void fillArea(@Nonnegative int areaStart, @Nonnegative int areaStop, @NotNull ItemStack item) {
+        for (int i = areaStart; i <= areaStop; i++)
+            set(i, item);
+    }
+
+    /**
+     * Specify the area in which items should be filled.
+     *
+     * @param areaStart The start of the area.
+     * @param areaStop  The end of the area.
+     * @param item      The item to be placed.
+     * @param type      The type of the item
+     */
+    public void fillArea(@Nonnegative int areaStart, @Nonnegative int areaStop, @NotNull ItemStack item, @NotNull IntelligentType type) {
+        for (int i = areaStart; i <= areaStop; i++)
+            set(i, item, type);
+    }
+
+    /**
      * Fills all empty slots within the inventory
      *
      * @param item The item to be placed.
