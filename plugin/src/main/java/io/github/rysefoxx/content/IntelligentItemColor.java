@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnegative;
 
 /**
- * @author Rysefoxx(Rysefoxx # 6772) | eazypaulcode(eazypaulCode#0001) |
+ * @author Rysefoxx(Rysefoxx # 6772) | eazypaulCode(eazypaulCode # 0001) |
  * @since 4/12/2022
  */
 public class IntelligentItemColor {
