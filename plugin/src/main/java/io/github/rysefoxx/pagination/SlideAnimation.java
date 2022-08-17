@@ -26,8 +26,6 @@
 package io.github.rysefoxx.pagination;
 
 import com.google.common.base.Preconditions;
-import de.tr7zw.nbtapi.NBTContainer;
-import de.tr7zw.nbtapi.NBTItem;
 import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.enums.AnimatorDirection;
 import io.github.rysefoxx.enums.TimeSetting;
@@ -35,7 +33,6 @@ import io.github.rysefoxx.util.SlotUtils;
 import io.github.rysefoxx.util.StringConstants;
 import io.github.rysefoxx.util.TimeUtils;
 import lombok.ToString;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -326,13 +323,6 @@ public class SlideAnimation {
          * @return The Builder to perform further editing.
          */
         public @NotNull Builder item(@NotNull IntelligentItem item) {
-            ItemStack itemStack = item.getItemStack();
-
-            NBTItem nbtItem = new NBTItem(itemStack);
-            nbtItem.setString(ANIMATION_KEY, UUID.randomUUID().toString());
-
-            item.update(nbtItem.getItem());
-
             this.items.add(item);
             return this;
         }
@@ -520,15 +510,8 @@ public class SlideAnimation {
                     } else {
 
                         Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
-                        String currentKey = getKey(item);
+                        contents.removeItemWithConsumer(this.previousIndex);
 
-                        optionalPrevious.ifPresent(intelligentItem -> {
-                            String previousKey = getKey(intelligentItem);
-
-                            if (previousKey.equals(currentKey)) {
-                                contents.removeItemWithConsumer(this.previousIndex);
-                            }
-                        });
                         contents.set(this.fromIndex, this.item);
                         contents.update(this.fromIndex, this.item);
                     }
@@ -587,15 +570,8 @@ public class SlideAnimation {
                     } else {
 
                         Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
-                        String currentKey = getKey(item);
+                        contents.removeItemWithConsumer(this.previousIndex);
 
-                        optionalPrevious.ifPresent(intelligentItem -> {
-                            String previousKey = getKey(intelligentItem);
-
-                            if (previousKey.equals(currentKey)) {
-                                contents.removeItemWithConsumer(this.previousIndex);
-                            }
-                        });
                         contents.set(this.fromIndex, this.item);
                         contents.update(this.fromIndex, this.item);
                     }
@@ -654,15 +630,9 @@ public class SlideAnimation {
                     } else {
 
                         Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
-                        String currentKey = getKey(item);
 
-                        optionalPrevious.ifPresent(intelligentItem -> {
-                            String previousKey = getKey(intelligentItem);
+                        contents.removeItemWithConsumer(this.previousIndex);
 
-                            if (previousKey.equals(currentKey)) {
-                                contents.removeItemWithConsumer(this.previousIndex);
-                            }
-                        });
                         contents.set(this.fromIndex, this.item);
                         contents.update(this.fromIndex, this.item);
                     }
@@ -722,15 +692,9 @@ public class SlideAnimation {
                     } else {
 
                         Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
-                        String currentKey = getKey(item);
 
-                        optionalPrevious.ifPresent(intelligentItem -> {
-                            String previousKey = getKey(intelligentItem);
+                        contents.removeItemWithConsumer(this.previousIndex);
 
-                            if (previousKey.equals(currentKey)) {
-                                contents.removeItemWithConsumer(this.previousIndex);
-                            }
-                        });
                         contents.set(this.fromIndex, this.item);
                         contents.update(this.fromIndex, this.item);
                     }
@@ -746,13 +710,6 @@ public class SlideAnimation {
             }.runTaskTimer(plugin, this.delay, this.period);
             this.task.add(bukkitTask);
         }
-    }
-
-    private String getKey(@NotNull IntelligentItem item) {
-        ItemStack previousItemStack = item.getItemStack();
-
-        NBTContainer container = NBTItem.convertItemtoNBT(previousItemStack);
-        return container.hasKey(ANIMATION_KEY) ? container.getString(ANIMATION_KEY) : "";
     }
 
     private void checkIfInvalid(@Nonnegative int from, @Nonnegative int to, @NotNull RyseInventory inventory) {
