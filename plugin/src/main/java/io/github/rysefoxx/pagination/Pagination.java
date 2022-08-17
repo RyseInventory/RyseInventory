@@ -28,10 +28,12 @@ package io.github.rysefoxx.pagination;
 import io.github.rysefoxx.SlotIterator;
 import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.content.IntelligentItemData;
+import io.github.rysefoxx.enums.IntelligentType;
 import io.github.rysefoxx.util.StringConstants;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -99,6 +101,9 @@ public class Pagination {
      */
     public @Nonnegative
     int lastPage() {
+        if (this.inventory.getFixedPageSize() != -1)
+            return this.inventory.getFixedPageSize();
+
         return (int) Math.ceil((double) this.inventoryData.stream().filter(data -> data.getOriginalSlot() == -1).count() / calculateValueForPage());
     }
 
@@ -113,6 +118,9 @@ public class Pagination {
      * @return true if you are on the last page.
      */
     public boolean isLast() {
+        if (this.inventory.getFixedPageSize() != -1)
+            return this.page == this.inventory.getFixedPageSize() - 1;
+
         int slide = (int) Math.ceil((double) this.inventoryData.stream()
                 .filter(data -> data.getOriginalSlot() == -1).count() / calculateValueForPage());
 
@@ -186,6 +194,29 @@ public class Pagination {
      * @param item the intelligent ItemStack
      */
     public void addItem(@NotNull IntelligentItem item) {
+        this.inventoryData.add(new IntelligentItemData(item, this.page, -1));
+    }
+
+    /**
+     * Adds a single ItemStack.
+     *
+     * @param itemStack the ItemStack
+     */
+    public void addItem(@NotNull ItemStack itemStack) {
+        this.inventoryData.add(new IntelligentItemData(IntelligentItem.empty(itemStack), this.page, -1));
+    }
+
+    /**
+     * Adds a single ItemStack.
+     *
+     * @param itemStack the ItemStack
+     * @param type      the type of the ItemStack
+     */
+    public void addItem(@NotNull ItemStack itemStack, @NotNull IntelligentType type) {
+        IntelligentItem item = type == IntelligentType.EMPTY
+                ? IntelligentItem.empty(itemStack)
+                : IntelligentItem.ignored(itemStack);
+
         this.inventoryData.add(new IntelligentItemData(item, this.page, -1));
     }
 

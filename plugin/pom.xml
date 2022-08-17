@@ -31,7 +31,7 @@
 
     <groupId>io.github.rysefoxx</groupId>
     <artifactId>RyseInventory-Plugin</artifactId>
-    <version>1.4.3</version>
+    <version>1.4.4</version>
     <packaging>jar</packaging>
 
     <name>RyseInventory</name>

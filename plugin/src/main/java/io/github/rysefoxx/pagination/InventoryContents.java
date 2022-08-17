@@ -410,11 +410,9 @@ public class InventoryContents {
      * @throws IllegalArgumentException if howMuch > 9
      */
     public void fillAligned(@NotNull Alignment alignment, @Nonnegative int howMuch, @NotNull ItemStack item, @NotNull IntelligentType type) throws IllegalArgumentException {
-        if (type == IntelligentType.EMPTY) {
-            fillAligned(alignment, howMuch, item);
-            return;
-        }
-        fillAligned(alignment, howMuch, IntelligentItem.ignored(item));
+        fillAligned(alignment, howMuch, type == IntelligentType.EMPTY
+                ? IntelligentItem.empty(item)
+                : IntelligentItem.ignored(item));
     }
 
     /**
@@ -452,12 +450,9 @@ public class InventoryContents {
      * @param type      The type of the item
      */
     public void fillBorders(@NotNull ItemStack itemStack, @NotNull IntelligentType type) {
-        if (type == IntelligentType.EMPTY) {
-            fillBorders(IntelligentItem.empty(itemStack));
-            return;
-        }
-        if (type == IntelligentType.IGNORED)
-            fillBorders(IntelligentItem.ignored(itemStack));
+        fillBorders(type == IntelligentType.EMPTY
+                ? IntelligentItem.empty(itemStack)
+                : IntelligentItem.ignored(itemStack));
     }
 
     /**
@@ -1001,13 +996,9 @@ public class InventoryContents {
      * @return true if the item was added, false otherwise.
      */
     public boolean add(@NotNull ItemStack itemStack, @NotNull IntelligentType type) {
-        if (type == IntelligentType.EMPTY)
-            return add(IntelligentItem.empty(itemStack));
-
-        if (type == IntelligentType.IGNORED)
-            return add(IntelligentItem.ignored(itemStack));
-
-        return false;
+        return add(type == IntelligentType.EMPTY
+                ? IntelligentItem.empty(itemStack)
+                : IntelligentItem.ignored(itemStack));
     }
 
     /**
@@ -1021,12 +1012,10 @@ public class InventoryContents {
         int success = 0;
 
         for (ItemStack item : items) {
-            if (type == IntelligentType.EMPTY) {
-                if (add(IntelligentItem.empty(item))) success++;
-                continue;
-            }
-            if (type == IntelligentType.IGNORED)
-                if (add(IntelligentItem.ignored(item))) success++;
+            if(add(type == IntelligentType.EMPTY
+                    ? IntelligentItem.empty(item)
+                    : IntelligentItem.ignored(item)))
+                success++;
         }
 
         return success == items.length;
@@ -1057,10 +1046,13 @@ public class InventoryContents {
      * @param slot Where should the item be placed?
      * @param page On which page should the item be placed?
      * @param item The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @throws IllegalArgumentException if slot > 53, slot > inventory size or page > inventory pages
      * @apiNote First page is 0, second page is 1, etc.
      */
     public void setWithinPage(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem item) throws IllegalArgumentException {
+        if (this.inventory.getFixedPageSize() != -1 && page > this.inventory.getFixedPageSize() - 1)
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_PAGE, "%temp%", this.inventory.getFixedPageSize() - 1));
+
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
@@ -1077,7 +1069,7 @@ public class InventoryContents {
      * @param column The column of the inventory
      * @param page   On which page should the item be placed?
      * @param item   The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @throws IllegalArgumentException if slot > 53, slot > inventory size or page > inventory pages
      * @apiNote First page is 0, second page is 1, etc.
      */
     public void setWithinPage(@Nonnegative int row, @Nonnegative int column, @Nonnegative int page, @NotNull IntelligentItem item) throws IllegalArgumentException {
@@ -1090,9 +1082,10 @@ public class InventoryContents {
      * @param slots Where should the item be placed everywhere?
      * @param page  On which page should the item be placed?
      * @param item  The ItemStack to be displayed in the inventory
+     * @throws IllegalArgumentException if slot > 53, slot > inventory size or page > inventory pages
      * @apiNote First page is 0, second page is 1, etc.
      */
-    public void setWithinPage(@NotNull List<Integer> slots, @Nonnegative int page, @NotNull IntelligentItem item) {
+    public void setWithinPage(@NotNull List<Integer> slots, @Nonnegative int page, @NotNull IntelligentItem item) throws IllegalArgumentException {
         slots.forEach(slot -> setWithinPage(slot, page, item));
     }
 
@@ -1102,9 +1095,10 @@ public class InventoryContents {
      * @param slots Where should the item be placed everywhere?
      * @param pages On which pages should the item be placed?
      * @param item  The ItemStack to be displayed in the inventory
+     * @throws IllegalArgumentException if slot > 53, slot > inventory size or page > inventory pages
      * @apiNote First page is 0, second page is 1, etc.
      */
-    public void setWithinPage(@NotNull List<Integer> slots, @NotNull List<Integer> pages, @NotNull IntelligentItem item) {
+    public void setWithinPage(@NotNull List<Integer> slots, @NotNull List<Integer> pages, @NotNull IntelligentItem item) throws IllegalArgumentException {
         slots.forEach(slot -> pages.forEach(page -> setWithinPage(slot, page, item)));
     }
 
@@ -1114,9 +1108,12 @@ public class InventoryContents {
      * @param slot The slot where the item should be placed
      * @param page On which page should the item be placed?
      * @param item The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @throws IllegalArgumentException if slot > 53, slot > inventory size or page > inventory pages
      */
     public void fillRow(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem item) throws IllegalArgumentException {
+        if (this.inventory.getFixedPageSize() != -1 && page > this.inventory.getFixedPageSize() - 1)
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_PAGE, "%temp%", this.inventory.getFixedPageSize() - 1));
+
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
@@ -1134,18 +1131,10 @@ public class InventoryContents {
      * @param slot The slot where the item should be placed
      * @param page On which page should the item be placed?
      * @param item The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @throws IllegalArgumentException if slot > 53, slot > inventory size or page > inventory pages
      */
     public void fillRow(@Nonnegative int slot, @Nonnegative int page, @NotNull ItemStack item) throws IllegalArgumentException {
-        if (slot > 53)
-            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
-
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
-
-        int difference = slot + (findRightBorder(slot) - slot);
-        for (int i = slot; i < difference + 1; i++)
-            setWithinPage(slot, page, IntelligentItem.empty(item));
+        fillRow(slot, page, IntelligentItem.empty(item));
     }
 
     /**
@@ -1155,26 +1144,12 @@ public class InventoryContents {
      * @param page On which page should the item be placed?
      * @param type The type of the item
      * @param item The ItemStack to be displayed in the inventory
-     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @throws IllegalArgumentException if slot > 53, slot > inventory size or page > inventory pages
      */
     public void fillRow(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentType type, @NotNull ItemStack item) throws IllegalArgumentException {
-        if (slot > 53)
-            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
-
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
-
-        int difference = slot + (findRightBorder(slot) - slot);
-        IntelligentItem intelligentItem;
-
-        if (type == IntelligentType.IGNORED) {
-            intelligentItem = IntelligentItem.ignored(item);
-        } else {
-            intelligentItem = IntelligentItem.empty(item);
-        }
-
-        for (int i = slot; i < difference + 1; i++)
-            setWithinPage(slot, page, intelligentItem);
+        fillRow(slot,page, type == IntelligentType.EMPTY
+                ? IntelligentItem.empty(item)
+                : IntelligentItem.ignored(item));
     }
 
     /**
@@ -1326,9 +1301,12 @@ public class InventoryContents {
      * @param slot Where to start placing the items.
      * @param page On which page should the item be placed?
      * @param item The item to be placed.
-     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @throws IllegalArgumentException if slot > 53, slot > inventory size or page > inventory pages
      */
     public void fillColumn(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem item) throws IllegalArgumentException {
+        if (this.inventory.getFixedPageSize() != -1 && page > this.inventory.getFixedPageSize() - 1)
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_PAGE, "%temp%", this.inventory.getFixedPageSize() - 1));
+
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
@@ -1345,17 +1323,10 @@ public class InventoryContents {
      * @param slot Where to start placing the items.
      * @param page On which page should the item be placed?
      * @param item The item to be placed.
-     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @throws IllegalArgumentException if slot > 53, slot > inventory size or page > inventory pages
      */
     public void fillColumn(@Nonnegative int slot, @Nonnegative int page, @NotNull ItemStack item) throws IllegalArgumentException {
-        if (slot > 53)
-            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
-
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
-
-        for (int i = slot; i < this.inventory.size(); i += 9)
-            setWithinPage(i, page, IntelligentItem.empty(item));
+        fillColumn(slot, page, IntelligentItem.empty(item));
     }
 
     /**
@@ -1365,25 +1336,12 @@ public class InventoryContents {
      * @param page On which page should the item be placed?
      * @param type The type of the item
      * @param item The item to be placed.
-     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @throws IllegalArgumentException if slot > 53, slot > inventory size or page > inventory pages
      */
     public void fillColumn(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentType type, @NotNull ItemStack item) throws IllegalArgumentException {
-        if (slot > 53)
-            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
-
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
-
-        IntelligentItem intelligentItem;
-
-        if (type == IntelligentType.IGNORED) {
-            intelligentItem = IntelligentItem.ignored(item);
-        } else {
-            intelligentItem = IntelligentItem.empty(item);
-        }
-
-        for (int i = slot; i < this.inventory.size(); i += 9)
-            setWithinPage(i, page, intelligentItem);
+        fillColumn(slot, page, type == IntelligentType.EMPTY
+                ? IntelligentItem.empty(item)
+                : IntelligentItem.ignored(item));
     }
 
     /**
@@ -1488,6 +1446,74 @@ public class InventoryContents {
     }
 
     /**
+     * Fills all empty slots on a given page.
+     *
+     * @param page The page to be filled.
+     * @param item The item to be placed.
+     * @apiNote First page is 0, second page is 1, etc.
+     */
+    public void fillEmptyPage(@Nonnegative int page, @NotNull IntelligentItem item) {
+        for (int i = 0; i < this.inventory.size(); i++) {
+            if (getWithinPage(i, page).isPresent()) continue;
+            setWithinPage(i, page, item);
+        }
+    }
+
+    /**
+     * Fills all empty slots on a given page.
+     *
+     * @param page The page to be filled.
+     * @param item The item to be placed.
+     * @apiNote First page is 0, second page is 1, etc.
+     */
+    public void fillEmptyPage(@Nonnegative int page, @NotNull ItemStack item) {
+        fillEmptyPage(page, IntelligentItem.empty(item));
+    }
+
+    /**
+     * Fills all empty slots on a given page.
+     *
+     * @param page The page to be filled.
+     * @param item The item to be placed.
+     * @param type The type of the item
+     * @apiNote First page is 0, second page is 1, etc.
+     */
+    public void fillEmptyPage(@Nonnegative int page, @NotNull ItemStack item, @NotNull IntelligentType type) {
+        fillEmptyPage(page, type == IntelligentType.EMPTY
+                ? IntelligentItem.empty(item)
+                : IntelligentItem.ignored(item));
+    }
+
+    /**
+     * Fills a single page completely.
+     *
+     * @param page The page to be filled.
+     * @param item The item to be placed.
+     * @apiNote First page is 0, second page is 1, etc.
+     */
+    public void fillPage(@Nonnegative int page, @NotNull IntelligentItem item) {
+        for (int i = 0; i < this.inventory.size(); i++)
+            setWithinPage(i, page, item);
+    }
+
+    /**
+     * Fills a single page completely.
+     *
+     * @param page The page to be filled.
+     * @param item The item to be placed.
+     * @apiNote First page is 0, second page is 1, etc.
+     */
+    public void fillPage(@Nonnegative int page, @NotNull ItemStack item) {
+        fillPage(page, IntelligentItem.empty(item));
+    }
+
+    public void fillPage(@Nonnegative int page, @NotNull ItemStack itemStack, @NotNull IntelligentType type) {
+        fillPage(page, type == IntelligentType.EMPTY
+                ? IntelligentItem.empty(itemStack)
+                : IntelligentItem.ignored(itemStack));
+    }
+
+    /**
      * Specify the area in which items should be filled.
      *
      * @param areaStart The start of the area.
@@ -1507,8 +1533,7 @@ public class InventoryContents {
      * @param item      The item to be placed.
      */
     public void fillArea(@Nonnegative int areaStart, @Nonnegative int areaStop, @NotNull ItemStack item) {
-        for (int i = areaStart; i <= areaStop; i++)
-            set(i, item);
+        fillArea(areaStart, areaStop, IntelligentItem.empty(item));
     }
 
     /**
@@ -1520,8 +1545,9 @@ public class InventoryContents {
      * @param type      The type of the item
      */
     public void fillArea(@Nonnegative int areaStart, @Nonnegative int areaStop, @NotNull ItemStack item, @NotNull IntelligentType type) {
-        for (int i = areaStart; i <= areaStop; i++)
-            set(i, item, type);
+        fillArea(areaStart, areaStop, type == IntelligentType.EMPTY
+                ? IntelligentItem.empty(item)
+                : IntelligentItem.ignored(item));
     }
 
     /**
@@ -1552,11 +1578,9 @@ public class InventoryContents {
      * @param type      The type of the item
      */
     public void fillEmpty(@NotNull ItemStack itemStack, @NotNull IntelligentType type) {
-        if (type == IntelligentType.IGNORED) {
-            fillEmpty(IntelligentItem.ignored(itemStack));
-            return;
-        }
-        fillEmpty(IntelligentItem.empty(itemStack));
+        fillEmpty(type == IntelligentType.EMPTY
+                ? IntelligentItem.empty(itemStack)
+                : IntelligentItem.ignored(itemStack));
     }
 
     /**
@@ -1575,8 +1599,7 @@ public class InventoryContents {
      * @param item The item with which the inventory should be filled.
      */
     public void fill(@NotNull ItemStack item) {
-        for (int i = 0; i < this.inventory.size(); i++)
-            set(i, IntelligentItem.empty(item));
+        fill(IntelligentItem.empty(item));
     }
 
     /**
@@ -1586,14 +1609,9 @@ public class InventoryContents {
      * @param type The type of the item
      */
     public void fill(@NotNull ItemStack item, @NotNull IntelligentType type) {
-        for (int i = 0; i < this.inventory.size(); i++) {
-            if (type == IntelligentType.EMPTY) {
-                set(i, IntelligentItem.empty(item));
-                continue;
-            }
-            if (type == IntelligentType.IGNORED)
-                set(i, IntelligentItem.ignored(item));
-        }
+        fill(type == IntelligentType.EMPTY
+                ? IntelligentItem.empty(item)
+                : IntelligentItem.ignored(item));
     }
 
     /**
@@ -1645,12 +1663,9 @@ public class InventoryContents {
      * @throws IllegalArgumentException if slot > 53 or slot > inventory size
      */
     public void set(@Nonnegative int slot, @NotNull ItemStack itemStack, @NotNull IntelligentType type) throws IllegalArgumentException {
-        if (type == IntelligentType.EMPTY) {
-            set(slot, IntelligentItem.empty(itemStack));
-            return;
-        }
-        if (type == IntelligentType.IGNORED)
-            set(slot, IntelligentItem.ignored(itemStack));
+        set(slot, type == IntelligentType.EMPTY
+                ? IntelligentItem.empty(itemStack)
+                : IntelligentItem.ignored(itemStack));
     }
 
     /**
@@ -1758,8 +1773,12 @@ public class InventoryContents {
     /**
      * @param page The page to look for.
      * @return All items on a given page.
+     * @throws IllegalArgumentException if page > inventory pages
      */
-    public @NotNull List<IntelligentItem> getAllWithinPage(@Nonnegative int page) {
+    public @NotNull List<IntelligentItem> getAllWithinPage(@Nonnegative int page) throws IllegalArgumentException {
+        if (this.inventory.getFixedPageSize() != -1 && page > this.inventory.getFixedPageSize() - 1)
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_PAGE, "%temp%", this.inventory.getFixedPageSize() - 1));
+
         List<IntelligentItem> items = new ArrayList<>();
         for (int i = 0; i < this.inventory.size(); i++)
             getWithinPage(i, page).ifPresent(items::add);
@@ -1771,10 +1790,13 @@ public class InventoryContents {
      * @param slot The slot to get the item from.
      * @param page The page to look for the item in.
      * @return The item in the slot on the page, or empty Optional if the slot is empty.
-     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @throws IllegalArgumentException if slot > 53, slot > inventory size or page > inventory pages
      * @apiNote First page is 0, second page is 1, etc.
      */
     public Optional<IntelligentItem> getWithinPage(@Nonnegative int slot, @Nonnegative int page) throws IllegalArgumentException {
+        if (this.inventory.getFixedPageSize() != -1 && page > this.inventory.getFixedPageSize() - 1)
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_PAGE, "%temp%", this.inventory.getFixedPageSize() - 1));
+
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
@@ -1789,7 +1811,7 @@ public class InventoryContents {
      * @param column The column to look for the item in.
      * @param page   The page to look for the item in.
      * @return The item in the slot on the page, or empty Optional if the slot is empty.
-     * @throws IllegalArgumentException if slot > 53 or slot > inventory size
+     * @throws IllegalArgumentException if slot > 53, slot > inventory size or page > inventory pages
      * @apiNote First page is 0, second page is 1, etc.
      */
     public Optional<IntelligentItem> getWithinPage(@Nonnegative int row, @Nonnegative int column, @Nonnegative int page) throws IllegalArgumentException {
@@ -2596,7 +2618,7 @@ public class InventoryContents {
      *
      * @return null if SlotIterator is not defined
      */
-    @NotNull
+    @Nullable
     public SlotIterator iterator() {
         return this.pagination.getSlotIterator();
     }
@@ -2643,4 +2665,6 @@ public class InventoryContents {
             get(i).ifPresent(item -> removeItemWithConsumer(finalI));
         }
     }
+
+
 }

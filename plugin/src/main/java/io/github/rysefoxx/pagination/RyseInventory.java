@@ -67,10 +67,6 @@ public class RyseInventory {
     @Nullable
     private Inventory inventory;
 
-    @NotNull
-    private String titleHolder = "§e§oLoading§8...§r";
-    @NotNull
-    private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
 
     private boolean clearAndSafe;
     private SlideAnimation slideAnimator;
@@ -79,6 +75,8 @@ public class RyseInventory {
 
     @Getter
     private int size = -1;
+    @Getter
+    private int fixedPageSize = -1;
     private int delay = 0;
     private int openDelay = -1;
     private int period = 1;
@@ -88,17 +86,22 @@ public class RyseInventory {
     private boolean closeAble = true;
     private boolean transferData = true;
     private boolean backward = false;
+    
+    @NotNull
+    private String titleHolder = "§e§oLoading§8...§r";
+    @NotNull
+    private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
 
     protected final List<Player> delayed = new ArrayList<>();
     private List<InventoryOptions> options = new ArrayList<>();
     private List<EventCreator<? extends Event>> events = new ArrayList<>();
     private List<DisabledInventoryClick> ignoreClickEvent = new ArrayList<>();
-    private List<DisabledEvents> disabledEvents = new ArrayList<>();
     private List<CloseReason> closeReasons = new ArrayList<>();
     private List<IntelligentItemNameAnimator> itemAnimator = new ArrayList<>();
     private List<IntelligentMaterialAnimator> materialAnimator = new ArrayList<>();
     private List<IntelligentTitleAnimator> titleAnimator = new ArrayList<>();
     private List<IntelligentItemLoreAnimator> loreAnimator = new ArrayList<>();
+    private final List<DisabledEvents> disabledEvents = new ArrayList<>();
     private final HashMap<UUID, Inventory> privateInventory = new HashMap<>();
     private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
 
@@ -912,6 +915,17 @@ public class RyseInventory {
          */
         public @NotNull Builder ignoreEvents(DisabledEvents @NotNull ... events) {
             this.ryseInventory.disabledEvents.addAll(new ArrayList<>(Arrays.asList(events)));
+            return this;
+        }
+
+
+        /**
+         * Sets a page number. These pages can be opened at any time independently of the item.
+         * @param page The page number
+         * @return The Inventory Builder to set additional options.
+         */
+        public Builder fixedPageSize(@Nonnegative int page) {
+            this.ryseInventory.fixedPageSize = page;
             return this;
         }
 

@@ -38,7 +38,6 @@ public class StringConstants {
     public final String INVALID_MATERIAL_FRAME = "Frames must have the same length as materials.";
     public final String INVALID_SLOT = "The slot must not be larger than 53.";
     public final String INVALID_AMOUNT = "Amount must not be larger than 64.";
-    public final String INVALID_VALUE = "Value must not be larger than 9.";
     public final String INVALID_OBJECT = "String[] and Object[] must have the same size";
     public final String INVALID_ROW_LENGTH = "Rows must have the same length as columns.";
 

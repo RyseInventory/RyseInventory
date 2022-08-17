@@ -35,5 +35,6 @@ import lombok.experimental.UtilityClass;
 public class PlaceHolderConstants {
 
     public final String INVALID_SLOT = "The slot must not be larger than %temp%. Check the inventory size.";
+    public final String INVALID_PAGE = "Since the inventory has a fixed page size, the last page is %temp%";
 
 }
