@@ -8,7 +8,7 @@ This API is used to create and manage inventories in Minecraft more easily. Acro
  - Update 1.1.8 now has an integrated animation system.
  - You can change the inventory title during operation.
  - You can select 9 different inventory types.
- - Fixed page size independent of items,
+ - Fixed page size independent of items.
  - Possibility to edit individual pages as desired.
  - You can prevent the inventory from being closed.
  - Own events based on the inventory.
