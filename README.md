@@ -30,25 +30,21 @@ This API is used to create and manage inventories in Minecraft more easily. Acro
 # Dependency
 _Make sure you shade the API._
 
-### Gradle (Groovy DSL) 
+### Gradle (Groovy) 
 ```
 repositories {
     mavenCentral()
-    maven {
-        url "https://s01.oss.sonatype.org/content/groups/public/"
-    }
+    maven { url "https://s01.oss.sonatype.org/content/groups/public/" }
 }
 dependencies {
     implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.4.4'
 }
 ```
-### Gradle (Kotlin DSL) 
+### Gradle (Kotlin) 
 ```
 repositories 
     mavenCentral()
-    maven {
-        url = uri("https://s01.oss.sonatype.org/content/groups/public/")
-    }
+    maven { url = uri("https://s01.oss.sonatype.org/content/groups/public/") }
 }
 dependencies {
     implementation("io.github.rysefoxx:RyseInventory-Plugin:1.4.4")
