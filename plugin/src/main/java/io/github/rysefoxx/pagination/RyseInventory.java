@@ -1050,6 +1050,11 @@ public class RyseInventory {
         return clearAndSafe == that.clearAndSafe && size == that.size && delay == that.delay && openDelay == that.openDelay && period == that.period && closeAfter == that.closeAfter && loadDelay == that.loadDelay && loadTitle == that.loadTitle && closeAble == that.closeAble && transferData == that.transferData && Objects.equals(title, that.title) && Objects.equals(slideAnimator, that.slideAnimator) && Objects.equals(identifier, that.identifier) && Objects.equals(titleHolder, that.titleHolder) && inventoryOpenerType == that.inventoryOpenerType && Objects.equals(options, that.options) && Objects.equals(events, that.events) && Objects.equals(ignoreClickEvent, that.ignoreClickEvent) && Objects.equals(closeReasons, that.closeReasons);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(this);
+    }
+
     protected void load(@NotNull Pagination pagination, @NotNull Player player, @Nonnegative int page) {
         pagination.getDataByPage(page).forEach(item -> placeItem(player, item.getModifiedSlot(), item.getItem()));
     }
