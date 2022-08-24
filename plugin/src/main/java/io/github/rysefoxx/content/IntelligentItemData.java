@@ -47,7 +47,6 @@ public class IntelligentItemData {
     private int originalSlot;
     private int modifiedSlot;
 
-
     @Contract(pure = true)
     public IntelligentItemData(@NotNull IntelligentItem item, @Nonnegative int page, int originalSlot) {
         this.item = item;

@@ -52,24 +52,16 @@ public class SlotIterator {
     }
 
     public static class Builder {
-        private int slot = -1;
-        private int endPosition = -1;
-        private SlotIteratorType type;
-        private boolean override;
-        private List<Integer> blackList = new ArrayList<>();
-        private SlotIteratorPattern pattern;
+        private SlotIterator slotIterator = new SlotIterator();
 
         /**
          * Copies the values of the given {@link SlotIterator} into this builder.
+         *
          * @param iterator the {@link SlotIterator} to copy the values from
          * @return The builder object itself.
          */
-        public @NotNull Builder copy(@NotNull SlotIterator iterator){
-            this.slot = iterator.slot;
-            this.endPosition = iterator.endPosition;
-            this.type = iterator.type;
-            this.override = iterator.override;
-            this.blackList = iterator.blackList;
+        public @NotNull Builder copy(@NotNull SlotIterator iterator) {
+            this.slotIterator = iterator;
             return this;
         }
 
@@ -80,7 +72,7 @@ public class SlotIterator {
          * @return The builder object itself.
          */
         public @NotNull Builder blackList(@Nonnegative int slot) {
-            this.blackList.add(slot);
+            this.slotIterator.blackList.add(slot);
             return this;
         }
 
@@ -91,7 +83,7 @@ public class SlotIterator {
          * @return The builder object itself.
          */
         public @NotNull Builder blackList(@NotNull List<Integer> slots) {
-            this.blackList = new ArrayList<>(slots);
+            this.slotIterator.blackList = new ArrayList<>(slots);
             return this;
         }
 
@@ -116,7 +108,7 @@ public class SlotIterator {
          * @apiNote If this method is used, {@link Pagination#setItemsPerPage(int)} is ignored.
          */
         public @NotNull Builder endPosition(@Nonnegative int slot) {
-            this.endPosition = slot;
+            this.slotIterator.endPosition = slot;
             return this;
         }
 
@@ -139,7 +131,7 @@ public class SlotIterator {
          * @return The Builder object itself.
          */
         public @NotNull Builder startPosition(@Nonnegative int startSlot) {
-            this.slot = startSlot;
+            this.slotIterator.slot = startSlot;
             return this;
         }
 
@@ -164,7 +156,7 @@ public class SlotIterator {
          */
         @Beta
         public @NotNull Builder withPattern(@NotNull SlotIteratorPattern builder) {
-            this.pattern = builder;
+            this.slotIterator.pattern = builder;
             return this;
         }
 
@@ -175,7 +167,7 @@ public class SlotIterator {
          * @return The builder object itself.
          */
         public @NotNull Builder type(@NotNull SlotIteratorType type) {
-            this.type = type;
+            this.slotIterator.type = type;
             return this;
         }
 
@@ -185,23 +177,16 @@ public class SlotIterator {
          * @return The Builder object itself.
          */
         public @NotNull Builder override() {
-            this.override = true;
+            this.slotIterator.override = true;
             return this;
         }
 
         public SlotIterator build() {
-            SlotIterator slotIterator = new SlotIterator();
-            slotIterator.slot = this.slot;
-            slotIterator.type = this.type;
-            slotIterator.override = this.override;
-            slotIterator.blackList = this.blackList;
-            slotIterator.endPosition = this.endPosition;
-            slotIterator.pattern = this.pattern;
-
-            if ((this.slot >= this.endPosition) && this.endPosition != -1)
+            if ((this.slotIterator.slot >= this.slotIterator.endPosition)
+                    && this.slotIterator.endPosition != -1)
                 throw new IllegalArgumentException("The start slot must be smaller than the end slot");
 
-            return slotIterator;
+            return this.slotIterator;
         }
     }
 
@@ -215,21 +200,21 @@ public class SlotIterator {
     /**
      * @return the start slot
      */
-    public int getSlot() {
+    public @Nonnegative int getSlot() {
         return this.slot;
     }
 
     /**
      * @return the start column
      */
-    public int getColumn() {
+    public @Nonnegative int getColumn() {
         return SlotUtils.toRowAndColumn(this.slot).getRight();
     }
 
     /**
      * @return the start row
      */
-    public int getRow() {
+    public @Nonnegative int getRow() {
         return SlotUtils.toRowAndColumn(this.slot).getLeft();
     }
 
@@ -251,7 +236,7 @@ public class SlotIterator {
      * @return where the last item should be placed.
      * @apiNote If the endPosition was set, the {@link Pagination#setItemsPerPage(int)} specification is ignored.
      */
-    public int getEndPosition() {
+    public @Nonnegative int getEndPosition() {
         return this.endPosition;
     }
 
@@ -262,6 +247,9 @@ public class SlotIterator {
         return this.blackList;
     }
 
+    /**
+     * An enum that is used to tell the SlotIterator how to place the items.
+     */
     public enum SlotIteratorType {
         HORIZONTAL,
         VERTICAL

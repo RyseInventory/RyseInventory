@@ -66,25 +66,48 @@ public class IntelligentItem {
         this.error = error;
     }
 
+    /**
+     * @param itemStack     The item stack that will be used to create the intelligent item.
+     * @param error         The error that will be displayed if the player doesn't have the required permission.
+     * @param eventConsumer The consumer that will be called when the item is clicked.
+     * @return A new instance of IntelligentItem
+     */
     @Contract(value = "_, _, _ -> new", pure = true)
     public static @NotNull IntelligentItem of(@NotNull ItemStack itemStack, @NotNull IntelligentItemError error, @NotNull Consumer<InventoryClickEvent> eventConsumer) {
         return new IntelligentItem(itemStack, eventConsumer, error);
     }
 
 
+    /**
+     * @param itemStack     The item that will be displayed in the inventory.
+     * @param eventConsumer The consumer that will be called when the item is clicked.
+     * @return A new instance of IntelligentItem
+     */
     @Contract(value = "_, _ -> new", pure = true)
     public static @NotNull IntelligentItem of(@NotNull ItemStack itemStack, @NotNull Consumer<InventoryClickEvent> eventConsumer) {
         return new IntelligentItem(itemStack, eventConsumer, null);
     }
 
 
+    /**
+     * This function returns a new IntelligentItem with no actions.
+     *
+     * @param itemStack The itemstack that will be used for the item.
+     * @return A new IntelligentItem object.
+     */
     @Contract(value = "_ -> new", pure = true)
     public static @NotNull IntelligentItem empty(@NotNull ItemStack itemStack) {
         return new IntelligentItem(itemStack, event -> {
         }, null);
     }
 
-
+    /**
+     * This function returns an IntelligentItem that does nothing when clicked. And displays an error when the given condition does not apply.
+     *
+     * @param itemStack The itemstack that will be used to create the IntelligentItem.
+     * @param error     The error when the given condition does not apply.
+     * @return A new instance of IntelligentItem
+     */
     @Contract(value = "_, _ -> new", pure = true)
     public static @NotNull IntelligentItem empty(@NotNull ItemStack itemStack, @NotNull IntelligentItemError error) {
         return new IntelligentItem(itemStack, event -> {
@@ -92,12 +115,27 @@ public class IntelligentItem {
     }
 
 
+    /**
+     * This function takes an ItemStack and returns an IntelligentItem that is ignored.
+     * This allows the player who has the inventory open to take the item out.
+     *
+     * @param itemStack The item to be ignored.
+     * @return A new IntelligentItem object.
+     */
     @Contract(value = "_ -> new", pure = true)
     public static @NotNull IntelligentItem ignored(@NotNull ItemStack itemStack) {
         return new IntelligentItem(itemStack, null, null);
     }
 
 
+    /**
+     * This function takes an ItemStack and returns an IntelligentItem that is ignored.
+     * This allows the player who has the inventory open to take the item out.
+     *
+     * @param itemStack The item stack that is being ignored.
+     * @param error     The error when the given condition does not apply.
+     * @return A new instance of the IntelligentItem class.
+     */
     @Contract(value = "_, _ -> new", pure = true)
     public static @NotNull IntelligentItem ignored(@NotNull ItemStack itemStack, @NotNull IntelligentItemError error) {
         return new IntelligentItem(itemStack, null, error);
@@ -183,6 +221,7 @@ public class IntelligentItem {
 
     /**
      * Deserializes a map to an IntelligentItem.
+     *
      * @param map The map to deserialize.
      * @return The deserialized IntelligentItem.
      */

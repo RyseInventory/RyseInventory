@@ -53,6 +53,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnegative;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 public class RyseInventory {
@@ -86,7 +87,7 @@ public class RyseInventory {
     private boolean closeAble = true;
     private boolean transferData = true;
     private boolean backward = false;
-    
+
     @NotNull
     private String titleHolder = "§e§oLoading§8...§r";
     @NotNull
@@ -104,6 +105,7 @@ public class RyseInventory {
     private final List<DisabledEvents> disabledEvents = new ArrayList<>();
     private final HashMap<UUID, Inventory> privateInventory = new HashMap<>();
     private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
+    private final List<Integer> ignoredSlots = new ArrayList<>();
 
     //Empty constructor for Builder
     private RyseInventory() {
@@ -651,6 +653,16 @@ public class RyseInventory {
         }
 
         /**
+         * In all these slots items can be put in or removed by the user.
+         * @param slots The slots
+         * @return The Inventory Builder to set additional options.
+         */
+        public @NotNull Builder ignoredSlots(int  ... slots) {
+            this.ryseInventory.ignoredSlots.addAll(Arrays.stream(slots).boxed().collect(Collectors.toList()));
+            return this;
+        }
+
+        /**
          * Adds a manager to the inventory.
          *
          * @param manager InventoryManager
@@ -921,6 +933,7 @@ public class RyseInventory {
 
         /**
          * Sets a page number. These pages can be opened at any time independently of the item.
+         *
          * @param page The page number
          * @return The Inventory Builder to set additional options.
          */
@@ -985,6 +998,13 @@ public class RyseInventory {
      */
     public @NotNull List<DisabledInventoryClick> getIgnoreClickEvent() {
         return this.ignoreClickEvent;
+    }
+
+    /**
+     * @return A list of all ignored slots.
+     */
+    public List<Integer> getIgnoredSlots() {
+        return ignoredSlots;
     }
 
     /**

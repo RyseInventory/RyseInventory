@@ -31,7 +31,7 @@
 
     <groupId>io.github.rysefoxx.v1_19</groupId>
     <artifactId>RyseInventory-v1_19</artifactId>
-    <version>1.4.4</version>
+    <version>1.4.5</version>
     <packaging>jar</packaging>
 
     <parent>

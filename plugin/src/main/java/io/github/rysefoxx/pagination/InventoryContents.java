@@ -75,6 +75,72 @@ public class InventoryContents {
         this.inventory = inventory;
         this.pagination = new Pagination(inventory);
     }
+    
+    /**
+     * @param slot The slot
+     * @return true if the slot is ignored.
+     */
+    public boolean isIgnoredSlot(int slot) {
+        return this.inventory.getIgnoredSlots().contains(slot);
+    }
+
+    /**
+     * Removes the specified slot from the list of ignored slots
+     *
+     * @param slot The slot to remove from the ignored slots list.
+     * @return true if the slot was removed, false if it was not in the list.
+     */
+    public boolean removeIgnoredSlot(@Nonnegative int slot) {
+        if (!this.inventory.getIgnoredSlots().contains(slot))
+            return false;
+
+        this.inventory.getIgnoredSlots().removeIf(ignoredSlot -> ignoredSlot == slot);
+        return true;
+    }
+
+    /**
+     * Removes all slots from the list of ignored slots
+     *
+     * @param slots The slots to remove from the ignored slots list.
+     * @return true if the slots were removed, false if none were in the list.
+     */
+    public boolean removeIgnoredSlots(int... slots) {
+        int success = 0;
+        for (int slot : slots)
+            if (removeIgnoredSlot(slot))
+                success++;
+
+        return success == slots.length;
+    }
+
+    /**
+     * Adds the specified slot to the list of ignored slots
+     *
+     * @param slot The slot to remove from the ignored slots list.
+     * @return true if the slot was added, false if it was already in the list.
+     */
+    public boolean addIgnoredSlot(@Nonnegative int slot) {
+        if (this.inventory.getIgnoredSlots().contains(slot))
+            return false;
+
+        this.inventory.getIgnoredSlots().add(slot);
+        return true;
+    }
+
+    /**
+     * Adds all slots to the list of ignored slots
+     *
+     * @param slots The slots to remove from the ignored slots list.
+     * @return true if the slots were added, false if none were in the list.
+     */
+    public boolean addIgnoredSlots(int... slots) {
+        int success = 0;
+        for (int slot : slots)
+            if (addIgnoredSlot(slot))
+                success++;
+
+        return success == slots.length;
+    }
 
     /**
      * With this method you can see if a slot exists in the inventory.
@@ -1012,7 +1078,7 @@ public class InventoryContents {
         int success = 0;
 
         for (ItemStack item : items) {
-            if(add(type == IntelligentType.EMPTY
+            if (add(type == IntelligentType.EMPTY
                     ? IntelligentItem.empty(item)
                     : IntelligentItem.ignored(item)))
                 success++;
@@ -1147,7 +1213,7 @@ public class InventoryContents {
      * @throws IllegalArgumentException if slot > 53, slot > inventory size or page > inventory pages
      */
     public void fillRow(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentType type, @NotNull ItemStack item) throws IllegalArgumentException {
-        fillRow(slot,page, type == IntelligentType.EMPTY
+        fillRow(slot, page, type == IntelligentType.EMPTY
                 ? IntelligentItem.empty(item)
                 : IntelligentItem.ignored(item));
     }
@@ -2665,6 +2731,4 @@ public class InventoryContents {
             get(i).ifPresent(item -> removeItemWithConsumer(finalI));
         }
     }
-
-
 }

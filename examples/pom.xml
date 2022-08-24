@@ -31,7 +31,7 @@
 
     <groupId>io.github.rysefoxx.examples</groupId>
     <artifactId>RyseInventory-Examples</artifactId>
-    <version>1.4.4</version>
+    <version>1.4.5</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -56,13 +56,26 @@
         <dependency>
             <groupId>io.github.rysefoxx</groupId>
             <artifactId>RyseInventory-Plugin</artifactId>
-            <version>1.4.4</version>
+            <version>1.4.5</version>
             <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
             <version>1.8.8-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.24</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

@@ -63,7 +63,7 @@ dependencies {
 <dependency>
   <groupId>io.github.rysefoxx</groupId>
   <artifactId>RyseInventory-Plugin</artifactId>
-  <version>1.4.4</version>
+  <version>1.4.5</version>
 </dependency>
 ```
 

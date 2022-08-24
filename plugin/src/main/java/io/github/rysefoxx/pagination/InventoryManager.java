@@ -207,7 +207,7 @@ public class InventoryManager {
     protected void setLastInventory(@NotNull UUID uuid, @NotNull RyseInventory inventory, @NotNull RyseInventory newInventory) {
         List<RyseInventory> inventoryList = this.lastInventories.getOrDefault(uuid, new ArrayList<>());
 
-        if(inventory.equals(newInventory))return;
+        if (inventory.equals(newInventory)) return;
 
         inventoryList.add(inventory);
 
@@ -399,7 +399,8 @@ public class InventoryManager {
                         event.setCancelled(true);
                         return;
                     }
-                    event.setCancelled(true);
+                    if (!mainInventory.getIgnoredSlots().contains(slot))
+                        event.setCancelled(true);
                 }
 
                 Optional<IntelligentItem> optional = contents.get(slot);
@@ -416,7 +417,7 @@ public class InventoryManager {
                         return;
                     }
 
-                    if(list.contains(DisabledInventoryClick.TOP) || list.contains(DisabledInventoryClick.BOTH))
+                    if (list.contains(DisabledInventoryClick.TOP) || list.contains(DisabledInventoryClick.BOTH))
                         event.setCancelled(true);
 
                     if (!item.isCanClick()) {
@@ -446,7 +447,7 @@ public class InventoryManager {
                 return;
             }
 
-            if(mainInventory.getDisabledEvents().contains(DisabledEvents.INVENTORY_DRAG))
+            if (mainInventory.getDisabledEvents().contains(DisabledEvents.INVENTORY_DRAG))
                 return;
 
             event.getRawSlots().forEach(integer -> {
