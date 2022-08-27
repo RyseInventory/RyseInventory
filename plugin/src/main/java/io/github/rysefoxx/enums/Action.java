@@ -23,39 +23,21 @@
  *
  */
 
-package io.github.rysefoxx.content;
+package io.github.rysefoxx.enums;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+public enum Action {
 
-import javax.annotation.Nonnegative;
+    /**
+     * If this value is selected, the player can shift-click to get the item in the inventory.
+     *
+     * @apiNote The player can only shift items in where the player could also drag and drop items in.
+     */
+    MOVE_TO_OTHER_INVENTORY,
+    /**
+     * If this value is selected, the player can double-click the item in the inventory.
+     *
+     * @apiNote This can have the consequence that the same items in the inventory are then stacked!
+     */
+    DOUBLE_CLICK,
 
-/**
- * @author Rysefoxx | Rysefoxx#6772
- * @since 6/14/2022
- */
-@Setter
-@Getter
-@ToString
-public class IntelligentItemData {
-
-    private final IntelligentItem item;
-    private int amount;
-    private int page;
-    private int originalSlot;
-    private int modifiedSlot;
-    private boolean transfer;
-
-    @Contract(pure = true)
-    public IntelligentItemData(@NotNull IntelligentItem item, @Nonnegative int page, int originalSlot, boolean transfer) {
-        this.item = item;
-        this.page = page;
-        this.originalSlot = originalSlot;
-        this.modifiedSlot = this.originalSlot;
-        this.transfer = transfer;
-        this.amount = item.getItemStack().getAmount();
-    }
 }

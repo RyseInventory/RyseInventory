@@ -51,6 +51,71 @@ public class SlotIterator {
         return new Builder();
     }
 
+    /**
+     * @return the pattern builder.
+     */
+    public @Nullable SlotIteratorPattern getPatternBuilder() {
+        return this.pattern;
+    }
+
+    /**
+     * @return the start slot
+     */
+    public @Nonnegative int getSlot() {
+        return this.slot;
+    }
+
+    /**
+     * @return the start column
+     */
+    public @Nonnegative int getColumn() {
+        return SlotUtils.toRowAndColumn(this.slot).getRight();
+    }
+
+    /**
+     * @return the start row
+     */
+    public @Nonnegative int getRow() {
+        return SlotUtils.toRowAndColumn(this.slot).getLeft();
+    }
+
+    /**
+     * @return the SlotIteratorType
+     */
+    public @NotNull SlotIteratorType getType() {
+        return this.type;
+    }
+
+    /**
+     * @return true if items can be overwritten.
+     */
+    public boolean isOverride() {
+        return this.override;
+    }
+
+    /**
+     * @return where the last item should be placed.
+     * @apiNote If the endPosition was set, the {@link Pagination#setItemsPerPage(int)} specification is ignored.
+     */
+    public int getEndPosition() {
+        return this.endPosition;
+    }
+
+    /**
+     * @return all slots where no items should be placed.
+     */
+    public @NotNull List<Integer> getBlackList() {
+        return this.blackList;
+    }
+
+    /**
+     * An enum that is used to tell the SlotIterator how to place the items.
+     */
+    public enum SlotIteratorType {
+        HORIZONTAL,
+        VERTICAL
+    }
+
     public static class Builder {
         private SlotIterator slotIterator = new SlotIterator();
 
@@ -188,71 +253,6 @@ public class SlotIterator {
 
             return this.slotIterator;
         }
-    }
-
-    /**
-     * @return the pattern builder.
-     */
-    public @Nullable SlotIteratorPattern getPatternBuilder() {
-        return this.pattern;
-    }
-
-    /**
-     * @return the start slot
-     */
-    public @Nonnegative int getSlot() {
-        return this.slot;
-    }
-
-    /**
-     * @return the start column
-     */
-    public @Nonnegative int getColumn() {
-        return SlotUtils.toRowAndColumn(this.slot).getRight();
-    }
-
-    /**
-     * @return the start row
-     */
-    public @Nonnegative int getRow() {
-        return SlotUtils.toRowAndColumn(this.slot).getLeft();
-    }
-
-    /**
-     * @return the SlotIteratorType
-     */
-    public @NotNull SlotIteratorType getType() {
-        return this.type;
-    }
-
-    /**
-     * @return true if items can be overwritten.
-     */
-    public boolean isOverride() {
-        return this.override;
-    }
-
-    /**
-     * @return where the last item should be placed.
-     * @apiNote If the endPosition was set, the {@link Pagination#setItemsPerPage(int)} specification is ignored.
-     */
-    public @Nonnegative int getEndPosition() {
-        return this.endPosition;
-    }
-
-    /**
-     * @return all slots where no items should be placed.
-     */
-    public @NotNull List<Integer> getBlackList() {
-        return this.blackList;
-    }
-
-    /**
-     * An enum that is used to tell the SlotIterator how to place the items.
-     */
-    public enum SlotIteratorType {
-        HORIZONTAL,
-        VERTICAL
     }
 
 }

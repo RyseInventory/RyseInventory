@@ -49,16 +49,13 @@ import java.util.stream.Collectors;
 
 public class Pagination {
 
+    private final RyseInventory inventory;
     private
     @Getter
     @Nonnegative
     int itemsPerPage;
-
     private @Getter SlotIterator slotIterator;
-
     private int page;
-    private final RyseInventory inventory;
-
     private @Setter(AccessLevel.PROTECTED) List<IntelligentItemData> inventoryData = new ArrayList<>();
 
     /**
@@ -104,7 +101,8 @@ public class Pagination {
         if (this.inventory.getFixedPageSize() != -1)
             return this.inventory.getFixedPageSize();
 
-        return (int) Math.ceil((double) this.inventoryData.stream().filter(data -> data.getOriginalSlot() == -1).count() / calculateValueForPage());
+        return (int) Math.ceil((double) this.inventoryData.stream()
+                .filter(data -> data.getOriginalSlot() == -1).count() / calculateValueForPage());
     }
 
     /**
@@ -175,7 +173,7 @@ public class Pagination {
      */
     public void setItems(@NotNull List<IntelligentItem> items) {
         for (IntelligentItem item : items)
-            this.inventoryData.add(new IntelligentItemData(item, this.page, -1));
+            this.inventoryData.add(new IntelligentItemData(item, this.page, -1, false));
     }
 
     /**
@@ -185,7 +183,7 @@ public class Pagination {
      */
     public void setItems(IntelligentItem @NotNull [] items) {
         for (IntelligentItem item : items)
-            this.inventoryData.add(new IntelligentItemData(item, this.page, -1));
+            this.inventoryData.add(new IntelligentItemData(item, this.page, -1, false));
     }
 
     /**
@@ -194,7 +192,7 @@ public class Pagination {
      * @param item the intelligent ItemStack
      */
     public void addItem(@NotNull IntelligentItem item) {
-        this.inventoryData.add(new IntelligentItemData(item, this.page, -1));
+        this.inventoryData.add(new IntelligentItemData(item, this.page, -1, false));
     }
 
     /**
@@ -203,7 +201,7 @@ public class Pagination {
      * @param itemStack the ItemStack
      */
     public void addItem(@NotNull ItemStack itemStack) {
-        this.inventoryData.add(new IntelligentItemData(IntelligentItem.empty(itemStack), this.page, -1));
+        this.inventoryData.add(new IntelligentItemData(IntelligentItem.empty(itemStack), this.page, -1, false));
     }
 
     /**
@@ -217,7 +215,7 @@ public class Pagination {
                 ? IntelligentItem.empty(itemStack)
                 : IntelligentItem.ignored(itemStack);
 
-        this.inventoryData.add(new IntelligentItemData(item, this.page, -1));
+        this.inventoryData.add(new IntelligentItemData(item, this.page, -1, false));
     }
 
     /**
@@ -236,13 +234,13 @@ public class Pagination {
      * @param newItem The Item
      * @throws IllegalArgumentException if slot > 53
      */
-    protected void setItem(@Nonnegative int slot, @NotNull IntelligentItem newItem) throws IllegalArgumentException {
+    protected void setItem(@Nonnegative int slot, @NotNull IntelligentItem newItem, boolean transfer) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         remove(slot);
 
-        this.inventoryData.add(new IntelligentItemData(newItem, this.page, slot));
+        this.inventoryData.add(new IntelligentItemData(newItem, this.page, slot, transfer));
     }
 
     /**
@@ -254,13 +252,13 @@ public class Pagination {
      * @throws IllegalArgumentException if slot > 53
      * @apiNote First page is 0
      */
-    protected void setItem(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem newItem) throws IllegalArgumentException {
+    protected void setItem(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem newItem, boolean transfer) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         remove(slot, page);
 
-        this.inventoryData.add(new IntelligentItemData(newItem, page, slot));
+        this.inventoryData.add(new IntelligentItemData(newItem, page, slot, transfer));
     }
 
     /**
@@ -293,6 +291,10 @@ public class Pagination {
 
     protected @NotNull List<IntelligentItemData> getInventoryData() {
         return this.inventoryData;
+    }
+
+    protected void addInventoryData(IntelligentItemData itemData) {
+        this.inventoryData.add(itemData);
     }
 
     protected @NotNull List<IntelligentItemData> getDataByPage(@Nonnegative int page) {

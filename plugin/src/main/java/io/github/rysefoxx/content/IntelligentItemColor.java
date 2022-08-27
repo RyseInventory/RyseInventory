@@ -100,9 +100,65 @@ public class IntelligentItemColor {
         return new Builder();
     }
 
+    public @NotNull net.md_5.bungee.api.ChatColor getColor() {
+        if (this.bungeeColor != null) return this.bungeeColor;
+        if (this.bukkitColor != null) return this.bukkitColor.asBungee();
+
+        if (colorWrapper == null)
+            throw new IllegalStateException("The color wrapper is null. Please report this to the developer. Your server is running " + VersionUtils.getSubVersion() + ".");
+
+        if (this.hexColor != null && !this.hexColor.isEmpty())
+            return colorWrapper.getColor(this.hexColor, null);
+
+        return colorWrapper.getColor(null, this.rgbColor);
+    }
+
+    /**
+     * @return true if the color is bold
+     */
+    public boolean isBold() {
+        return this.bold;
+    }
+
+    /**
+     * @return true if the color is underlined
+     */
+    public boolean isUnderline() {
+        return this.underline;
+    }
+
+    /**
+     * @return true if the color is italic
+     */
+    public boolean isItalic() {
+        return this.italic;
+    }
+
+    /**
+     * @return true if the color is obfuscated
+     */
+    public boolean isObfuscated() {
+        return this.obfuscated;
+    }
+
+    /**
+     * @return true if the color is striked through
+     */
+    public boolean isStrikeThrough() {
+        return this.strikeThrough;
+    }
+
     public static class Builder {
         private IntelligentItemColor color = new IntelligentItemColor();
 
+        @SneakyThrows
+        @SuppressWarnings("unchecked")
+        private static void tryToSetWrapper() {
+            final Class<?> clazz = Class.forName("io.github.rysefoxx.v1_" + VersionUtils.getSubVersion() + ".ColorHandler");
+            if (IntelligentItemColorWrapper.class.isAssignableFrom(clazz)) {
+                colorWrapper = (IntelligentItemColorWrapper<net.md_5.bungee.api.ChatColor>) clazz.getConstructor().newInstance();
+            }
+        }
 
         /**
          * With this method, the letter will be bold.
@@ -296,62 +352,5 @@ public class IntelligentItemColor {
                         this.color.obfuscated, this.color.strikeThrough);
             return null;
         }
-
-        @SneakyThrows
-        @SuppressWarnings("unchecked")
-        private static void tryToSetWrapper() {
-            final Class<?> clazz = Class.forName("io.github.rysefoxx.v1_" + VersionUtils.getSubVersion() + ".ColorHandler");
-            if (IntelligentItemColorWrapper.class.isAssignableFrom(clazz)) {
-                colorWrapper = (IntelligentItemColorWrapper<net.md_5.bungee.api.ChatColor>) clazz.getConstructor().newInstance();
-            }
-        }
-    }
-
-    public @NotNull net.md_5.bungee.api.ChatColor getColor() {
-        if (this.bungeeColor != null) return this.bungeeColor;
-        if (this.bukkitColor != null) return this.bukkitColor.asBungee();
-
-        if (colorWrapper == null)
-            throw new IllegalStateException("The color wrapper is null. Please report this to the developer. Your server is running " + VersionUtils.getSubVersion() + ".");
-
-        if (this.hexColor != null && !this.hexColor.isEmpty())
-            return colorWrapper.getColor(this.hexColor, null);
-
-        return colorWrapper.getColor(null, this.rgbColor);
-    }
-
-    /**
-     * @return true if the color is bold
-     */
-    public boolean isBold() {
-        return this.bold;
-    }
-
-    /**
-     * @return true if the color is underlined
-     */
-    public boolean isUnderline() {
-        return this.underline;
-    }
-
-    /**
-     * @return true if the color is italic
-     */
-    public boolean isItalic() {
-        return this.italic;
-    }
-
-    /**
-     * @return true if the color is obfuscated
-     */
-    public boolean isObfuscated() {
-        return this.obfuscated;
-    }
-
-    /**
-     * @return true if the color is striked through
-     */
-    public boolean isStrikeThrough() {
-        return this.strikeThrough;
     }
 }

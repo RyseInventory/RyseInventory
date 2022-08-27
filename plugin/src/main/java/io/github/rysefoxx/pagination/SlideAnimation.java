@@ -51,7 +51,9 @@ import java.util.*;
 public class SlideAnimation {
 
     private static final String ANIMATION_KEY = "RYSEINVENTORY_SLIDE_ANIMATION_KEY";
-
+    private static Plugin plugin;
+    private final List<BukkitTask> task = new ArrayList<>();
+    private final HashMap<Integer, Integer> timeHandler = new HashMap<>();
     private List<Integer> from = new ArrayList<>();
     private List<Integer> to = new ArrayList<>();
     private List<IntelligentItem> items = new ArrayList<>();
@@ -61,15 +63,340 @@ public class SlideAnimation {
     private Object identifier;
     private InventoryContents contents;
     private boolean blockClickEvent = false;
-    private static Plugin plugin;
-
-    private final List<BukkitTask> task = new ArrayList<>();
-    private final HashMap<Integer, Integer> timeHandler = new HashMap<>();
 
     @Contract("_ -> new")
     public static @NotNull Builder builder(@NotNull Plugin plugin) {
         SlideAnimation.plugin = plugin;
         return new Builder();
+    }
+
+    /**
+     * This starts the animation for the inventory.
+     *
+     * @param contents The inventory contents to animate.
+     * @throws IllegalArgumentException if invalid data was passed in the builder.
+     */
+    public void animate(@NotNull InventoryContents contents) throws IllegalArgumentException {
+        this.contents = contents;
+        RyseInventory inventory = contents.pagination().inventory();
+
+        for (int i = 0; i < this.from.size(); i++) {
+            int fromSlot = this.from.get(i);
+            int toSlot = this.to.get(i);
+
+            checkIfInvalid(fromSlot, toSlot, inventory);
+        }
+
+        animateByTyp();
+    }
+
+    private void animateByTyp() {
+        if (this.direction == AnimatorDirection.HORIZONTAL_LEFT_RIGHT || this.direction == AnimatorDirection.HORIZONTAL_RIGHT_LEFT) {
+            animateHorizontal();
+            return;
+        }
+        if (this.direction == AnimatorDirection.VERTICAL_UP_DOWN || this.direction == AnimatorDirection.VERTICAL_DOWN_UP) {
+            animateVertical();
+            return;
+        }
+        if (this.direction == AnimatorDirection.DIAGONAL_TOP_LEFT || this.direction == AnimatorDirection.DIAGONAL_BOTTOM_LEFT) {
+            animateDiagonalTopBottomLeft();
+            return;
+        }
+        if (this.direction == AnimatorDirection.DIAGONAL_TOP_RIGHT || this.direction == AnimatorDirection.DIAGONAL_BOTTOM_RIGHT) {
+            animateDiagonalTopBottomRight();
+        }
+    }
+
+    private void animateDiagonalTopBottomLeft() {
+        for (int i = 0; i < this.items.size(); i++) {
+            boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
+
+            final int[] wait = {this.timeHandler.getOrDefault(this.from.get(i), 0) + 2};
+
+            if (moreDelay) {
+                this.timeHandler.put(this.from.get(i), wait[0]);
+            }
+
+            int finalI = i;
+
+            BukkitTask bukkitTask = new BukkitRunnable() {
+                final int toIndex = to.get(finalI);
+                final IntelligentItem item = items.get(finalI);
+                final boolean isTopLeft = direction == AnimatorDirection.DIAGONAL_TOP_LEFT;
+                int fromIndex = from.get(finalI);
+                int previousIndex = fromIndex;
+
+                @Override
+                public void run() {
+                    if (moreDelay && wait[0] > 0) {
+                        wait[0]--;
+                        return;
+                    }
+
+                    if (this.isTopLeft) {
+                        if (this.fromIndex > this.toIndex) {
+                            cancel();
+                            return;
+                        }
+                    } else if (this.fromIndex < this.toIndex) {
+                        cancel();
+                        return;
+                    }
+
+                    if (this.fromIndex == from.get(finalI)) {
+                        contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
+                    } else {
+
+                        Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
+                        contents.removeItemWithConsumer(this.previousIndex);
+
+                        contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
+                    }
+
+                    this.previousIndex = this.fromIndex;
+                    if (this.isTopLeft) {
+                        this.fromIndex += 10;
+                        return;
+                    }
+                    this.fromIndex -= 8;
+                }
+            }.runTaskTimer(plugin, this.delay, this.period);
+            this.task.add(bukkitTask);
+        }
+    }
+
+    private void animateDiagonalTopBottomRight() {
+        for (int i = 0; i < this.items.size(); i++) {
+            boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
+
+            final int[] wait = {this.timeHandler.getOrDefault(this.from.get(i), 0) + 2};
+
+            if (moreDelay) {
+                this.timeHandler.put(this.from.get(i), wait[0]);
+            }
+
+            int finalI = i;
+
+            BukkitTask bukkitTask = new BukkitRunnable() {
+                final int toIndex = to.get(finalI);
+                final IntelligentItem item = items.get(finalI);
+                final boolean isTopRight = direction == AnimatorDirection.DIAGONAL_TOP_RIGHT;
+                int fromIndex = from.get(finalI);
+                int previousIndex = fromIndex;
+
+                @Override
+                public void run() {
+                    if (moreDelay && wait[0] > 0) {
+                        wait[0]--;
+                        return;
+                    }
+
+                    if (this.isTopRight) {
+                        if (this.fromIndex > this.toIndex) {
+                            cancel();
+                            return;
+                        }
+                    } else if (this.fromIndex < this.toIndex) {
+                        cancel();
+                        return;
+                    }
+
+                    if (this.fromIndex == from.get(finalI)) {
+                        contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
+                    } else {
+
+                        Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
+                        contents.removeItemWithConsumer(this.previousIndex);
+
+                        contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
+                    }
+
+                    this.previousIndex = this.fromIndex;
+                    if (this.isTopRight) {
+                        this.fromIndex += 8;
+                        return;
+                    }
+                    this.fromIndex -= 10;
+                }
+            }.runTaskTimer(plugin, this.delay, this.period);
+            this.task.add(bukkitTask);
+        }
+    }
+
+    private void animateHorizontal() {
+        for (int i = 0; i < this.items.size(); i++) {
+            boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
+
+            final int[] wait = {this.timeHandler.getOrDefault(this.from.get(i), 0) + 2};
+
+            if (moreDelay) {
+                this.timeHandler.put(this.from.get(i), wait[0]);
+            }
+
+            int finalI = i;
+            BukkitTask bukkitTask = new BukkitRunnable() {
+                final int toIndex = to.get(finalI);
+                final IntelligentItem item = items.get(finalI);
+                final boolean leftToRight = direction == AnimatorDirection.HORIZONTAL_LEFT_RIGHT;
+                int fromIndex = from.get(finalI);
+                int previousIndex = fromIndex;
+
+                @Override
+                public void run() {
+                    if (moreDelay && wait[0] > 0) {
+                        wait[0]--;
+                        return;
+                    }
+
+                    if (this.leftToRight) {
+                        if (this.fromIndex > this.toIndex) {
+                            cancel();
+                            return;
+                        }
+                    } else if (this.fromIndex < this.toIndex) {
+                        cancel();
+                        return;
+                    }
+
+                    if (this.fromIndex == from.get(finalI)) {
+                        contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
+                    } else {
+
+                        Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
+
+                        contents.removeItemWithConsumer(this.previousIndex);
+
+                        contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
+                    }
+
+                    this.previousIndex = this.fromIndex;
+                    if (this.leftToRight) {
+                        this.fromIndex++;
+                        return;
+                    }
+                    this.fromIndex--;
+
+                }
+            }.runTaskTimer(plugin, this.delay, this.period);
+            this.task.add(bukkitTask);
+        }
+    }
+
+    private void animateVertical() {
+        for (int i = 0; i < this.items.size(); i++) {
+            boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
+
+            final int[] wait = {this.timeHandler.getOrDefault(this.from.get(i), 0) + 2};
+
+            if (moreDelay) {
+                this.timeHandler.put(this.from.get(i), wait[0]);
+            }
+
+            int finalI = i;
+
+            BukkitTask bukkitTask = new BukkitRunnable() {
+                final int toIndex = to.get(finalI);
+                final IntelligentItem item = items.get(finalI);
+                final boolean upToDown = direction == AnimatorDirection.VERTICAL_UP_DOWN;
+                int fromIndex = from.get(finalI);
+                int previousIndex = fromIndex;
+
+                @Override
+                public void run() {
+                    if (moreDelay && wait[0] > 0) {
+                        wait[0]--;
+                        return;
+                    }
+
+                    if (this.upToDown) {
+                        if (this.fromIndex > this.toIndex) {
+                            cancel();
+                            return;
+                        }
+                    } else if (this.fromIndex < this.toIndex) {
+                        cancel();
+                        return;
+                    }
+
+                    if (this.fromIndex == from.get(finalI)) {
+                        contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
+                    } else {
+
+                        Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
+
+                        contents.removeItemWithConsumer(this.previousIndex);
+
+                        contents.set(this.fromIndex, this.item);
+                        contents.update(this.fromIndex, this.item);
+                    }
+
+                    this.previousIndex = this.fromIndex;
+                    if (this.upToDown) {
+                        this.fromIndex += 9;
+                        return;
+                    }
+                    this.fromIndex -= 9;
+
+                }
+            }.runTaskTimer(plugin, this.delay, this.period);
+            this.task.add(bukkitTask);
+        }
+    }
+
+    private void checkIfInvalid(@Nonnegative int from, @Nonnegative int to, @NotNull RyseInventory inventory) {
+        if (this.direction == AnimatorDirection.HORIZONTAL_LEFT_RIGHT || this.direction == AnimatorDirection.HORIZONTAL_RIGHT_LEFT) {
+            if ((from - 1) / 9 != (to - 1) / 9 && from / 9 != to / 9) {
+                throw new IllegalArgumentException("The start position " + from + " and the end position " + to + " are not on the same row.");
+            }
+            if (this.direction == AnimatorDirection.HORIZONTAL_LEFT_RIGHT) {
+                if (from < to) return;
+                throw new IllegalArgumentException("An animation from left to right requires that the values in to() are larger than the values in from()");
+            } else {
+                if (to < from) return;
+                throw new IllegalArgumentException("An animation from right to left requires that the values in from() are larger than the values in to()");
+            }
+        } else if (this.direction == AnimatorDirection.VERTICAL_UP_DOWN || this.direction == AnimatorDirection.VERTICAL_DOWN_UP) {
+            if (from % 9 != to % 9) {
+                throw new IllegalArgumentException("The start position " + from + " and the end position " + to + " are not on the same column.");
+            }
+            if (this.direction == AnimatorDirection.VERTICAL_UP_DOWN) {
+                if (from < to) return;
+                throw new IllegalArgumentException("An animation from up to down requires that the values in to() are larger than the values in from()");
+            } else {
+                if (to < from) return;
+                throw new IllegalArgumentException("An animation from down to up requires that the values in from() are larger than the values in to()");
+            }
+        }
+
+        if (from == to)
+            throw new IllegalArgumentException("The animation could not be started! from " + from + " and to " + to + " have the same values. from must be smaller than " + to + ".");
+
+        if (from > inventory.size())
+            throw new IllegalArgumentException("The start slot must not be larger than the inventory size.");
+
+        if (to > inventory.size())
+            throw new IllegalArgumentException("The end slot must not be larger than the inventory size.");
+
+    }
+
+    protected boolean isBlockClickEvent() {
+        return this.blockClickEvent;
+    }
+
+    protected @NotNull List<BukkitTask> getTasks() {
+        return this.task;
+    }
+
+    public @Nullable Object getIdentifier() {
+        return this.identifier;
     }
 
     public static class Builder {
@@ -428,335 +755,5 @@ public class SlideAnimation {
             slideAnimation.blockClickEvent = this.blockClickEvent;
             return slideAnimation;
         }
-    }
-
-    /**
-     * This starts the animation for the inventory.
-     *
-     * @param contents The inventory contents to animate.
-     * @throws IllegalArgumentException if invalid data was passed in the builder.
-     */
-    public void animate(@NotNull InventoryContents contents) throws IllegalArgumentException {
-        this.contents = contents;
-        RyseInventory inventory = contents.pagination().inventory();
-
-        for (int i = 0; i < this.from.size(); i++) {
-            int fromSlot = this.from.get(i);
-            int toSlot = this.to.get(i);
-
-            checkIfInvalid(fromSlot, toSlot, inventory);
-        }
-
-        animateByTyp();
-    }
-
-    private void animateByTyp() {
-        if (this.direction == AnimatorDirection.HORIZONTAL_LEFT_RIGHT || this.direction == AnimatorDirection.HORIZONTAL_RIGHT_LEFT) {
-            animateHorizontal();
-            return;
-        }
-        if (this.direction == AnimatorDirection.VERTICAL_UP_DOWN || this.direction == AnimatorDirection.VERTICAL_DOWN_UP) {
-            animateVertical();
-            return;
-        }
-        if (this.direction == AnimatorDirection.DIAGONAL_TOP_LEFT || this.direction == AnimatorDirection.DIAGONAL_BOTTOM_LEFT) {
-            animateDiagonalTopBottomLeft();
-            return;
-        }
-        if (this.direction == AnimatorDirection.DIAGONAL_TOP_RIGHT || this.direction == AnimatorDirection.DIAGONAL_BOTTOM_RIGHT) {
-            animateDiagonalTopBottomRight();
-        }
-    }
-
-    private void animateDiagonalTopBottomLeft() {
-        for (int i = 0; i < this.items.size(); i++) {
-            boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
-
-            final int[] wait = {this.timeHandler.getOrDefault(this.from.get(i), 0) + 2};
-
-            if (moreDelay) {
-                this.timeHandler.put(this.from.get(i), wait[0]);
-            }
-
-            int finalI = i;
-
-            BukkitTask bukkitTask = new BukkitRunnable() {
-                int fromIndex = from.get(finalI);
-                final int toIndex = to.get(finalI);
-                int previousIndex = fromIndex;
-                final IntelligentItem item = items.get(finalI);
-                final boolean isTopLeft = direction == AnimatorDirection.DIAGONAL_TOP_LEFT;
-
-                @Override
-                public void run() {
-                    if (moreDelay && wait[0] > 0) {
-                        wait[0]--;
-                        return;
-                    }
-
-                    if (this.isTopLeft) {
-                        if (this.fromIndex > this.toIndex) {
-                            cancel();
-                            return;
-                        }
-                    } else if (this.fromIndex < this.toIndex) {
-                        cancel();
-                        return;
-                    }
-
-                    if (this.fromIndex == from.get(finalI)) {
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    } else {
-
-                        Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
-                        contents.removeItemWithConsumer(this.previousIndex);
-
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    }
-
-                    this.previousIndex = this.fromIndex;
-                    if (this.isTopLeft) {
-                        this.fromIndex += 10;
-                        return;
-                    }
-                    this.fromIndex -= 8;
-                }
-            }.runTaskTimer(plugin, this.delay, this.period);
-            this.task.add(bukkitTask);
-        }
-    }
-
-    private void animateDiagonalTopBottomRight() {
-        for (int i = 0; i < this.items.size(); i++) {
-            boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
-
-            final int[] wait = {this.timeHandler.getOrDefault(this.from.get(i), 0) + 2};
-
-            if (moreDelay) {
-                this.timeHandler.put(this.from.get(i), wait[0]);
-            }
-
-            int finalI = i;
-
-            BukkitTask bukkitTask = new BukkitRunnable() {
-                int fromIndex = from.get(finalI);
-                final int toIndex = to.get(finalI);
-                int previousIndex = fromIndex;
-                final IntelligentItem item = items.get(finalI);
-                final boolean isTopRight = direction == AnimatorDirection.DIAGONAL_TOP_RIGHT;
-
-                @Override
-                public void run() {
-                    if (moreDelay && wait[0] > 0) {
-                        wait[0]--;
-                        return;
-                    }
-
-                    if (this.isTopRight) {
-                        if (this.fromIndex > this.toIndex) {
-                            cancel();
-                            return;
-                        }
-                    } else if (this.fromIndex < this.toIndex) {
-                        cancel();
-                        return;
-                    }
-
-                    if (this.fromIndex == from.get(finalI)) {
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    } else {
-
-                        Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
-                        contents.removeItemWithConsumer(this.previousIndex);
-
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    }
-
-                    this.previousIndex = this.fromIndex;
-                    if (this.isTopRight) {
-                        this.fromIndex += 8;
-                        return;
-                    }
-                    this.fromIndex -= 10;
-                }
-            }.runTaskTimer(plugin, this.delay, this.period);
-            this.task.add(bukkitTask);
-        }
-    }
-
-    private void animateHorizontal() {
-        for (int i = 0; i < this.items.size(); i++) {
-            boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
-
-            final int[] wait = {this.timeHandler.getOrDefault(this.from.get(i), 0) + 2};
-
-            if (moreDelay) {
-                this.timeHandler.put(this.from.get(i), wait[0]);
-            }
-
-            int finalI = i;
-            BukkitTask bukkitTask = new BukkitRunnable() {
-                int fromIndex = from.get(finalI);
-                final int toIndex = to.get(finalI);
-                int previousIndex = fromIndex;
-                final IntelligentItem item = items.get(finalI);
-
-                final boolean leftToRight = direction == AnimatorDirection.HORIZONTAL_LEFT_RIGHT;
-
-                @Override
-                public void run() {
-                    if (moreDelay && wait[0] > 0) {
-                        wait[0]--;
-                        return;
-                    }
-
-                    if (this.leftToRight) {
-                        if (this.fromIndex > this.toIndex) {
-                            cancel();
-                            return;
-                        }
-                    } else if (this.fromIndex < this.toIndex) {
-                        cancel();
-                        return;
-                    }
-
-                    if (this.fromIndex == from.get(finalI)) {
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    } else {
-
-                        Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
-
-                        contents.removeItemWithConsumer(this.previousIndex);
-
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    }
-
-                    this.previousIndex = this.fromIndex;
-                    if (this.leftToRight) {
-                        this.fromIndex++;
-                        return;
-                    }
-                    this.fromIndex--;
-
-                }
-            }.runTaskTimer(plugin, this.delay, this.period);
-            this.task.add(bukkitTask);
-        }
-    }
-
-    private void animateVertical() {
-        for (int i = 0; i < this.items.size(); i++) {
-            boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
-
-            final int[] wait = {this.timeHandler.getOrDefault(this.from.get(i), 0) + 2};
-
-            if (moreDelay) {
-                this.timeHandler.put(this.from.get(i), wait[0]);
-            }
-
-            int finalI = i;
-
-            BukkitTask bukkitTask = new BukkitRunnable() {
-                int fromIndex = from.get(finalI);
-                final int toIndex = to.get(finalI);
-                int previousIndex = fromIndex;
-                final IntelligentItem item = items.get(finalI);
-                final boolean upToDown = direction == AnimatorDirection.VERTICAL_UP_DOWN;
-
-                @Override
-                public void run() {
-                    if (moreDelay && wait[0] > 0) {
-                        wait[0]--;
-                        return;
-                    }
-
-                    if (this.upToDown) {
-                        if (this.fromIndex > this.toIndex) {
-                            cancel();
-                            return;
-                        }
-                    } else if (this.fromIndex < this.toIndex) {
-                        cancel();
-                        return;
-                    }
-
-                    if (this.fromIndex == from.get(finalI)) {
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    } else {
-
-                        Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
-
-                        contents.removeItemWithConsumer(this.previousIndex);
-
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    }
-
-                    this.previousIndex = this.fromIndex;
-                    if (this.upToDown) {
-                        this.fromIndex += 9;
-                        return;
-                    }
-                    this.fromIndex -= 9;
-
-                }
-            }.runTaskTimer(plugin, this.delay, this.period);
-            this.task.add(bukkitTask);
-        }
-    }
-
-    private void checkIfInvalid(@Nonnegative int from, @Nonnegative int to, @NotNull RyseInventory inventory) {
-        if (this.direction == AnimatorDirection.HORIZONTAL_LEFT_RIGHT || this.direction == AnimatorDirection.HORIZONTAL_RIGHT_LEFT) {
-            if ((from - 1) / 9 != (to - 1) / 9 && from / 9 != to / 9) {
-                throw new IllegalArgumentException("The start position " + from + " and the end position " + to + " are not on the same row.");
-            }
-            if (this.direction == AnimatorDirection.HORIZONTAL_LEFT_RIGHT) {
-                if (from < to) return;
-                throw new IllegalArgumentException("An animation from left to right requires that the values in to() are larger than the values in from()");
-            } else {
-                if (to < from) return;
-                throw new IllegalArgumentException("An animation from right to left requires that the values in from() are larger than the values in to()");
-            }
-        } else if (this.direction == AnimatorDirection.VERTICAL_UP_DOWN || this.direction == AnimatorDirection.VERTICAL_DOWN_UP) {
-            if (from % 9 != to % 9) {
-                throw new IllegalArgumentException("The start position " + from + " and the end position " + to + " are not on the same column.");
-            }
-            if (this.direction == AnimatorDirection.VERTICAL_UP_DOWN) {
-                if (from < to) return;
-                throw new IllegalArgumentException("An animation from up to down requires that the values in to() are larger than the values in from()");
-            } else {
-                if (to < from) return;
-                throw new IllegalArgumentException("An animation from down to up requires that the values in from() are larger than the values in to()");
-            }
-        }
-
-        if (from == to)
-            throw new IllegalArgumentException("The animation could not be started! from " + from + " and to " + to + " have the same values. from must be smaller than " + to + ".");
-
-        if (from > inventory.size())
-            throw new IllegalArgumentException("The start slot must not be larger than the inventory size.");
-
-        if (to > inventory.size())
-            throw new IllegalArgumentException("The end slot must not be larger than the inventory size.");
-
-    }
-
-    protected boolean isBlockClickEvent() {
-        return this.blockClickEvent;
-    }
-
-    protected @NotNull List<BukkitTask> getTasks() {
-        return this.task;
-    }
-
-    public @Nullable Object getIdentifier() {
-        return this.identifier;
     }
 }

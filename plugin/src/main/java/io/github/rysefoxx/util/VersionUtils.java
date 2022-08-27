@@ -34,11 +34,11 @@ import org.jetbrains.annotations.Contract;
  */
 public class VersionUtils {
 
-    @Contract(pure = true)
-    private VersionUtils(){}
-
     private static final String VERSION = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
     private static final int SUB_VERSION = Integer.parseInt(VERSION.replaceAll("_R\\d", "").replace("v", "").replaceFirst("1_", ""));
+    @Contract(pure = true)
+    private VersionUtils() {
+    }
 
     @Contract(pure = true)
     public static int getSubVersion() {

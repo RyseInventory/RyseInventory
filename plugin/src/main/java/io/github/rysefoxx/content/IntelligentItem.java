@@ -46,8 +46,8 @@ import java.util.function.Consumer;
 public class IntelligentItem {
 
     private final ItemStack itemStack;
-    private Consumer<InventoryClickEvent> consumer;
     private final IntelligentItemError error;
+    private Consumer<InventoryClickEvent> consumer;
     private boolean canClick = true;
     private boolean canSee = true;
     private @Nullable Object id;
@@ -142,6 +142,23 @@ public class IntelligentItem {
     }
 
     /**
+     * Deserializes a map to an IntelligentItem.
+     *
+     * @param map The map to deserialize.
+     * @return The deserialized IntelligentItem.
+     */
+    @SuppressWarnings("unchecked")
+    public static @Nullable IntelligentItem deserialize(@NotNull Map<String, Object> map) {
+        if (map.isEmpty()) return null;
+        IntelligentItem intelligentItem = new IntelligentItem((ItemStack) map.get("item"), (IntelligentItemError) map.get("error"));
+        intelligentItem.consumer = (Consumer<InventoryClickEvent>) map.get("consumer");
+        intelligentItem.canClick = (boolean) map.get("can-click");
+        intelligentItem.canSee = (boolean) map.get("can-see");
+        intelligentItem.id = map.get("id");
+        return intelligentItem;
+    }
+
+    /**
      * Removes the consumer from an IntelligentItem
      */
     public void clearConsumer() {
@@ -217,22 +234,5 @@ public class IntelligentItem {
         map.put("can-see", this.canSee);
         map.put("id", this.id);
         return map;
-    }
-
-    /**
-     * Deserializes a map to an IntelligentItem.
-     *
-     * @param map The map to deserialize.
-     * @return The deserialized IntelligentItem.
-     */
-    @SuppressWarnings("unchecked")
-    public static @Nullable IntelligentItem deserialize(@NotNull Map<String, Object> map) {
-        if (map.isEmpty()) return null;
-        IntelligentItem intelligentItem = new IntelligentItem((ItemStack) map.get("item"), (IntelligentItemError) map.get("error"));
-        intelligentItem.consumer = (Consumer<InventoryClickEvent>) map.get("consumer");
-        intelligentItem.canClick = (boolean) map.get("can-click");
-        intelligentItem.canSee = (boolean) map.get("can-see");
-        intelligentItem.id = map.get("id");
-        return intelligentItem;
     }
 }

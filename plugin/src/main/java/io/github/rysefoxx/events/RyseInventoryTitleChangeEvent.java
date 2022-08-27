@@ -56,12 +56,22 @@ public class RyseInventoryTitleChangeEvent extends Event implements Cancellable 
         this.newTitle = newTitle;
     }
 
+    @Contract(pure = true)
+    public static HandlerList getHandlerList() {
+        return HANDLERS_LIST;
+    }
+
     /**
      * If true, the title set via {@link #setNewTitle(String)} will be ignored.
      */
     @Override
     public boolean isCancelled() {
         return this.isCancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.isCancelled = cancel;
     }
 
     /**
@@ -79,14 +89,8 @@ public class RyseInventoryTitleChangeEvent extends Event implements Cancellable 
     }
 
     /**
-     * @return The player who's inventory is being changed.
-     */
-    public @NotNull Player getPlayer() {
-        return this.player;
-    }
-
-    /**
      * Gives the inventory a new title.
+     *
      * @param newTitle The new title of the inventory.
      * @apiNote If isCancelled is true, the title will not be set.
      */
@@ -96,18 +100,15 @@ public class RyseInventoryTitleChangeEvent extends Event implements Cancellable 
         this.newTitle = newTitle;
     }
 
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.isCancelled = cancel;
+    /**
+     * @return The player who's inventory is being changed.
+     */
+    public @NotNull Player getPlayer() {
+        return this.player;
     }
 
     @Override
     public HandlerList getHandlers() {
-        return HANDLERS_LIST;
-    }
-
-    @Contract(pure = true)
-    public static HandlerList getHandlerList() {
         return HANDLERS_LIST;
     }
 }

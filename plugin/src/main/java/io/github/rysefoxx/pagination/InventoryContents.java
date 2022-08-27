@@ -75,7 +75,7 @@ public class InventoryContents {
         this.inventory = inventory;
         this.pagination = new Pagination(inventory);
     }
-    
+
     /**
      * @param slot The slot
      * @return true if the slot is ignored.
@@ -1010,7 +1010,7 @@ public class InventoryContents {
         if (!optional.isPresent()) return false;
 
         int slot = optional.get();
-        this.pagination.setItem(slot, item);
+        this.pagination.setItem(slot, item, false);
         return true;
     }
 
@@ -1125,7 +1125,7 @@ public class InventoryContents {
         if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
-        this.pagination.setItem(slot, page, item);
+        this.pagination.setItem(slot, page, item, false);
     }
 
     /**
@@ -1694,7 +1694,7 @@ public class InventoryContents {
         if (slot > this.inventory.size())
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
 
-        this.pagination.setItem(slot, item);
+        this.pagination.setItem(slot, item, false);
     }
 
     /**
@@ -1826,8 +1826,39 @@ public class InventoryContents {
     }
 
     /**
-     * @return A list of all the items in the inventory.
+     * @return A read-only list of all IntelligentItem's from the current page plus their associated data.
      */
+    public @NotNull List<IntelligentItemData> getDataFromCurrentPage() {
+        return getDataFromPage(this.pagination.page() - 1);
+    }
+
+    /**
+     * @return A read-only list of all IntelligentItem's from the page plus their associated data.
+     */
+    public @NotNull List<IntelligentItemData> getDataFromPage(int page) {
+        List<IntelligentItemData> data = new ArrayList<>();
+
+        for (IntelligentItemData itemData : this.pagination.getInventoryData()) {
+            if (itemData.getPage() != page) continue;
+            data.add(itemData);
+        }
+
+        return Collections.unmodifiableList(data);
+    }
+
+    /**
+     * @return A read-only list of all IntelligentItem's plus their associated data.
+     */
+    public @NotNull List<IntelligentItemData> getAllData() {
+        List<IntelligentItemData> data = new ArrayList<>(this.pagination.getInventoryData());
+        return Collections.unmodifiableList(data);
+    }
+
+    /**
+     * @return A list of all the items in the inventory.
+     * @deprecated Use {@link #getAllData()} instead.
+     */
+    @Deprecated
     public @NotNull List<IntelligentItem> getAll() {
         List<IntelligentItem> items = new ArrayList<>();
         for (int i = 0; i < this.inventory.size(); i++)
@@ -1841,6 +1872,7 @@ public class InventoryContents {
      * @return All items on a given page.
      * @throws IllegalArgumentException if page > inventory pages
      */
+    @Deprecated
     public @NotNull List<IntelligentItem> getAllWithinPage(@Nonnegative int page) throws IllegalArgumentException {
         if (this.inventory.getFixedPageSize() != -1 && page > this.inventory.getFixedPageSize() - 1)
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_PAGE, "%temp%", this.inventory.getFixedPageSize() - 1));

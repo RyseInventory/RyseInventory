@@ -48,6 +48,7 @@ public class RyseInventoryCloseEvent extends Event implements Cancellable {
 
     /**
      * The event is called when a RyseInventory is closed.
+     *
      * @apiNote The event is called only when the inventory is closed with the {@link RyseInventory#close(Player)} method.
      */
     public RyseInventoryCloseEvent(@NotNull Player player, @NotNull RyseInventory inventory) {
@@ -56,12 +57,22 @@ public class RyseInventoryCloseEvent extends Event implements Cancellable {
         this.isCancelled = false;
     }
 
+    @Contract(pure = true)
+    public static HandlerList getHandlerList() {
+        return HANDLERS_LIST;
+    }
+
     /**
      * If true, the inventory will not be closed.
      */
     @Override
     public boolean isCancelled() {
         return this.isCancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.isCancelled = cancel;
     }
 
     /**
@@ -79,17 +90,7 @@ public class RyseInventoryCloseEvent extends Event implements Cancellable {
     }
 
     @Override
-    public void setCancelled(boolean cancel) {
-        this.isCancelled = cancel;
-    }
-
-    @Override
     public HandlerList getHandlers() {
-        return HANDLERS_LIST;
-    }
-
-    @Contract(pure = true)
-    public static HandlerList getHandlerList() {
         return HANDLERS_LIST;
     }
 }

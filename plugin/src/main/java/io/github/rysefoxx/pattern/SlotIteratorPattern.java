@@ -104,7 +104,7 @@ public class SlotIteratorPattern {
                 }
             }
 
-            if(!foundChar) throw new IllegalStateException("The attached frame is not in the pattern.");
+            if (!foundChar) throw new IllegalStateException("The attached frame is not in the pattern.");
 
             pattern.lines = this.lines;
             pattern.attachedChar = this.attachedChar;

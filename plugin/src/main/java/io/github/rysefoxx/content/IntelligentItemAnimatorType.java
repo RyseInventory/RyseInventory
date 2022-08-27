@@ -27,8 +27,8 @@ package io.github.rysefoxx.content;
 
 /**
  * @author Rysefoxx(Rysefoxx # 6772)
- * @since 4/12/2022
  * @apiNote An enum that is used to determine how the text will be animated.
+ * @since 4/12/2022
  */
 public enum IntelligentItemAnimatorType {
 

@@ -25,6 +25,7 @@
 
 package io.github.rysefoxx.pagination;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.Preconditions;
 import io.github.rysefoxx.SlotIterator;
 import io.github.rysefoxx.content.IntelligentItem;
@@ -58,22 +59,20 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 public class RyseInventory {
 
+    protected final List<Player> delayed = new ArrayList<>();
+    private final HashMap<UUID, Inventory> privateInventory = new HashMap<>();
+    private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
     private InventoryManager manager;
-
     @Getter
     private InventoryProvider provider;
     private String title;
-
     @Getter
     @Nullable
     private Inventory inventory;
-
-
     private boolean clearAndSafe;
     private SlideAnimation slideAnimator;
     private Object identifier;
     private transient Plugin plugin;
-
     @Getter
     private int size = -1;
     @Getter
@@ -86,14 +85,12 @@ public class RyseInventory {
     private int loadTitle = -1;
     private boolean closeAble = true;
     private boolean transferData = true;
-    private boolean backward = false;
-
+    private boolean backward;
+    private boolean ignoreManualItems;
     @NotNull
     private String titleHolder = "§e§oLoading§8...§r";
     @NotNull
     private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
-
-    protected final List<Player> delayed = new ArrayList<>();
     private List<InventoryOptions> options = new ArrayList<>();
     private List<EventCreator<? extends Event>> events = new ArrayList<>();
     private List<DisabledInventoryClick> ignoreClickEvent = new ArrayList<>();
@@ -102,10 +99,9 @@ public class RyseInventory {
     private List<IntelligentMaterialAnimator> materialAnimator = new ArrayList<>();
     private List<IntelligentTitleAnimator> titleAnimator = new ArrayList<>();
     private List<IntelligentItemLoreAnimator> loreAnimator = new ArrayList<>();
-    private final List<DisabledEvents> disabledEvents = new ArrayList<>();
-    private final HashMap<UUID, Inventory> privateInventory = new HashMap<>();
-    private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
-    private final List<Integer> ignoredSlots = new ArrayList<>();
+    private List<Integer> ignoredSlots = new ArrayList<>();
+    private List<Action> enabledActions = new ArrayList<>();
+    private List<DisabledEvents> disabledEvents = new ArrayList<>();
 
     //Empty constructor for Builder
     private RyseInventory() {
@@ -137,6 +133,9 @@ public class RyseInventory {
         this.backward = inventory.backward;
         this.titleHolder = inventory.titleHolder;
         this.inventoryOpenerType = inventory.inventoryOpenerType;
+        this.ignoredSlots = inventory.ignoredSlots;
+        this.enabledActions.addAll(inventory.enabledActions);
+        this.disabledEvents.addAll(inventory.disabledEvents);
         this.delayed.addAll(inventory.delayed);
         this.options.addAll(inventory.options);
         this.events.addAll(inventory.events);
@@ -148,42 +147,6 @@ public class RyseInventory {
         this.loreAnimator.addAll(inventory.loreAnimator);
         this.privateInventory.putAll(inventory.privateInventory);
         this.playerInventory.putAll(inventory.playerInventory);
-    }
-
-    /**
-     * Serializes the inventory to a map.
-     *
-     * @return The serialized inventory.
-     * @see #deserialize(Map, InventoryManager) to get back the inventory from the hashmap.
-     */
-    public @NotNull Map<String, Object> serialize() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("title", this.title);
-        map.put("size", this.size);
-        map.put("delay", this.delay);
-        map.put("plugin", this.plugin.getName());
-        map.put("open-delay", this.openDelay);
-        map.put("period", this.period);
-        map.put("close-after", this.closeAfter);
-        map.put("load-delay", this.loadDelay);
-        map.put("load-title", this.loadTitle);
-        map.put("close-able", this.closeAble);
-        map.put("transfer-data", this.transferData);
-        map.put("backward", this.backward);
-        map.put("title-holder", this.titleHolder);
-        map.put("inventory-opener-type", this.inventoryOpenerType.toString());
-        map.put("options", this.options);
-        map.put("events", this.events);
-        map.put("ignore-click-event", this.ignoreClickEvent);
-        map.put("close-reasons", this.closeReasons);
-        map.put("item-animator", this.itemAnimator);
-        map.put("material-animator", this.materialAnimator);
-        map.put("title-animator", this.titleAnimator);
-        map.put("lore-animator", this.loreAnimator);
-        map.put("provider", this.provider);
-        map.put("identifier", this.identifier);
-        map.put("clear-and-safe", this.clearAndSafe);
-        return map;
     }
 
     /**
@@ -219,6 +182,9 @@ public class RyseInventory {
         inventory.materialAnimator = (List<IntelligentMaterialAnimator>) data.get("material-animator");
         inventory.titleAnimator = (List<IntelligentTitleAnimator>) data.get("title-animator");
         inventory.loreAnimator = (List<IntelligentItemLoreAnimator>) data.get("lore-animator");
+        inventory.ignoredSlots = (List<Integer>) data.get("ignored-slots");
+        inventory.disabledEvents = (List<DisabledEvents>) data.get("disabled-events");
+        inventory.enabledActions = (List<Action>) data.get("enabled-actions");
         inventory.provider = (InventoryProvider) data.get("provider");
         inventory.identifier = data.get("identifier");
         inventory.clearAndSafe = (boolean) data.get("clear-and-safe");
@@ -226,6 +192,56 @@ public class RyseInventory {
         inventory.plugin = Bukkit.getPluginManager().getPlugin((String) data.get("plugin"));
 
         return inventory;
+    }
+
+    /**
+     * Builder to create an inventory.
+     *
+     * @return The Builder object with several methods
+     */
+    @Contract(" -> new")
+    public static @NotNull Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Serializes the inventory to a map.
+     *
+     * @return The serialized inventory.
+     * @see #deserialize(Map, InventoryManager) to get back the inventory from the hashmap.
+     */
+    public @NotNull Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("title", this.title);
+        map.put("size", this.size);
+        map.put("delay", this.delay);
+        map.put("plugin", this.plugin.getName());
+        map.put("open-delay", this.openDelay);
+        map.put("period", this.period);
+        map.put("close-after", this.closeAfter);
+        map.put("load-delay", this.loadDelay);
+        map.put("load-title", this.loadTitle);
+        map.put("close-able", this.closeAble);
+        map.put("transfer-data", this.transferData);
+        map.put("backward", this.backward);
+        map.put("title-holder", this.titleHolder);
+        map.put("inventory-opener-type", this.inventoryOpenerType.toString());
+        map.put("options", this.options);
+        map.put("events", this.events);
+        map.put("ignore-click-event", this.ignoreClickEvent);
+        map.put("close-reasons", this.closeReasons);
+        map.put("item-animator", this.itemAnimator);
+        map.put("material-animator", this.materialAnimator);
+        map.put("title-animator", this.titleAnimator);
+        map.put("lore-animator", this.loreAnimator);
+        map.put("provider", this.provider);
+        map.put("identifier", this.identifier);
+        map.put("clear-and-safe", this.clearAndSafe);
+        map.put("ignored-slots", this.ignoredSlots);
+        map.put("disabled-events", this.disabledEvents);
+        map.put("enabled-actions", this.enabledActions);
+
+        return map;
     }
 
     /**
@@ -604,13 +620,522 @@ public class RyseInventory {
     }
 
     /**
-     * Builder to create an inventory.
-     *
-     * @return The Builder object with several methods
+     * @return inventory title
      */
-    @Contract(" -> new")
-    public static @NotNull Builder builder() {
-        return new Builder();
+    public @NotNull String getTitle() {
+        return this.title;
+    }
+
+    /**
+     * @return how much later the scheduler starts (in milliseconds)
+     */
+    public @Nonnegative int getDelay() {
+        return this.delay;
+    }
+
+    /**
+     * @return how often the scheduler ticks (in milliseconds)
+     */
+    public @Nonnegative int getPeriod() {
+        return this.period;
+    }
+
+    /**
+     * @return if the inventory can be closed
+     */
+    public boolean isCloseAble() {
+        return this.closeAble;
+    }
+
+    /**
+     * @return Whether manually set items can be saved.
+     */
+    public boolean isIgnoreManualItems() {
+        return this.ignoreManualItems;
+    }
+
+    /**
+     * @return A list of DisabledInventoryClick objects.
+     */
+    public @NotNull List<DisabledInventoryClick> getIgnoreClickEvent() {
+        return this.ignoreClickEvent;
+    }
+
+    /**
+     * @return A list of all ignored slots.
+     */
+    public @NotNull List<Integer> getIgnoredSlots() {
+        return ignoredSlots;
+    }
+
+    /**
+     * @return A list of all enabled actions.
+     */
+    public @NotNull List<Action> getEnabledActions() {
+        return enabledActions;
+    }
+
+    /**
+     * @return A list of DisabledEvents objects.
+     */
+    public List<DisabledEvents> getDisabledEvents() {
+        return disabledEvents;
+    }
+
+    /**
+     * @return the ID from the inventory
+     * @apiNote You have to give the inventory itself an ID with {@link Builder#identifier(Object)}
+     */
+    public @Nullable Object getIdentifier() {
+        return this.identifier;
+    }
+
+    /**
+     * @return the type.
+     */
+    public @NotNull InventoryOpenerType getInventoryOpenerType() {
+        return this.inventoryOpenerType;
+    }
+
+    /**
+     * @return true if the {@link Builder#clearAndSafe()} method was called.
+     */
+    public boolean isClearAndSafe() {
+        return this.clearAndSafe;
+    }
+
+    /**
+     * @return All the setting options that have been set.
+     */
+    public @NotNull List<InventoryOptions> getOptions() {
+        return options;
+    }
+
+    /**
+     * @return the load delay
+     */
+    public int getLoadDelay() {
+        return loadDelay;
+    }
+
+    /**
+     * @param uuid Player's uuid
+     * @return the correct inventory based on whether it is split or not.
+     */
+    protected @NotNull Optional<Inventory> inventoryBasedOnOption(@NotNull UUID uuid) {
+        if (!this.privateInventory.containsKey(uuid)) return Optional.empty();
+
+        return Optional.of(this.privateInventory.get(uuid));
+    }
+
+    @Contract(value = "null -> false", pure = true)
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RyseInventory)) return false;
+        RyseInventory that = (RyseInventory) o;
+
+        return clearAndSafe == that.clearAndSafe && size == that.size && delay == that.delay && openDelay == that.openDelay && period == that.period && closeAfter == that.closeAfter && loadDelay == that.loadDelay && loadTitle == that.loadTitle && closeAble == that.closeAble && transferData == that.transferData && Objects.equals(title, that.title) && Objects.equals(slideAnimator, that.slideAnimator) && Objects.equals(identifier, that.identifier) && Objects.equals(titleHolder, that.titleHolder) && inventoryOpenerType == that.inventoryOpenerType && Objects.equals(options, that.options) && Objects.equals(events, that.events) && Objects.equals(ignoreClickEvent, that.ignoreClickEvent) && Objects.equals(closeReasons, that.closeReasons);
+    }
+
+    protected void load(@NotNull Pagination pagination, @NotNull Player player, @Nonnegative int page) {
+        pagination.getDataByPage(page).forEach(item -> placeItem(player, item.getModifiedSlot(), item.getItem()));
+    }
+
+    private void placeItem(@NotNull Player player, @Nonnegative int integer, @NotNull IntelligentItem item) {
+        if (this.inventory != null)
+            if (integer >= this.inventory.getSize()) return;
+
+        if (!item.isCanSee()) {
+            item.getError().cantSee(player, item);
+            return;
+        }
+        this.inventory.setItem(integer, item.getItemStack());
+    }
+
+    private void closeInventoryWhenEnabled(@NotNull Player player) throws IllegalStateException {
+        if (this.closeAfter == -1) return;
+        if (!this.closeAble)
+            throw new IllegalStateException("The #closeAfter() method could not be executed because you have forbidden closing the inventory by #preventClose.");
+
+        Bukkit.getScheduler().runTaskLater(this.plugin, () -> close(player), this.closeAfter);
+    }
+
+    private void removeActiveAnimations() {
+        for (int i = 0; i < this.itemAnimator.size(); i++)
+            removeItemAnimator(this.itemAnimator.get(i));
+
+        for (int i = 0; i < this.titleAnimator.size(); i++)
+            removeTitleAnimator(this.titleAnimator.get(i));
+
+        for (int i = 0; i < this.loreAnimator.size(); i++)
+            removeLoreAnimator(this.loreAnimator.get(i));
+
+        for (int i = 0; i < this.materialAnimator.size(); i++)
+            removeMaterialAnimator(this.materialAnimator.get(i));
+
+        removeSlideAnimator();
+    }
+
+    protected void setBackward() {
+        this.backward = true;
+    }
+
+    protected @NotNull InventoryManager getManager() {
+        return manager;
+    }
+
+    private void finishSavedInventory(@NotNull Player player) {
+        Optional<RyseInventory> savedInventory = this.manager.getInventory(player.getUniqueId());
+
+        savedInventory.ifPresent(mainInventory -> {
+            if (!this.backward)
+                this.manager.setLastInventory(player.getUniqueId(), mainInventory, this);
+
+            this.manager.removeInventory(player.getUniqueId());
+
+            if (mainInventory.playerInventory.containsKey(player.getUniqueId())) {
+                player.getInventory().setContents(mainInventory.playerInventory.remove(player.getUniqueId()));
+            }
+        });
+    }
+
+    private void clearInventoryWhenNeeded(@NotNull Player player) {
+        if (!this.clearAndSafe) return;
+
+        this.playerInventory.put(player.getUniqueId(), player.getInventory().getContents());
+        player.getInventory().clear();
+    }
+
+    private @NotNull Inventory setupInventory() {
+        if (this.inventoryOpenerType == InventoryOpenerType.CHEST) {
+            return Bukkit.createInventory(null, this.size, this.loadTitle == -1 ? this.title : this.titleHolder);
+        }
+        return inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), buildTitle());
+    }
+
+    @Contract(pure = true)
+    private @NotNull String buildTitle() {
+        if (this.loadTitle == -1) return this.title;
+        return this.titleHolder;
+    }
+
+    private void transferData(InventoryContents oldContents, @NotNull InventoryContents newContents, @Nullable String[] keys, @Nullable Object[] values) {
+        if (oldContents != null) {
+            for (IntelligentItemData item : oldContents.pagination().getInventoryData()) {
+                if (!item.isTransfer()) continue;
+                ItemStack itemStack = item.getItem().getItemStack();
+                itemStack.setAmount(item.getAmount());
+
+                item.getItem().update(itemStack);
+
+                newContents.pagination().addInventoryData(item);
+            }
+        }
+
+        if (this.transferData && oldContents != null)
+            oldContents.transferData(newContents);
+
+        if (keys != null && values != null) {
+            for (int n = 0; n < keys.length; n++) {
+                String key = keys[n];
+                Object value = values[n];
+                if (key == null || value == null) continue;
+
+                newContents.setData(key, value);
+            }
+        }
+    }
+
+    private void setupData(@NotNull Player player, @NotNull Inventory inventory, @NotNull InventoryContents contents) {
+        this.manager.setContents(player.getUniqueId(), contents);
+
+        this.inventory = inventory;
+        this.privateInventory.put(player.getUniqueId(), inventory);
+    }
+
+    private void initProvider(@NotNull Player player, @NotNull InventoryContents contents) {
+        if (this.slideAnimator == null) {
+            this.provider.init(player, contents);
+            return;
+        }
+        this.provider.init(player, contents, this.slideAnimator);
+    }
+
+    private void loadDelay(@Nonnegative int page, @NotNull Pagination pagination, @NotNull Player player) {
+        if (this.loadDelay != -1) {
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> load(pagination, player, page), this.loadDelay);
+        } else {
+            load(pagination, player, page);
+        }
+
+        if (this.loadTitle != -1)
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> updateTitle(player, this.title), this.loadTitle);
+    }
+
+    private void finalizeInventoryAndOpen(@NotNull Player player) {
+        Bukkit.getScheduler().runTask(this.plugin, () -> {
+            if (this.openDelay == -1 || this.delayed.contains(player)) {
+                player.openInventory(inventory);
+                this.manager.invokeScheduler(player, this);
+                this.manager.setInventory(player.getUniqueId(), this);
+            } else {
+                if (!this.delayed.contains(player)) {
+                    Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+                        player.openInventory(inventory);
+                        this.manager.invokeScheduler(player, this);
+                        this.manager.setInventory(player.getUniqueId(), this);
+                    }, this.openDelay);
+                    this.delayed.add(player);
+                }
+            }
+        });
+    }
+
+    protected void loadByPage(@NotNull InventoryContents contents) {
+        Pagination pagination = contents.pagination();
+        SlotIterator iterator = contents.iterator();
+
+        if (iterator == null) return;
+
+        SlotIterator.SlotIteratorType type = iterator.getType();
+        SlotIteratorPattern pattern = iterator.getPatternBuilder();
+
+        if (this.inventoryOpenerType != InventoryOpenerType.CHEST
+                && this.inventoryOpenerType != InventoryOpenerType.ENDER_CHEST
+                && pattern != null) {
+            throw new IllegalStateException("SlotIterator with PatternBuilder is not supported for InventoryOpenerType " + this.inventoryOpenerType.getType().toString());
+        }
+
+        int itemsSet = 0;
+        int page = 0;
+        int startSlot = iterator.getSlot();
+        int slot = startSlot;
+        List<IntelligentItemData> data = contents.pagination().getInventoryData();
+
+        int patternSlot = -1;
+        int patternLineIndex = 0;
+        int stoppedAtIndex = 0;
+
+        for (int i = 0; i < data.size(); i++) {
+            IntelligentItemData itemData = data.get(i);
+            if (itemData.getModifiedSlot() != -1) continue;
+
+            if (itemsSet >= pagination.getItemsPerPage() || (slot >= iterator.getEndPosition() && iterator.getEndPosition() != -1 && pattern == null)) {
+                itemsSet = 0;
+                patternSlot = -1;
+                patternLineIndex = 0;
+                stoppedAtIndex = 0;
+                slot = startSlot;
+                page++;
+            }
+
+            if (pattern != null) {
+                String line = pattern.getLines().get(patternLineIndex);
+
+                if (stoppedAtIndex >= line.toCharArray().length) stoppedAtIndex = 0;
+
+                for (int j = stoppedAtIndex; j < line.toCharArray().length; j++) {
+                    char c = line.charAt(j);
+                    patternSlot++;
+
+                    if (patternSlot >= size()) {
+                        j = -1;
+                        patternLineIndex = 0;
+                        patternSlot = -1;
+                        page++;
+                        itemsSet = 0;
+                        stoppedAtIndex = 0;
+                        line = pattern.getLines().get(patternLineIndex);
+                        continue;
+                    }
+
+                    if (j + 1 >= line.toCharArray().length && (c != pattern.getAttachedChar() || get(data, patternSlot, page) != null)) {
+                        j = -1;
+                        if (patternSlot == 8 || patternSlot == 8 + 9 || patternSlot == 8 + 18 || patternSlot == 8 + 27 || patternSlot == 8 + 36)
+                            patternLineIndex++;
+                        if (patternSlot == 8 + 45) {
+                            patternLineIndex = 0;
+                            patternSlot = -1;
+                            page++;
+                        }
+                        itemsSet = 0;
+                        stoppedAtIndex = 0;
+                        line = pattern.getLines().get(patternLineIndex);
+                        continue;
+                    }
+
+                    if (c != pattern.getAttachedChar() || get(data, patternSlot, page) != null)
+                        continue;
+
+                    itemData.setPage(page);
+                    itemData.setModifiedSlot(patternSlot);
+
+                    data.set(i, itemData);
+                    itemsSet++;
+                    stoppedAtIndex = j + 1;
+
+                    if (patternSlot == 8 + 45) {
+                        patternLineIndex = 0;
+                        patternSlot = -1;
+                        itemsSet = 0;
+                        stoppedAtIndex = 0;
+                        page++;
+                    }
+                    break;
+                }
+                continue;
+            }
+
+            if (!iterator.isOverride()) {
+                int[] dataArray = nextSlotAlgorithm(contents, type, page, slot, startSlot);
+                page = dataArray[0];
+                slot = dataArray[1];
+            }
+
+            pagination.remove(slot, page);
+
+            itemData.setPage(page);
+            itemData.setModifiedSlot(slot);
+
+            data.set(i, itemData);
+            itemsSet++;
+
+            slot = updateForNextSlot(type, slot, startSlot);
+        }
+
+        contents.pagination().setInventoryData(data);
+    }
+
+    private @Nullable IntelligentItem get(@NotNull List<IntelligentItemData> inventoryData, @Nonnegative int slot, @Nonnegative int page) {
+        for (IntelligentItemData data : inventoryData) {
+            if (data.getPage() == page && data.getModifiedSlot() == slot)
+                return data.getItem();
+        }
+        return null;
+    }
+
+    private int updateForNextSlot(@NotNull SlotIterator.SlotIteratorType type, @Nonnegative int slot, @Nonnegative int startSlot) {
+        if (type == SlotIterator.SlotIteratorType.HORIZONTAL)
+            return ++slot;
+
+        if (type == SlotIterator.SlotIteratorType.VERTICAL) {
+            if ((slot + 9) > size()) {
+                return startSlot + 1;
+            }
+            slot += 9;
+            return slot;
+        }
+        return slot;
+    }
+
+    @Contract("_, _, _, _, _ -> new")
+    private int @NotNull [] nextSlotAlgorithm(@NotNull InventoryContents contents, @NotNull SlotIterator.SlotIteratorType type, @Nonnegative int page, @Nonnegative int calculatedSlot, @Nonnegative int startSlot) {
+        SlotIterator iterator = Objects.requireNonNull(contents.iterator());
+
+        int toAdd = 0;
+        while (!contents.firstEmpty().isPresent() ? iterator.getBlackList().contains(calculatedSlot) : contents.getInPage(page, calculatedSlot).isPresent() || iterator.getBlackList().contains(calculatedSlot)) {
+            if (calculatedSlot >= 53) {
+                calculatedSlot = startSlot;
+                page++;
+            }
+
+            if (type == SlotIterator.SlotIteratorType.HORIZONTAL) {
+                calculatedSlot++;
+                continue;
+            }
+            if ((calculatedSlot + 9) > size()) {
+                toAdd++;
+                calculatedSlot = startSlot + toAdd;
+            } else {
+                calculatedSlot += 9;
+            }
+        }
+        return new int[]{page, calculatedSlot};
+    }
+
+    protected void clearData(@NotNull Player player) {
+        if (this.playerInventory.containsKey(player.getUniqueId())) {
+            player.getInventory().setContents(this.playerInventory.remove(player.getUniqueId()));
+        }
+
+        this.delayed.remove(player);
+        this.privateInventory.remove(player.getUniqueId());
+        this.manager.removeInventoryFromPlayer(player.getUniqueId());
+    }
+
+    protected void addItemAnimator(@NotNull IntelligentItemNameAnimator animator) {
+        this.itemAnimator.add(animator);
+    }
+
+    protected void addMaterialAnimator(@NotNull IntelligentMaterialAnimator animator) {
+        this.materialAnimator.add(animator);
+    }
+
+    protected void removeMaterialAnimator(@NotNull IntelligentMaterialAnimator animator) {
+        this.materialAnimator.remove(animator);
+
+        if (!Bukkit.getScheduler().isQueued(animator.getTask().getTaskId())) return;
+        animator.getTask().cancel();
+    }
+
+    protected void removeItemAnimator(@NotNull IntelligentItemNameAnimator animator) {
+        this.itemAnimator.remove(animator);
+
+        if (!Bukkit.getScheduler().isQueued(animator.getTask().getTaskId())) return;
+        animator.getTask().cancel();
+    }
+
+    protected void addTitleAnimator(@NotNull IntelligentTitleAnimator animator) {
+        this.titleAnimator.add(animator);
+    }
+
+    protected void removeTitleAnimator(@NotNull IntelligentTitleAnimator animator) {
+        this.titleAnimator.remove(animator);
+
+        if (!Bukkit.getScheduler().isQueued(animator.getTask().getTaskId())) return;
+        animator.getTask().cancel();
+    }
+
+    protected void addLoreAnimator(@NotNull IntelligentItemLoreAnimator animator) {
+        this.loreAnimator.add(animator);
+    }
+
+    protected void removeLoreAnimator(@NotNull IntelligentItemLoreAnimator animator) {
+        this.loreAnimator.remove(animator);
+
+        animator.getTasks().forEach(bukkitTask -> {
+            if (!Bukkit.getScheduler().isQueued(bukkitTask.getTaskId())) return;
+            bukkitTask.cancel();
+        });
+    }
+
+    protected void removeSlideAnimator() {
+        if (this.slideAnimator == null) return;
+
+        this.slideAnimator.getTasks().forEach(bukkitTask -> {
+            if (!Bukkit.getScheduler().isQueued(bukkitTask.getTaskId())) return;
+            bukkitTask.cancel();
+        });
+    }
+
+    protected @Nullable SlideAnimation getSlideAnimator() {
+        return this.slideAnimator;
+    }
+
+    protected @Nonnegative int activeSlideAnimatorTasks() {
+        if (this.slideAnimator == null) return 0;
+        AtomicInteger counter = new AtomicInteger();
+
+        this.slideAnimator.getTasks().forEach(task -> {
+            if (!Bukkit.getScheduler().isQueued(task.getTaskId())) return;
+            counter.getAndIncrement();
+        });
+        return counter.get();
+    }
+
+    protected List<CloseReason> getCloseReasons() {
+        return closeReasons;
     }
 
     /**
@@ -654,10 +1179,11 @@ public class RyseInventory {
 
         /**
          * In all these slots items can be put in or removed by the user.
+         *
          * @param slots The slots
          * @return The Inventory Builder to set additional options.
          */
-        public @NotNull Builder ignoredSlots(int  ... slots) {
+        public @NotNull Builder ignoredSlots(int... slots) {
             this.ryseInventory.ignoredSlots.addAll(Arrays.stream(slots).boxed().collect(Collectors.toList()));
             return this;
         }
@@ -745,6 +1271,19 @@ public class RyseInventory {
         }
 
         /**
+         * This allows to get more control over the InventoryAction. E.g. you can say
+         * that DOUBLE_CLICK as well as MOVE_TO_OTHER_INVENTORY should be activated and thereby the InventoryClickEvent is not canceled.
+         *
+         * @param actions The actions
+         * @return The Inventory Builder to set additional options.
+         */
+        @Beta
+        public @NotNull Builder enableAction(Action @NotNull ... actions) {
+            this.ryseInventory.enabledActions.addAll(Arrays.asList(actions));
+            return this;
+        }
+
+        /**
          * When the inventory is opened, the inventory is emptied and saved. When closing the inventory, the inventory will be reloaded.
          *
          * @return The Inventory Builder to set additional options.
@@ -809,6 +1348,16 @@ public class RyseInventory {
          */
         public @NotNull Builder preventTransferData() {
             this.ryseInventory.transferData = false;
+            return this;
+        }
+
+        /**
+         * If this method is called, all items that the player can set himself will not be saved.
+         *
+         * @return The Inventory Builder to set additional options.
+         */
+        public @NotNull Builder ignoreManualItems() {
+            this.ryseInventory.ignoreManualItems = true;
             return this;
         }
 
@@ -963,497 +1512,5 @@ public class RyseInventory {
 
             return this.ryseInventory;
         }
-    }
-
-    /**
-     * @return inventory title
-     */
-    public @NotNull String getTitle() {
-        return this.title;
-    }
-
-    /**
-     * @return how much later the scheduler starts (in milliseconds)
-     */
-    public @Nonnegative int getDelay() {
-        return this.delay;
-    }
-
-    /**
-     * @return how often the scheduler ticks (in milliseconds)
-     */
-    public @Nonnegative int getPeriod() {
-        return this.period;
-    }
-
-    /**
-     * @return if the inventory can be closed
-     */
-    public boolean isCloseAble() {
-        return this.closeAble;
-    }
-
-    /**
-     * @return A list of DisabledInventoryClick objects.
-     */
-    public @NotNull List<DisabledInventoryClick> getIgnoreClickEvent() {
-        return this.ignoreClickEvent;
-    }
-
-    /**
-     * @return A list of all ignored slots.
-     */
-    public List<Integer> getIgnoredSlots() {
-        return ignoredSlots;
-    }
-
-    /**
-     * @return A list of DisabledEvents objects.
-     */
-    public List<DisabledEvents> getDisabledEvents() {
-        return disabledEvents;
-    }
-
-    /**
-     * @return the ID from the inventory
-     * @apiNote You have to give the inventory itself an ID with {@link Builder#identifier(Object)}
-     */
-    public @Nullable Object getIdentifier() {
-        return this.identifier;
-    }
-
-    /**
-     * @return the type.
-     */
-    public @NotNull InventoryOpenerType getInventoryOpenerType() {
-        return this.inventoryOpenerType;
-    }
-
-    /**
-     * @return true if the {@link Builder#clearAndSafe()} method was called.
-     */
-    public boolean isClearAndSafe() {
-        return this.clearAndSafe;
-    }
-
-    /**
-     * @return All the setting options that have been set.
-     */
-    public @NotNull List<InventoryOptions> getOptions() {
-        return options;
-    }
-
-    /**
-     * @return the load delay
-     */
-    public int getLoadDelay() {
-        return loadDelay;
-    }
-
-    /**
-     * @param uuid Player's uuid
-     * @return the correct inventory based on whether it is split or not.
-     */
-    protected @NotNull Optional<Inventory> inventoryBasedOnOption(@NotNull UUID uuid) {
-        if (!this.privateInventory.containsKey(uuid)) return Optional.empty();
-
-        return Optional.of(this.privateInventory.get(uuid));
-    }
-
-    @Contract(value = "null -> false", pure = true)
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof RyseInventory)) return false;
-        RyseInventory that = (RyseInventory) o;
-
-        return clearAndSafe == that.clearAndSafe && size == that.size && delay == that.delay && openDelay == that.openDelay && period == that.period && closeAfter == that.closeAfter && loadDelay == that.loadDelay && loadTitle == that.loadTitle && closeAble == that.closeAble && transferData == that.transferData && Objects.equals(title, that.title) && Objects.equals(slideAnimator, that.slideAnimator) && Objects.equals(identifier, that.identifier) && Objects.equals(titleHolder, that.titleHolder) && inventoryOpenerType == that.inventoryOpenerType && Objects.equals(options, that.options) && Objects.equals(events, that.events) && Objects.equals(ignoreClickEvent, that.ignoreClickEvent) && Objects.equals(closeReasons, that.closeReasons);
-    }
-
-    protected void load(@NotNull Pagination pagination, @NotNull Player player, @Nonnegative int page) {
-        pagination.getDataByPage(page).forEach(item -> placeItem(player, item.getModifiedSlot(), item.getItem()));
-    }
-
-    private void placeItem(@NotNull Player player, @Nonnegative int integer, @NotNull IntelligentItem item) {
-        if (this.inventory != null)
-            if (integer >= this.inventory.getSize()) return;
-
-        if (!item.isCanSee()) {
-            item.getError().cantSee(player, item);
-            return;
-        }
-        this.inventory.setItem(integer, item.getItemStack());
-    }
-
-    private void closeInventoryWhenEnabled(@NotNull Player player) throws IllegalStateException {
-        if (this.closeAfter == -1) return;
-        if (!this.closeAble)
-            throw new IllegalStateException("The #closeAfter() method could not be executed because you have forbidden closing the inventory by #preventClose.");
-
-        Bukkit.getScheduler().runTaskLater(this.plugin, () -> close(player), this.closeAfter);
-    }
-
-    private void removeActiveAnimations() {
-        for (int i = 0; i < this.itemAnimator.size(); i++)
-            removeItemAnimator(this.itemAnimator.get(i));
-
-        for (int i = 0; i < this.titleAnimator.size(); i++)
-            removeTitleAnimator(this.titleAnimator.get(i));
-
-        for (int i = 0; i < this.loreAnimator.size(); i++)
-            removeLoreAnimator(this.loreAnimator.get(i));
-
-        for (int i = 0; i < this.materialAnimator.size(); i++)
-            removeMaterialAnimator(this.materialAnimator.get(i));
-
-        removeSlideAnimator();
-    }
-
-    protected void setBackward() {
-        this.backward = true;
-    }
-
-    protected @NotNull InventoryManager getManager() {
-        return manager;
-    }
-
-    private void finishSavedInventory(@NotNull Player player) {
-        Optional<RyseInventory> savedInventory = this.manager.getInventory(player.getUniqueId());
-
-        savedInventory.ifPresent(mainInventory -> {
-            if (!this.backward)
-                this.manager.setLastInventory(player.getUniqueId(), mainInventory, this);
-
-            this.manager.removeInventory(player.getUniqueId());
-
-            if (mainInventory.playerInventory.containsKey(player.getUniqueId())) {
-                player.getInventory().setContents(mainInventory.playerInventory.remove(player.getUniqueId()));
-            }
-        });
-    }
-
-    private void clearInventoryWhenNeeded(@NotNull Player player) {
-        if (!this.clearAndSafe) return;
-
-        this.playerInventory.put(player.getUniqueId(), player.getInventory().getContents());
-        player.getInventory().clear();
-    }
-
-    private @NotNull Inventory setupInventory() {
-        if (this.inventoryOpenerType == InventoryOpenerType.CHEST) {
-            return Bukkit.createInventory(null, this.size, this.loadTitle == -1 ? this.title : this.titleHolder);
-        }
-        return inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), buildTitle());
-    }
-
-    @Contract(pure = true)
-    private @NotNull String buildTitle() {
-        if (this.loadTitle == -1) return this.title;
-        return this.titleHolder;
-    }
-
-    private void transferData(InventoryContents oldContents, @NotNull InventoryContents newContents, @Nullable String[] keys, @Nullable Object[] values) {
-        if (this.transferData && oldContents != null)
-            oldContents.transferData(newContents);
-
-        if (keys != null && values != null) {
-            for (int n = 0; n < keys.length; n++) {
-                String key = keys[n];
-                Object value = values[n];
-                if (key == null || value == null) continue;
-
-                newContents.setData(key, value);
-            }
-        }
-    }
-
-    private void setupData(@NotNull Player player, @NotNull Inventory inventory, @NotNull InventoryContents contents) {
-        this.manager.setContents(player.getUniqueId(), contents);
-
-        this.inventory = inventory;
-        this.privateInventory.put(player.getUniqueId(), inventory);
-    }
-
-    private void initProvider(@NotNull Player player, @NotNull InventoryContents contents) {
-        if (this.slideAnimator == null) {
-            this.provider.init(player, contents);
-            return;
-        }
-        this.provider.init(player, contents, this.slideAnimator);
-    }
-
-    private void loadDelay(@Nonnegative int page, @NotNull Pagination pagination, @NotNull Player player) {
-        if (this.loadDelay != -1) {
-            Bukkit.getScheduler().runTaskLater(this.plugin, () -> load(pagination, player, page), this.loadDelay);
-        } else {
-            load(pagination, player, page);
-        }
-
-        if (this.loadTitle != -1)
-            Bukkit.getScheduler().runTaskLater(this.plugin, () -> updateTitle(player, this.title), this.loadTitle);
-    }
-
-    private void finalizeInventoryAndOpen(@NotNull Player player) {
-        Bukkit.getScheduler().runTask(this.plugin, () -> {
-            if (this.openDelay == -1 || this.delayed.contains(player)) {
-                player.openInventory(inventory);
-                this.manager.invokeScheduler(player, this);
-                this.manager.setInventory(player.getUniqueId(), this);
-            } else {
-                if (!this.delayed.contains(player)) {
-                    Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
-                        player.openInventory(inventory);
-                        this.manager.invokeScheduler(player, this);
-                        this.manager.setInventory(player.getUniqueId(), this);
-                    }, this.openDelay);
-                    this.delayed.add(player);
-                }
-            }
-        });
-    }
-
-    protected void loadByPage(@NotNull InventoryContents contents) {
-        Pagination pagination = contents.pagination();
-        SlotIterator iterator = contents.iterator();
-
-        if (iterator == null) return;
-
-        SlotIterator.SlotIteratorType type = iterator.getType();
-        SlotIteratorPattern pattern = iterator.getPatternBuilder();
-
-        if (this.inventoryOpenerType != InventoryOpenerType.CHEST
-                && this.inventoryOpenerType != InventoryOpenerType.ENDER_CHEST
-                && pattern != null) {
-            throw new IllegalStateException("SlotIterator with PatternBuilder is not supported for InventoryOpenerType " + this.inventoryOpenerType.getType().toString());
-        }
-
-        int itemsSet = 0;
-        int page = 0;
-        int startSlot = iterator.getSlot();
-        int slot = startSlot;
-        List<IntelligentItemData> data = contents.pagination().getInventoryData();
-
-        int patternSlot = -1;
-        int patternLineIndex = 0;
-        int stoppedAtIndex = 0;
-
-        for (int i = 0; i < data.size(); i++) {
-            IntelligentItemData itemData = data.get(i);
-            if (itemData.getModifiedSlot() != -1) continue;
-
-            if (itemsSet >= pagination.getItemsPerPage() || (slot >= iterator.getEndPosition() && iterator.getEndPosition() != -1 && pattern == null)) {
-                itemsSet = 0;
-                patternSlot = -1;
-                patternLineIndex = 0;
-                stoppedAtIndex = 0;
-                slot = startSlot;
-                page++;
-            }
-
-            if (pattern != null) {
-                String line = pattern.getLines().get(patternLineIndex);
-
-                if (stoppedAtIndex >= line.toCharArray().length) stoppedAtIndex = 0;
-
-                for (int j = stoppedAtIndex; j < line.toCharArray().length; j++) {
-                    char c = line.charAt(j);
-                    patternSlot++;
-
-                    if (patternSlot >= size()) {
-                        j = -1;
-                        patternLineIndex = 0;
-                        patternSlot = -1;
-                        page++;
-                        itemsSet = 0;
-                        stoppedAtIndex = 0;
-                        line = pattern.getLines().get(patternLineIndex);
-                        continue;
-                    }
-
-                    if (j + 1 >= line.toCharArray().length && (c != pattern.getAttachedChar() || get(data, patternSlot, page) != null)) {
-                        j = -1;
-                        if (patternSlot == 8 || patternSlot == 8 + 9 || patternSlot == 8 + 18 || patternSlot == 8 + 27 || patternSlot == 8 + 36)
-                            patternLineIndex++;
-                        if (patternSlot == 8 + 45) {
-                            patternLineIndex = 0;
-                            patternSlot = -1;
-                            page++;
-                        }
-                        itemsSet = 0;
-                        stoppedAtIndex = 0;
-                        line = pattern.getLines().get(patternLineIndex);
-                        continue;
-                    }
-
-                    if (c != pattern.getAttachedChar() || get(data, patternSlot, page) != null)
-                        continue;
-
-                    itemData.setPage(page);
-                    itemData.setModifiedSlot(patternSlot);
-
-                    data.set(i, itemData);
-                    itemsSet++;
-                    stoppedAtIndex = j + 1;
-
-                    if (patternSlot == 8 + 45) {
-                        patternLineIndex = 0;
-                        patternSlot = -1;
-                        itemsSet = 0;
-                        stoppedAtIndex = 0;
-                        page++;
-                    }
-                    break;
-                }
-                continue;
-            }
-            if (!iterator.isOverride()) {
-                int[] dataArray = nextSlotAlgorithm(contents, type, page, slot, startSlot);
-                page = dataArray[0];
-                slot = dataArray[1];
-            }
-
-            pagination.remove(slot, page);
-
-            itemData.setPage(page);
-            itemData.setModifiedSlot(slot);
-
-            data.set(i, itemData);
-            itemsSet++;
-
-            slot = updateForNextSlot(type, slot, startSlot);
-        }
-
-        contents.pagination().setInventoryData(data);
-    }
-
-    private @Nullable IntelligentItem get(@NotNull List<IntelligentItemData> inventoryData, @Nonnegative int slot, @Nonnegative int page) {
-        for (IntelligentItemData data : inventoryData) {
-            if (data.getPage() == page && data.getModifiedSlot() == slot)
-                return data.getItem();
-        }
-        return null;
-    }
-
-    private int updateForNextSlot(@NotNull SlotIterator.SlotIteratorType type, @Nonnegative int slot, @Nonnegative int startSlot) {
-        if (type == SlotIterator.SlotIteratorType.HORIZONTAL)
-            return ++slot;
-
-        if (type == SlotIterator.SlotIteratorType.VERTICAL) {
-            if ((slot + 9) > size()) {
-                return startSlot + 1;
-            }
-            slot += 9;
-            return slot;
-        }
-        return slot;
-    }
-
-    @Contract("_, _, _, _, _ -> new")
-    private int @NotNull [] nextSlotAlgorithm(@NotNull InventoryContents contents, @NotNull SlotIterator.SlotIteratorType type, @Nonnegative int page, @Nonnegative int calculatedSlot, @Nonnegative int startSlot) {
-        SlotIterator iterator = Objects.requireNonNull(contents.iterator());
-
-        int toAdd = 0;
-        while (!contents.firstEmpty().isPresent() ? iterator.getBlackList().contains(calculatedSlot) : contents.getInPage(page, calculatedSlot).isPresent() || iterator.getBlackList().contains(calculatedSlot)) {
-            if (calculatedSlot >= 53) {
-                calculatedSlot = startSlot;
-                page++;
-            }
-
-            if (type == SlotIterator.SlotIteratorType.HORIZONTAL) {
-                calculatedSlot++;
-                continue;
-            }
-            if ((calculatedSlot + 9) > size()) {
-                toAdd++;
-                calculatedSlot = startSlot + toAdd;
-            } else {
-                calculatedSlot += 9;
-            }
-        }
-        return new int[]{page, calculatedSlot};
-    }
-
-    protected void clearData(@NotNull Player player) {
-        if (this.playerInventory.containsKey(player.getUniqueId())) {
-            player.getInventory().setContents(this.playerInventory.remove(player.getUniqueId()));
-        }
-
-        this.delayed.remove(player);
-        this.privateInventory.remove(player.getUniqueId());
-        this.manager.removeInventoryFromPlayer(player.getUniqueId());
-    }
-
-    protected void addItemAnimator(@NotNull IntelligentItemNameAnimator animator) {
-        this.itemAnimator.add(animator);
-    }
-
-    protected void addMaterialAnimator(@NotNull IntelligentMaterialAnimator animator) {
-        this.materialAnimator.add(animator);
-    }
-
-    protected void removeMaterialAnimator(@NotNull IntelligentMaterialAnimator animator) {
-        this.materialAnimator.remove(animator);
-
-        if (!Bukkit.getScheduler().isQueued(animator.getTask().getTaskId())) return;
-        animator.getTask().cancel();
-    }
-
-    protected void removeItemAnimator(@NotNull IntelligentItemNameAnimator animator) {
-        this.itemAnimator.remove(animator);
-
-        if (!Bukkit.getScheduler().isQueued(animator.getTask().getTaskId())) return;
-        animator.getTask().cancel();
-    }
-
-    protected void addTitleAnimator(@NotNull IntelligentTitleAnimator animator) {
-        this.titleAnimator.add(animator);
-    }
-
-    protected void removeTitleAnimator(@NotNull IntelligentTitleAnimator animator) {
-        this.titleAnimator.remove(animator);
-
-        if (!Bukkit.getScheduler().isQueued(animator.getTask().getTaskId())) return;
-        animator.getTask().cancel();
-    }
-
-    protected void addLoreAnimator(@NotNull IntelligentItemLoreAnimator animator) {
-        this.loreAnimator.add(animator);
-    }
-
-    protected void removeLoreAnimator(@NotNull IntelligentItemLoreAnimator animator) {
-        this.loreAnimator.remove(animator);
-
-        animator.getTasks().forEach(bukkitTask -> {
-            if (!Bukkit.getScheduler().isQueued(bukkitTask.getTaskId())) return;
-            bukkitTask.cancel();
-        });
-    }
-
-    protected void removeSlideAnimator() {
-        if (this.slideAnimator == null) return;
-
-        this.slideAnimator.getTasks().forEach(bukkitTask -> {
-            if (!Bukkit.getScheduler().isQueued(bukkitTask.getTaskId())) return;
-            bukkitTask.cancel();
-        });
-    }
-
-    protected @Nullable SlideAnimation getSlideAnimator() {
-        return this.slideAnimator;
-    }
-
-    protected @Nonnegative int activeSlideAnimatorTasks() {
-        if (this.slideAnimator == null) return 0;
-        AtomicInteger counter = new AtomicInteger();
-
-        this.slideAnimator.getTasks().forEach(task -> {
-            if (!Bukkit.getScheduler().isQueued(task.getTaskId())) return;
-            counter.getAndIncrement();
-        });
-        return counter.get();
-    }
-
-    protected List<CloseReason> getCloseReasons() {
-        return closeReasons;
     }
 }

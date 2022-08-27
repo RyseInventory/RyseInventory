@@ -54,282 +54,26 @@ import java.util.Map;
  */
 public class IntelligentItemLoreAnimator {
 
+    private static Plugin plugin;
+    private final List<BukkitTask> task = new ArrayList<>();
     private IntelligentItem intelligentItem;
     private HashMap<Integer, String> loreData = new HashMap<>();
     private HashMap<Character, IntelligentItemColor> frameColor = new HashMap<>();
-    private final List<BukkitTask> task = new ArrayList<>();
     private IntelligentItemAnimatorType type = IntelligentItemAnimatorType.WORD_BY_WORD;
     private int period = 20;
     private int delay = 0;
     private int slot = -1;
-
     private boolean loop;
     private List<String> lore;
     private RyseInventory inventory;
     private InventoryContents contents;
     private ItemStack itemStack;
     private Object identifier;
-    private static Plugin plugin;
 
     @Contract("_ -> new")
     public static @NotNull Builder builder(@NotNull Plugin plugin) {
         IntelligentItemLoreAnimator.plugin = plugin;
         return new Builder();
-    }
-
-    public static class Builder {
-        private HashMap<Character, IntelligentItemColor> frameColor = new HashMap<>();
-        private HashMap<Integer, String> loreData = new HashMap<>();
-        private IntelligentItemAnimatorType type = IntelligentItemAnimatorType.WORD_BY_WORD;
-        private int period = 20;
-        private int delay = 0;
-        private int slot = -1;
-
-        private IntelligentItemLoreAnimator preset;
-        private IntelligentItem intelligentItem;
-        private List<String> lore;
-        private boolean loop;
-        private Object identifier;
-
-        /**
-         * Takes over all properties of the passed animator.
-         *
-         * @param preset The animator to be copied.
-         * @return The Builder to perform further editing.
-         * @apiNote When copying the animator, the identification is not copied if present!
-         */
-        public @NotNull Builder copy(@NotNull IntelligentItemLoreAnimator preset) {
-            this.preset = preset;
-            return this;
-        }
-
-        /**
-         * A frame is added to the index. The frame is used to change the color of the lore.
-         *
-         * @param index e.g 0 for the first line in the lore.
-         * @param frame e.g AABB (A and B must then each be defined with {@link #color(char, IntelligentItemColor)}).
-         * @return The Builder to perform further editing
-         */
-        public @NotNull Builder lore(@Nonnegative int index, @NotNull String frame) {
-            this.loreData.put(index, frame);
-            return this;
-        }
-
-        /**
-         * Gives the Animation an identification
-         *
-         * @param identifier The ID through which you can get the animation
-         * @return The Builder to perform further editing
-         */
-        public @NotNull Builder identifier(@NotNull Object identifier) {
-            this.identifier = identifier;
-            return this;
-        }
-
-        /**
-         * This tells which item is to be animated.
-         *
-         * @param intelligentItem The item to be animated.
-         * @return The Builder to perform further editing.
-         */
-        public @NotNull Builder item(@NotNull IntelligentItem intelligentItem) {
-            this.intelligentItem = intelligentItem;
-            ItemStack itemStack = this.intelligentItem.getItemStack();
-
-            List<String> itemLore = itemStack.hasItemMeta() ? itemStack.getItemMeta().getLore() : new ArrayList<>();
-
-            if (itemLore == null)
-                throw new NullPointerException("The given item has no lore.");
-
-            if (itemLore.isEmpty())
-                throw new IllegalArgumentException("The passed item has an empty lore.");
-
-            this.lore = itemLore;
-            return this;
-        }
-
-        /**
-         * Keeps the animation running until the player closes the inventory.
-         *
-         * @return The Builder to perform further editing.
-         */
-        public @NotNull Builder loop() {
-            this.loop = true;
-            return this;
-        }
-
-        /**
-         * Decides how the name of the item should be animated.
-         *
-         * @param type The animation type
-         * @return The Builder to perform further editing.
-         */
-        public @NotNull Builder type(@NotNull IntelligentItemAnimatorType type) {
-            this.type = type;
-            return this;
-        }
-
-        /**
-         * This tells us in which slot the animation should take place.
-         *
-         * @param slot The inventory slot
-         * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if slot > 53
-         */
-        public @NotNull Builder slot(@Nonnegative int slot) {
-            this.slot = slot;
-            return this;
-        }
-
-        /**
-         * Assigns a color to a frame.
-         *
-         * @param frame The frame that should receive the color.
-         * @param color The color you want the frame to have.
-         * @return The Builder to perform further editing.
-         */
-        public @NotNull Builder color(char frame, @NotNull IntelligentItemColor color) {
-            this.frameColor.put(frame, color);
-            return this;
-        }
-
-        /**
-         * Several frames are assigned individual colors.
-         *
-         * @param frames
-         * @param color
-         * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException If the parameters are not equal.
-         */
-        public @NotNull Builder colors(@NotNull List<Character> frames, IntelligentItemColor @NotNull ... color) throws IllegalArgumentException {
-            Preconditions.checkArgument(frames.size() == color.length, StringConstants.INVALID_COLOR_FRAME);
-
-            for (int i = 0; i < frames.size(); i++)
-                color(frames.get(i), color[i]);
-
-            return this;
-        }
-
-        /**
-         * Several frames are assigned individual colors.
-         *
-         * @param frames
-         * @param color
-         * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException If the parameters are not equal.
-         */
-        public @NotNull Builder colors(Character @NotNull [] frames, IntelligentItemColor @NotNull ... color) {
-            Preconditions.checkArgument(frames.length == color.length, StringConstants.INVALID_COLOR_FRAME);
-
-            for (int i = 0; i < frames.length; i++)
-                color(frames[i], color[i]);
-
-            return this;
-        }
-
-        /**
-         * Several frames are assigned individual colors.
-         *
-         * @param frames
-         * @param color
-         * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException If the parameters are not equal.
-         */
-        public @NotNull Builder colors(Character @NotNull [] frames, @NotNull List<IntelligentItemColor> color) {
-            Preconditions.checkArgument(frames.length == color.size(), StringConstants.INVALID_COLOR_FRAME);
-
-            for (int i = 0; i < frames.length; i++)
-                color(frames[i], color.get(i));
-
-            return this;
-        }
-
-        /**
-         * Sets the speed of the animation in the scheduler.
-         *
-         * @param time    The time.
-         * @param setting The time setting
-         * @return The Builder to perform further editing.
-         */
-        public @NotNull Builder period(@Nonnegative int time, @NotNull TimeSetting setting) {
-            this.period = TimeUtils.buildTime(time, setting);
-            return this;
-        }
-
-        /**
-         * Specifies the delay before the animation starts.
-         *
-         * @param time    The delay.
-         * @param setting The time setting.
-         * @return The Builder to perform further editing.
-         */
-        public @NotNull Builder delay(@Nonnegative int time, @NotNull TimeSetting setting) {
-            this.delay = TimeUtils.buildTime(time, setting);
-            return this;
-        }
-
-        /**
-         * This creates the animation class but does not start it yet! {@link IntelligentItemLoreAnimator#animate()}
-         *
-         * @return The animation class
-         * @throws IllegalArgumentException if no slot was specified, if lore is empty, if frameColor is empty or if loreData is empty.
-         * @throws NullPointerException     if item is null or if lore is null.
-         */
-        public @NotNull IntelligentItemLoreAnimator build(@NotNull InventoryContents contents) throws IllegalArgumentException, NullPointerException {
-            if (this.preset != null) {
-                this.intelligentItem = this.preset.intelligentItem;
-                this.lore = this.preset.lore;
-                this.loreData = this.preset.loreData;
-                this.type = this.preset.type;
-                this.frameColor = this.preset.frameColor;
-                this.period = this.preset.period;
-                this.delay = this.preset.delay;
-                this.slot = this.preset.slot;
-                this.loop = this.preset.loop;
-            }
-            if (this.intelligentItem == null)
-                throw new NullPointerException("An IntelligentItem must be passed.");
-
-            if (this.lore == null)
-                throw new NullPointerException("The lore of the item must not be null.");
-
-            if (this.lore.isEmpty())
-                throw new IllegalArgumentException("The passed item has an empty lore.");
-
-            if (this.slot == -1)
-                throw new IllegalArgumentException("Please specify a slot where the item is located.");
-
-            if (this.frameColor.isEmpty())
-                throw new IllegalArgumentException("Please specify a color for each frame.");
-
-            if (this.loreData.isEmpty())
-                throw new IllegalArgumentException("No lore data has been defined yet!");
-
-            for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
-                for (char c : entry.getValue().toCharArray()) {
-                    if (frameColor.containsKey(c)) continue;
-                    throw new IllegalArgumentException("The pattern contains a character that is not defined: " + c + ". Please define a color for this character.");
-                }
-                if ((entry.getKey() + 1) <= this.lore.size()) continue;
-                throw new IllegalArgumentException("You passed the index " + entry.getKey() + ", but the lore only has a size of " + this.lore.size() + ".");
-            }
-
-            IntelligentItemLoreAnimator animator = new IntelligentItemLoreAnimator();
-            animator.delay = this.delay;
-            animator.lore = this.lore;
-            animator.frameColor = this.frameColor;
-            animator.loop = this.loop;
-            animator.period = this.period;
-            animator.intelligentItem = this.intelligentItem;
-            animator.slot = this.slot;
-            animator.type = this.type;
-            animator.loreData = this.loreData;
-            animator.identifier = this.identifier;
-            animator.itemStack = this.intelligentItem.getItemStack();
-            animator.contents = contents;
-            animator.inventory = contents.pagination().inventory();
-            return animator;
-        }
     }
 
     /**
@@ -617,5 +361,260 @@ public class IntelligentItemLoreAnimator {
 
     public @Nullable Object getIdentifier() {
         return this.identifier;
+    }
+
+    public static class Builder {
+        private HashMap<Character, IntelligentItemColor> frameColor = new HashMap<>();
+        private HashMap<Integer, String> loreData = new HashMap<>();
+        private IntelligentItemAnimatorType type = IntelligentItemAnimatorType.WORD_BY_WORD;
+        private int period = 20;
+        private int delay = 0;
+        private int slot = -1;
+
+        private IntelligentItemLoreAnimator preset;
+        private IntelligentItem intelligentItem;
+        private List<String> lore;
+        private boolean loop;
+        private Object identifier;
+
+        /**
+         * Takes over all properties of the passed animator.
+         *
+         * @param preset The animator to be copied.
+         * @return The Builder to perform further editing.
+         * @apiNote When copying the animator, the identification is not copied if present!
+         */
+        public @NotNull Builder copy(@NotNull IntelligentItemLoreAnimator preset) {
+            this.preset = preset;
+            return this;
+        }
+
+        /**
+         * A frame is added to the index. The frame is used to change the color of the lore.
+         *
+         * @param index e.g 0 for the first line in the lore.
+         * @param frame e.g AABB (A and B must then each be defined with {@link #color(char, IntelligentItemColor)}).
+         * @return The Builder to perform further editing
+         */
+        public @NotNull Builder lore(@Nonnegative int index, @NotNull String frame) {
+            this.loreData.put(index, frame);
+            return this;
+        }
+
+        /**
+         * Gives the Animation an identification
+         *
+         * @param identifier The ID through which you can get the animation
+         * @return The Builder to perform further editing
+         */
+        public @NotNull Builder identifier(@NotNull Object identifier) {
+            this.identifier = identifier;
+            return this;
+        }
+
+        /**
+         * This tells which item is to be animated.
+         *
+         * @param intelligentItem The item to be animated.
+         * @return The Builder to perform further editing.
+         */
+        public @NotNull Builder item(@NotNull IntelligentItem intelligentItem) {
+            this.intelligentItem = intelligentItem;
+            ItemStack itemStack = this.intelligentItem.getItemStack();
+
+            List<String> itemLore = itemStack.hasItemMeta() ? itemStack.getItemMeta().getLore() : new ArrayList<>();
+
+            if (itemLore == null)
+                throw new NullPointerException("The given item has no lore.");
+
+            if (itemLore.isEmpty())
+                throw new IllegalArgumentException("The passed item has an empty lore.");
+
+            this.lore = itemLore;
+            return this;
+        }
+
+        /**
+         * Keeps the animation running until the player closes the inventory.
+         *
+         * @return The Builder to perform further editing.
+         */
+        public @NotNull Builder loop() {
+            this.loop = true;
+            return this;
+        }
+
+        /**
+         * Decides how the name of the item should be animated.
+         *
+         * @param type The animation type
+         * @return The Builder to perform further editing.
+         */
+        public @NotNull Builder type(@NotNull IntelligentItemAnimatorType type) {
+            this.type = type;
+            return this;
+        }
+
+        /**
+         * This tells us in which slot the animation should take place.
+         *
+         * @param slot The inventory slot
+         * @return The Builder to perform further editing.
+         * @throws IllegalArgumentException if slot > 53
+         */
+        public @NotNull Builder slot(@Nonnegative int slot) {
+            this.slot = slot;
+            return this;
+        }
+
+        /**
+         * Assigns a color to a frame.
+         *
+         * @param frame The frame that should receive the color.
+         * @param color The color you want the frame to have.
+         * @return The Builder to perform further editing.
+         */
+        public @NotNull Builder color(char frame, @NotNull IntelligentItemColor color) {
+            this.frameColor.put(frame, color);
+            return this;
+        }
+
+        /**
+         * Several frames are assigned individual colors.
+         *
+         * @param frames
+         * @param color
+         * @return The Builder to perform further editing.
+         * @throws IllegalArgumentException If the parameters are not equal.
+         */
+        public @NotNull Builder colors(@NotNull List<Character> frames, IntelligentItemColor @NotNull ... color) throws IllegalArgumentException {
+            Preconditions.checkArgument(frames.size() == color.length, StringConstants.INVALID_COLOR_FRAME);
+
+            for (int i = 0; i < frames.size(); i++)
+                color(frames.get(i), color[i]);
+
+            return this;
+        }
+
+        /**
+         * Several frames are assigned individual colors.
+         *
+         * @param frames
+         * @param color
+         * @return The Builder to perform further editing.
+         * @throws IllegalArgumentException If the parameters are not equal.
+         */
+        public @NotNull Builder colors(Character @NotNull [] frames, IntelligentItemColor @NotNull ... color) {
+            Preconditions.checkArgument(frames.length == color.length, StringConstants.INVALID_COLOR_FRAME);
+
+            for (int i = 0; i < frames.length; i++)
+                color(frames[i], color[i]);
+
+            return this;
+        }
+
+        /**
+         * Several frames are assigned individual colors.
+         *
+         * @param frames
+         * @param color
+         * @return The Builder to perform further editing.
+         * @throws IllegalArgumentException If the parameters are not equal.
+         */
+        public @NotNull Builder colors(Character @NotNull [] frames, @NotNull List<IntelligentItemColor> color) {
+            Preconditions.checkArgument(frames.length == color.size(), StringConstants.INVALID_COLOR_FRAME);
+
+            for (int i = 0; i < frames.length; i++)
+                color(frames[i], color.get(i));
+
+            return this;
+        }
+
+        /**
+         * Sets the speed of the animation in the scheduler.
+         *
+         * @param time    The time.
+         * @param setting The time setting
+         * @return The Builder to perform further editing.
+         */
+        public @NotNull Builder period(@Nonnegative int time, @NotNull TimeSetting setting) {
+            this.period = TimeUtils.buildTime(time, setting);
+            return this;
+        }
+
+        /**
+         * Specifies the delay before the animation starts.
+         *
+         * @param time    The delay.
+         * @param setting The time setting.
+         * @return The Builder to perform further editing.
+         */
+        public @NotNull Builder delay(@Nonnegative int time, @NotNull TimeSetting setting) {
+            this.delay = TimeUtils.buildTime(time, setting);
+            return this;
+        }
+
+        /**
+         * This creates the animation class but does not start it yet! {@link IntelligentItemLoreAnimator#animate()}
+         *
+         * @return The animation class
+         * @throws IllegalArgumentException if no slot was specified, if lore is empty, if frameColor is empty or if loreData is empty.
+         * @throws NullPointerException     if item is null or if lore is null.
+         */
+        public @NotNull IntelligentItemLoreAnimator build(@NotNull InventoryContents contents) throws IllegalArgumentException, NullPointerException {
+            if (this.preset != null) {
+                this.intelligentItem = this.preset.intelligentItem;
+                this.lore = this.preset.lore;
+                this.loreData = this.preset.loreData;
+                this.type = this.preset.type;
+                this.frameColor = this.preset.frameColor;
+                this.period = this.preset.period;
+                this.delay = this.preset.delay;
+                this.slot = this.preset.slot;
+                this.loop = this.preset.loop;
+            }
+            if (this.intelligentItem == null)
+                throw new NullPointerException("An IntelligentItem must be passed.");
+
+            if (this.lore == null)
+                throw new NullPointerException("The lore of the item must not be null.");
+
+            if (this.lore.isEmpty())
+                throw new IllegalArgumentException("The passed item has an empty lore.");
+
+            if (this.slot == -1)
+                throw new IllegalArgumentException("Please specify a slot where the item is located.");
+
+            if (this.frameColor.isEmpty())
+                throw new IllegalArgumentException("Please specify a color for each frame.");
+
+            if (this.loreData.isEmpty())
+                throw new IllegalArgumentException("No lore data has been defined yet!");
+
+            for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
+                for (char c : entry.getValue().toCharArray()) {
+                    if (frameColor.containsKey(c)) continue;
+                    throw new IllegalArgumentException("The pattern contains a character that is not defined: " + c + ". Please define a color for this character.");
+                }
+                if ((entry.getKey() + 1) <= this.lore.size()) continue;
+                throw new IllegalArgumentException("You passed the index " + entry.getKey() + ", but the lore only has a size of " + this.lore.size() + ".");
+            }
+
+            IntelligentItemLoreAnimator animator = new IntelligentItemLoreAnimator();
+            animator.delay = this.delay;
+            animator.lore = this.lore;
+            animator.frameColor = this.frameColor;
+            animator.loop = this.loop;
+            animator.period = this.period;
+            animator.intelligentItem = this.intelligentItem;
+            animator.slot = this.slot;
+            animator.type = this.type;
+            animator.loreData = this.loreData;
+            animator.identifier = this.identifier;
+            animator.itemStack = this.intelligentItem.getItemStack();
+            animator.contents = contents;
+            animator.inventory = contents.pagination().inventory();
+            return animator;
+        }
     }
 }

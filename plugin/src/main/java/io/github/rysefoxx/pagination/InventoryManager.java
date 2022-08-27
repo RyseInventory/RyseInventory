@@ -31,6 +31,7 @@ import io.github.rysefoxx.other.EventCreator;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -46,6 +47,7 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -338,6 +340,7 @@ public class InventoryManager {
         public void onInventoryClick(@NotNull InventoryClickEvent event) {
             if (!(event.getWhoClicked() instanceof Player)) return;
             Player player = (Player) event.getWhoClicked();
+            ItemStack itemStack = event.getCurrentItem();
 
             if (!hasInventory(player.getUniqueId()))
                 return;
@@ -362,17 +365,40 @@ public class InventoryManager {
             Inventory topInventory = player.getOpenInventory().getTopInventory();
             int slot = event.getSlot();
             ClickType clickType = event.getClick();
+            InventoryContents contents = content.get(player.getUniqueId());
 
             if (clickedInventory == bottomInventory && (!list.contains(DisabledInventoryClick.BOTTOM) && !list.contains(DisabledInventoryClick.BOTH))) {
                 if (mainInventory.getCloseReasons().contains(CloseReason.CLICK_BOTTOM_INVENTORY)) {
                     mainInventory.close(player);
                     return;
                 }
-                if (action == InventoryAction.COLLECT_TO_CURSOR
-                        || action == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+
+                if (action == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                    if (!mainInventory.getEnabledActions().contains(Action.MOVE_TO_OTHER_INVENTORY)) {
+                        event.setCancelled(true);
+                        return;
+                    }
+
+                    int[] data = checkForExistingItem(topInventory, itemStack);
+                    int targetSlot = data[0];
+                    int targetAmount = data[1];
+
+                    Optional<IntelligentItem> itemOptional = contents.get(targetSlot);
+
+                    if (cancelEventIfItemHasConsumer(event, mainInventory, targetSlot, itemOptional)) return;
+
+                    if (adjustItemStackAmount(itemStack, mainInventory, contents, targetSlot, targetAmount)) return;
+
+                    event.setCancelled(true);
+                    adjustItemStackAmountToMaxStackSize(itemStack, mainInventory, topInventory, contents, targetSlot, targetAmount);
+                    return;
+                }
+
+                if (action == InventoryAction.COLLECT_TO_CURSOR) {
                     event.setCancelled(true);
                     return;
                 }
+
                 if (action == InventoryAction.NOTHING && clickType != ClickType.MIDDLE)
                     event.setCancelled(true);
 
@@ -386,7 +412,6 @@ public class InventoryManager {
                     return;
                 }
 
-                InventoryContents contents = content.get(player.getUniqueId());
                 SlideAnimation animation = mainInventory.getSlideAnimator();
 
                 if (animation != null && mainInventory.activeSlideAnimatorTasks() > 0 && animation.isBlockClickEvent()) {
@@ -395,12 +420,18 @@ public class InventoryManager {
                 }
 
                 if (!list.contains(DisabledInventoryClick.TOP) && !list.contains(DisabledInventoryClick.BOTH)) {
-                    if (event.getClick() == ClickType.DOUBLE_CLICK) {
+                    if (event.getClick() == ClickType.DOUBLE_CLICK
+                            && !mainInventory.getEnabledActions().contains(Action.DOUBLE_CLICK)) {
                         event.setCancelled(true);
                         return;
                     }
                     if (!mainInventory.getIgnoredSlots().contains(slot))
                         event.setCancelled(true);
+                }
+
+                if (mainInventory.getIgnoredSlots().contains(slot)) {
+                    modifyItemStackAmountViaCursor(event, itemStack, mainInventory, slot, clickType, contents);
+                    subtractItemStackAmountWhenRightClick(event, itemStack, mainInventory, slot, clickType, contents);
                 }
 
                 Optional<IntelligentItem> optional = contents.get(slot);
@@ -512,6 +543,194 @@ public class InventoryManager {
                 inventory.close(player);
             });
 
+        }
+
+        /**
+         * This function checks if an item exists in an inventory, and if it does, it returns the slot number and the
+         * amount of the item in that slot.
+         *
+         * @param topInventory The inventory to check for the item in.
+         * @param itemStack    The item you want to check for.
+         * @return An array of integers.
+         */
+        private int @NotNull [] checkForExistingItem(@NotNull Inventory topInventory,
+                                                     @Nullable ItemStack itemStack) {
+            int[] data = new int[2];
+            for (int i = 0; i < topInventory.getSize(); i++) {
+                ItemStack inventoryItem = topInventory.getItem(i);
+
+                if (inventoryItem == null || inventoryItem.getType() == Material.AIR) {
+                    data[0] = i;
+                    break;
+                }
+
+                if (inventoryItem.isSimilar(itemStack) && inventoryItem.getAmount() < inventoryItem.getMaxStackSize()) {
+                    data[0] = i;
+                    data[1] = inventoryItem.getAmount();
+                    break;
+                }
+            }
+            return data;
+        }
+
+        /**
+         * If the item in the target slot has a consumer, cancel the event
+         *
+         * @param event         The InventoryClickEvent that was called.
+         * @param mainInventory The inventory that the player is currently viewing.
+         * @param targetSlot    The slot that the player is trying to click on.
+         * @param itemOptional  The item that is being clicked on.
+         * @return A boolean value.
+         */
+        private boolean cancelEventIfItemHasConsumer(@NotNull InventoryClickEvent event,
+                                                     @NotNull RyseInventory mainInventory,
+                                                     int targetSlot,
+                                                     Optional<IntelligentItem> itemOptional) {
+            if (!mainInventory.getIgnoredSlots().contains(targetSlot)) {
+                if (itemOptional.isPresent() && itemOptional.get().getConsumer() != null) return true;
+
+                event.setCancelled(true);
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * If the amount of the item in the target slot plus the amount of the item in the cursor slot is less than or
+         * equal to the max stack size of the item, then set the amount of the item in the target slot to the amount of the
+         * item in the target slot plus the amount of the item in the cursor slot
+         *
+         * @param itemStack     The item stack that is being adjusted.
+         * @param mainInventory The RyseInventory instance
+         * @param contents      The InventoryContents object that contains all the information about the inventory.
+         * @param targetSlot    The slot in the inventory that the item is being moved to.
+         * @param targetAmount  The amount of the item that you want to add to the target slot.
+         * @return A boolean value.
+         */
+        private boolean adjustItemStackAmount(@NotNull ItemStack itemStack,
+                                              RyseInventory mainInventory,
+                                              InventoryContents contents,
+                                              int targetSlot, int targetAmount) {
+            if (itemStack.getAmount() + targetAmount <= itemStack.getMaxStackSize()) {
+                ItemStack finalItemStack = itemStack.clone();
+                finalItemStack.setAmount(itemStack.getAmount() + targetAmount);
+
+                if (!mainInventory.isIgnoreManualItems())
+                    contents.pagination().setItem(
+                            targetSlot,
+                            contents.pagination().page() - 1,
+                            IntelligentItem.ignored(finalItemStack),
+                            true);
+                return true;
+            }
+            return false;
+        }
+
+
+        /**
+         * If the item stack is greater than the max stack size, set the item stack to the max stack size and subtract the
+         * max stack size from the original item stack
+         *
+         * @param itemStack     The itemstack that is being moved
+         * @param mainInventory The RyseInventory instance
+         * @param topInventory  The inventory that the player is currently viewing.
+         * @param contents      The InventoryContents object that is passed to the InventoryListener.
+         * @param targetSlot    The slot in the top inventory that the item is being moved to.
+         * @param targetAmount  The amount of items to be moved to the target slot.
+         */
+        private void adjustItemStackAmountToMaxStackSize(@NotNull ItemStack itemStack,
+                                                         @NotNull RyseInventory mainInventory,
+                                                         @NotNull Inventory topInventory,
+                                                         InventoryContents contents,
+                                                         int targetSlot, int targetAmount) {
+            ItemStack toSet = new ItemStack(itemStack.getType(), itemStack.getMaxStackSize());
+            topInventory.setItem(targetSlot, toSet);
+
+            if (!mainInventory.isIgnoreManualItems())
+                contents.pagination().setItem(
+                        targetSlot,
+                        contents.pagination().page() - 1,
+                        IntelligentItem.ignored(toSet),
+                        true);
+
+            itemStack.setAmount(itemStack.getAmount() - targetAmount);
+        }
+
+
+        /**
+         * If the cursor is not empty, and the item in the slot is similar to the cursor, then set the amount of the item
+         * in the slot to the amount of the item in the slot plus the amount of the cursor
+         *
+         * @param event         The InventoryClickEvent that was fired.
+         * @param itemStack     The itemstack in the slot that was clicked.
+         * @param mainInventory The inventory that the player is currently viewing.
+         * @param slot          The slot that was clicked
+         * @param clickType     The type of click that was performed.
+         * @param contents      The InventoryContents object that contains all the information about the inventory.
+         */
+        private void modifyItemStackAmountViaCursor(@NotNull InventoryClickEvent event,
+                                                    ItemStack itemStack,
+                                                    RyseInventory mainInventory,
+                                                    int slot,
+                                                    ClickType clickType,
+                                                    InventoryContents contents) {
+            if (event.getCursor() == null || event.getCursor().getType() == Material.AIR) return;
+            ItemStack cursor = event.getCursor().clone();
+            if (clickType == ClickType.RIGHT) {
+                cursor.setAmount(itemStack != null && itemStack.isSimilar(cursor)
+                        ? itemStack.getAmount() + 1
+                        : 1);
+            } else {
+                cursor.setAmount(itemStack != null && itemStack.isSimilar(cursor)
+                        ? itemStack.getAmount() + cursor.getAmount()
+                        : cursor.getAmount());
+            }
+
+            if (mainInventory.isIgnoreManualItems())
+                return;
+
+            contents.pagination().setItem(
+                    slot,
+                    contents.pagination().page() - 1,
+                    IntelligentItem.ignored(cursor),
+                    true);
+        }
+
+
+        /**
+         * When the player right clicks on an item, the item's amount is halved. Otherwise the item is removed.
+         *
+         * @param event         The InventoryClickEvent that was called.
+         * @param itemStack     The itemstack that was clicked
+         * @param mainInventory The inventory that is being opened.
+         * @param slot          The slot that was clicked
+         * @param clickType     The type of click that was performed.
+         * @param contents      The InventoryContents object that contains all the information about the inventory.
+         */
+        private void subtractItemStackAmountWhenRightClick(@NotNull InventoryClickEvent event,
+                                                           ItemStack itemStack,
+                                                           RyseInventory mainInventory,
+                                                           int slot,
+                                                           ClickType clickType,
+                                                           InventoryContents contents) {
+            if (event.getCursor() != null && event.getCursor().getType() != Material.AIR)
+                return;
+
+            if (clickType == ClickType.RIGHT) {
+                if (mainInventory.isIgnoreManualItems()) return;
+
+                ItemStack finalItemStack = itemStack.clone();
+                finalItemStack.setAmount(itemStack.getAmount() / 2);
+                contents.pagination().setItem(
+                        slot,
+                        contents.pagination().page() - 1,
+                        IntelligentItem.ignored(finalItemStack),
+                        true);
+                return;
+            }
+
+            if (itemStack != null && itemStack.getType() != Material.AIR)
+                contents.pagination().remove(slot);
         }
     }
 }

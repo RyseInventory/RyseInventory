@@ -55,12 +55,22 @@ public class RyseInventoryOpenEvent extends Event implements Cancellable {
         this.isCancelled = false;
     }
 
+    @Contract(pure = true)
+    public static HandlerList getHandlerList() {
+        return HANDLERS_LIST;
+    }
+
     /**
      * If true, the inventory will not be opened.
      */
     @Override
     public boolean isCancelled() {
         return this.isCancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.isCancelled = cancel;
     }
 
     /**
@@ -71,31 +81,21 @@ public class RyseInventoryOpenEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The player for whom the inventory is opened.
-     */
-    public @NotNull Player getPlayer() {
-        return this.player;
-    }
-
-    /**
      * @param inventory The new RyseInventory, which will be opened to the player.
      */
     public void setInventory(@NotNull RyseInventory inventory) {
         this.inventory = inventory;
     }
 
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.isCancelled = cancel;
+    /**
+     * @return The player for whom the inventory is opened.
+     */
+    public @NotNull Player getPlayer() {
+        return this.player;
     }
 
     @Override
     public HandlerList getHandlers() {
-        return HANDLERS_LIST;
-    }
-
-    @Contract(pure = true)
-    public static HandlerList getHandlerList() {
         return HANDLERS_LIST;
     }
 }
