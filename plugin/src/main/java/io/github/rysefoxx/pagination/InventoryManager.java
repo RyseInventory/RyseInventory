@@ -387,7 +387,8 @@ public class InventoryManager {
 
                     if (cancelEventIfItemHasConsumer(event, mainInventory, targetSlot, itemOptional)) return;
 
-                    if (adjustItemStackAmount(itemStack, topInventory, event, mainInventory, contents, targetSlot, targetAmount)) return;
+                    if (adjustItemStackAmount(topInventory, event, mainInventory, contents, targetSlot, targetAmount))
+                        return;
 
                     event.setCancelled(true);
                     adjustItemStackAmountToMaxStackSize(itemStack, mainInventory, topInventory, contents, targetSlot, targetAmount);
@@ -602,21 +603,28 @@ public class InventoryManager {
          * equal to the max stack size of the item, then set the amount of the item in the target slot to the amount of the
          * item in the target slot plus the amount of the item in the cursor slot
          *
-         * @param itemStack     The item stack that is being adjusted.
          * @param mainInventory The RyseInventory instance
          * @param contents      The InventoryContents object that contains all the information about the inventory.
          * @param targetSlot    The slot in the inventory that the item is being moved to.
          * @param targetAmount  The amount of the item that you want to add to the target slot.
          * @return A boolean value.
          */
-        private boolean adjustItemStackAmount(@NotNull ItemStack itemStack,
-                                              @NotNull Inventory topInventory,
+        private boolean adjustItemStackAmount(@NotNull Inventory topInventory,
                                               InventoryClickEvent event,
                                               RyseInventory mainInventory,
                                               InventoryContents contents,
                                               int targetSlot, int targetAmount) {
+            ItemStack itemStack = event.getCurrentItem();
             if (itemStack.getAmount() + targetAmount <= itemStack.getMaxStackSize()) {
                 event.setCancelled(true);
+
+                ItemStack topItem = topInventory.getItem(targetSlot);
+
+                if(topItem != null && topItem.getType() != Material.AIR)
+                    if (!itemStack.isSimilar(topInventory.getItem(targetSlot)))
+                        return true;
+
+
                 event.setCurrentItem(null);
 
                 ItemStack finalItemStack = itemStack.clone();
