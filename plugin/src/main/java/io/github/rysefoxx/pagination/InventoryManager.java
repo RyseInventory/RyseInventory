@@ -379,7 +379,7 @@ public class InventoryManager {
                         return;
                     }
 
-                    int[] data = checkForExistingItem(topInventory, itemStack);
+                    int[] data = checkForExistingItem(topInventory, itemStack, mainInventory);
                     int targetSlot = data[0];
                     int targetAmount = data[1];
 
@@ -387,7 +387,7 @@ public class InventoryManager {
 
                     if (cancelEventIfItemHasConsumer(event, mainInventory, targetSlot, itemOptional)) return;
 
-                    if (adjustItemStackAmount(itemStack, mainInventory, contents, targetSlot, targetAmount)) return;
+                    if (adjustItemStackAmount(itemStack, topInventory, event, mainInventory, contents, targetSlot, targetAmount)) return;
 
                     event.setCancelled(true);
                     adjustItemStackAmountToMaxStackSize(itemStack, mainInventory, topInventory, contents, targetSlot, targetAmount);
@@ -502,11 +502,11 @@ public class InventoryManager {
                 return;
             }
 
-            mainInventory.clearData(player);
 
             EventCreator<InventoryCloseEvent> customEvent = (EventCreator<InventoryCloseEvent>) mainInventory.getEvent(InventoryCloseEvent.class);
             if (customEvent != null) {
                 customEvent.accept(event);
+                mainInventory.clearData(player);
                 return;
             }
 
@@ -554,10 +554,12 @@ public class InventoryManager {
          * @return An array of integers.
          */
         private int @NotNull [] checkForExistingItem(@NotNull Inventory topInventory,
-                                                     @Nullable ItemStack itemStack) {
+                                                     @Nullable ItemStack itemStack,
+                                                     @NotNull RyseInventory mainInventory) {
             int[] data = new int[2];
             for (int i = 0; i < topInventory.getSize(); i++) {
                 ItemStack inventoryItem = topInventory.getItem(i);
+                if (!mainInventory.getIgnoredSlots().contains(i)) continue;
 
                 if (inventoryItem == null || inventoryItem.getType() == Material.AIR) {
                     data[0] = i;
@@ -608,12 +610,19 @@ public class InventoryManager {
          * @return A boolean value.
          */
         private boolean adjustItemStackAmount(@NotNull ItemStack itemStack,
+                                              @NotNull Inventory topInventory,
+                                              InventoryClickEvent event,
                                               RyseInventory mainInventory,
                                               InventoryContents contents,
                                               int targetSlot, int targetAmount) {
             if (itemStack.getAmount() + targetAmount <= itemStack.getMaxStackSize()) {
+                event.setCancelled(true);
+                event.setCurrentItem(null);
+
                 ItemStack finalItemStack = itemStack.clone();
                 finalItemStack.setAmount(itemStack.getAmount() + targetAmount);
+
+                topInventory.setItem(targetSlot, finalItemStack);
 
                 if (!mainInventory.isIgnoreManualItems())
                     contents.pagination().setItem(
@@ -675,6 +684,7 @@ public class InventoryManager {
                                                     ClickType clickType,
                                                     InventoryContents contents) {
             if (event.getCursor() == null || event.getCursor().getType() == Material.AIR) return;
+
             ItemStack cursor = event.getCursor().clone();
             if (clickType == ClickType.RIGHT) {
                 cursor.setAmount(itemStack != null && itemStack.isSimilar(cursor)

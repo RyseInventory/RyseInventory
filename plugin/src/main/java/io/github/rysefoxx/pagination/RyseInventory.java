@@ -308,7 +308,6 @@ public class RyseInventory {
 
         if (event.isCancelled()) return;
 
-
         if (this.playerInventory.containsKey(player.getUniqueId())) {
             player.getInventory().setContents(this.playerInventory.remove(player.getUniqueId()));
         }
