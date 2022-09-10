@@ -153,10 +153,10 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
-        return slot <= this.inventory.size();
+        return slot <= this.inventory.size(this);
     }
 
     /**
@@ -183,8 +183,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         get(slot).ifPresent(IntelligentItem::clearConsumer);
         this.pagination.remove(slot);
@@ -215,7 +215,7 @@ public class InventoryContents {
      * @param item The item to filter for.
      */
     public void removeFirst(@NotNull ItemStack item) {
-        for (int i = 0; i < this.inventory.size(); i++) {
+        for (int i = 0; i < this.inventory.size(this); i++) {
             Optional<IntelligentItem> optional = get(i);
             if (!optional.isPresent()) continue;
 
@@ -239,7 +239,7 @@ public class InventoryContents {
      * @param material The material to filter for.
      */
     public void removeFirst(@NotNull Material material) {
-        for (int i = 0; i < this.inventory.size(); i++) {
+        for (int i = 0; i < this.inventory.size(this); i++) {
             Optional<IntelligentItem> optional = get(i);
             if (!optional.isPresent()) continue;
 
@@ -269,7 +269,7 @@ public class InventoryContents {
         if (amount > 64)
             throw new IllegalArgumentException(StringConstants.INVALID_AMOUNT);
 
-        for (int i = 0; i < this.inventory.size(); i++) {
+        for (int i = 0; i < this.inventory.size(this); i++) {
             Optional<IntelligentItem> optional = get(i);
             if (!optional.isPresent()) continue;
 
@@ -297,7 +297,7 @@ public class InventoryContents {
      * @param item The item to filter for.
      */
     public void removeAll(@NotNull ItemStack item) {
-        for (int i = 0; i < this.inventory.size(); i++) {
+        for (int i = 0; i < this.inventory.size(this); i++) {
             Optional<IntelligentItem> optional = get(i);
             if (!optional.isPresent()) continue;
 
@@ -325,7 +325,7 @@ public class InventoryContents {
         if (amount > 64)
             throw new IllegalArgumentException(StringConstants.INVALID_AMOUNT);
 
-        for (int i = 0; i < this.inventory.size(); i++) {
+        for (int i = 0; i < this.inventory.size(this); i++) {
             Optional<IntelligentItem> optional = get(i);
             if (!optional.isPresent()) continue;
 
@@ -351,7 +351,7 @@ public class InventoryContents {
      * Removes the very first item that can be found.
      */
     public void removeFirst() {
-        for (int i = 0; i < this.inventory.size(); i++) {
+        for (int i = 0; i < this.inventory.size(this); i++) {
             Optional<IntelligentItem> optional = get(i);
             if (!optional.isPresent()) continue;
 
@@ -378,7 +378,7 @@ public class InventoryContents {
         if (amount > 64)
             throw new IllegalArgumentException(StringConstants.INVALID_AMOUNT);
 
-        for (int i = 0; i < this.inventory.size(); i++) {
+        for (int i = 0; i < this.inventory.size(this); i++) {
             Optional<IntelligentItem> optional = get(i);
             if (!optional.isPresent()) continue;
 
@@ -407,7 +407,7 @@ public class InventoryContents {
      */
     public @NotNull List<Integer> slots() {
         List<Integer> slots = new ArrayList<>();
-        for (int i = 0; i < this.inventory.size(); i++)
+        for (int i = 0; i < this.inventory.size(this); i++)
             slots.add(i);
 
         return slots;
@@ -440,7 +440,7 @@ public class InventoryContents {
                     fillRow(j, item);
                 break;
             case BOTTOM:
-                for (int i = howMuch, j = this.inventory.size() - 9; i > 0; i--, j -= 9)
+                for (int i = howMuch, j = this.inventory.size(this) - 9; i > 0; i--, j -= 9)
                     fillRow(j, item);
                 break;
             case LEFT:
@@ -487,7 +487,7 @@ public class InventoryContents {
      * @param item The ItemStack which should represent the border
      */
     public void fillBorders(@NotNull IntelligentItem item) {
-        int size = this.inventory.size();
+        int size = this.inventory.size(this);
         int rows = (size + 1) / 9;
 
         for (int i = 0; i < rows * 9; i++) {
@@ -682,11 +682,11 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
-        int inventorySize = this.inventory.size();
+        int inventorySize = this.inventory.size(this);
 
         if (type != InventoryOpenerType.CHEST
                 && type != InventoryOpenerType.ENDER_CHEST
@@ -745,8 +745,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
 
@@ -792,11 +792,11 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
-        int inventorySize = this.inventory.size();
+        int inventorySize = this.inventory.size(this);
 
         if (type != InventoryOpenerType.CHEST
                 && type != InventoryOpenerType.ENDER_CHEST
@@ -843,8 +843,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
 
@@ -891,11 +891,11 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
-        int inventorySize = this.inventory.size();
+        int inventorySize = this.inventory.size(this);
 
         switch (type) {
             case CHEST:
@@ -937,8 +937,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         InventoryOpenerType type = this.inventory.getInventoryOpenerType();
 
@@ -974,7 +974,7 @@ public class InventoryContents {
      * @return The first slot that is empty.
      */
     public @NotNull Optional<Integer> firstEmpty() {
-        for (int i = 0; i < this.inventory.size(); i++) {
+        for (int i = 0; i < this.inventory.size(this); i++) {
             Optional<IntelligentItem> item = get(i);
 
             if (item.isPresent()) continue;
@@ -989,7 +989,7 @@ public class InventoryContents {
     public @NotNull Optional<Integer> lastEmpty() {
         int nextSlot = -1;
 
-        for (int i = 0; i < this.inventory.size(); i++) {
+        for (int i = 0; i < this.inventory.size(this); i++) {
             Optional<IntelligentItem> item = get(i);
 
             if (item.isPresent()) continue;
@@ -1122,8 +1122,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         this.pagination.setItem(slot, page, item, false);
     }
@@ -1183,8 +1183,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++)
@@ -1229,8 +1229,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++)
@@ -1249,8 +1249,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++) {
@@ -1270,8 +1270,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++)
@@ -1290,8 +1290,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++) {
@@ -1312,8 +1312,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++)
@@ -1333,8 +1333,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         int difference = slot + (findRightBorder(slot) - slot);
         for (int i = slot; i < difference + 1; i++) {
@@ -1354,10 +1354,10 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
-        for (int i = slot; i < this.inventory.size(); i += 9)
+        for (int i = slot; i < this.inventory.size(this); i += 9)
             set(i, item);
     }
 
@@ -1376,10 +1376,10 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
-        for (int i = slot; i < this.inventory.size(); i += 9)
+        for (int i = slot; i < this.inventory.size(this); i += 9)
             setWithinPage(i, page, item);
     }
 
@@ -1422,10 +1422,10 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
-        for (int i = slot; i < this.inventory.size(); i += 9) {
+        for (int i = slot; i < this.inventory.size(this); i += 9) {
             set(i, item);
             appliedTo.accept(i, item);
         }
@@ -1442,10 +1442,10 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
-        for (int i = slot; i < this.inventory.size(); i += 9)
+        for (int i = slot; i < this.inventory.size(this); i += 9)
             set(i, item);
     }
 
@@ -1461,10 +1461,10 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
-        for (int i = slot; i < this.inventory.size(); i += 9) {
+        for (int i = slot; i < this.inventory.size(this); i += 9) {
             set(i, item);
             appliedTo.accept(i, item);
         }
@@ -1482,10 +1482,10 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
-        for (int i = slot; i < this.inventory.size(); i += 9)
+        for (int i = slot; i < this.inventory.size(this); i += 9)
             set(i, item, type);
     }
 
@@ -1502,10 +1502,10 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
-        for (int i = slot; i < this.inventory.size(); i += 9) {
+        for (int i = slot; i < this.inventory.size(this); i += 9) {
             set(i, item, type);
             appliedTo.accept(i, item);
         }
@@ -1519,7 +1519,7 @@ public class InventoryContents {
      * @apiNote First page is 0, second page is 1, etc.
      */
     public void fillEmptyPage(@Nonnegative int page, @NotNull IntelligentItem item) {
-        for (int i = 0; i < this.inventory.size(); i++) {
+        for (int i = 0; i < this.inventory.size(this); i++) {
             if (getWithinPage(i, page).isPresent()) continue;
             setWithinPage(i, page, item);
         }
@@ -1558,7 +1558,7 @@ public class InventoryContents {
      * @apiNote First page is 0, second page is 1, etc.
      */
     public void fillPage(@Nonnegative int page, @NotNull IntelligentItem item) {
-        for (int i = 0; i < this.inventory.size(); i++)
+        for (int i = 0; i < this.inventory.size(this); i++)
             setWithinPage(i, page, item);
     }
 
@@ -1622,7 +1622,7 @@ public class InventoryContents {
      * @param item The item to be placed.
      */
     public void fillEmpty(@NotNull IntelligentItem item) {
-        for (int i = 0; i < this.inventory.size(); i++) {
+        for (int i = 0; i < this.inventory.size(this); i++) {
             if (get(i).isPresent()) continue;
             set(i, item);
         }
@@ -1655,7 +1655,7 @@ public class InventoryContents {
      * @param item The item with which the inventory should be filled.
      */
     public void fill(@NotNull IntelligentItem item) {
-        for (int i = 0; i < this.inventory.size(); i++)
+        for (int i = 0; i < this.inventory.size(this); i++)
             set(i, item);
     }
 
@@ -1691,8 +1691,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         this.pagination.setItem(slot, item, false);
     }
@@ -1776,7 +1776,7 @@ public class InventoryContents {
      * @return The slot of the item or empty Optional if the item was not found.
      */
     public @NotNull Optional<Integer> getPositionOfItem(@NotNull ItemStack itemStack) {
-        for (int i = 0; i < this.inventory.size(); i++) {
+        for (int i = 0; i < this.inventory.size(this); i++) {
             Optional<IntelligentItem> item = get(i);
             if (!item.isPresent()) continue;
             if (!item.get().getItemStack().isSimilar(itemStack)) continue;
@@ -1804,7 +1804,7 @@ public class InventoryContents {
      * @implNote The pair contains the row and column of the item. Pair#getLeft() is the row and Pair#getRight() is the column.
      */
     public @NotNull Optional<Pair<Integer, Integer>> getCoordinationOfItem(@NotNull ItemStack itemStack) {
-        for (int i = 0; i < this.inventory.size(); i++) {
+        for (int i = 0; i < this.inventory.size(this); i++) {
             Optional<IntelligentItem> item = get(i);
             if (!item.isPresent()) continue;
             if (!item.get().getItemStack().isSimilar(itemStack)) continue;
@@ -1861,7 +1861,7 @@ public class InventoryContents {
     @Deprecated
     public @NotNull List<IntelligentItem> getAll() {
         List<IntelligentItem> items = new ArrayList<>();
-        for (int i = 0; i < this.inventory.size(); i++)
+        for (int i = 0; i < this.inventory.size(this); i++)
             get(i).ifPresent(items::add);
 
         return items;
@@ -1878,7 +1878,7 @@ public class InventoryContents {
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_PAGE, "%temp%", this.inventory.getFixedPageSize() - 1));
 
         List<IntelligentItem> items = new ArrayList<>();
-        for (int i = 0; i < this.inventory.size(); i++)
+        for (int i = 0; i < this.inventory.size(this); i++)
             getWithinPage(i, page).ifPresent(items::add);
 
         return items;
@@ -1898,8 +1898,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         return Optional.ofNullable(this.pagination.get(slot, page));
     }
@@ -1981,8 +1981,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         return Optional.ofNullable(this.pagination.get(slot));
     }
@@ -2084,8 +2084,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         Optional<IntelligentItem> itemOptional = get(slot);
         if (!itemOptional.isPresent()) return false;
@@ -2142,8 +2142,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         Optional<IntelligentItem> itemOptional = get(slot);
         if (!itemOptional.isPresent()) return false;
@@ -2255,8 +2255,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         Optional<IntelligentItem> itemOptional = get(slot);
         if (!itemOptional.isPresent()) return false;
@@ -2304,8 +2304,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         Optional<IntelligentItem> itemOptional = get(slot);
         if (!itemOptional.isPresent()) return false;
@@ -2357,8 +2357,8 @@ public class InventoryContents {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        if (slot > this.inventory.size())
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size()));
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
         ItemStack itemStack = item.getItemStack();
 
@@ -2747,11 +2747,11 @@ public class InventoryContents {
         this.pagination.remove(i);
     }
 
-    protected Optional<IntelligentItem> getInPage(@Nonnegative int page, @Nonnegative int slot) throws IllegalArgumentException {
+    protected Optional<IntelligentItem> getInPage(@Nonnegative int pageNumber, @Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        return Optional.ofNullable(this.pagination.get(slot, page));
+        return Optional.ofNullable(this.pagination.get(slot, pageNumber));
     }
 
     private void clear(int page) {

@@ -379,10 +379,10 @@ public class SlideAnimation {
         if (from == to)
             throw new IllegalArgumentException("The animation could not be started! from " + from + " and to " + to + " have the same values. from must be smaller than " + to + ".");
 
-        if (from > inventory.size())
+        if (from > inventory.size(contents))
             throw new IllegalArgumentException("The start slot must not be larger than the inventory size.");
 
-        if (to > inventory.size())
+        if (to > inventory.size(contents))
             throw new IllegalArgumentException("The end slot must not be larger than the inventory size.");
 
     }

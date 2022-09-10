@@ -335,7 +335,7 @@ public class InventoryManager {
             }
         }
 
-        @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+        @EventHandler(priority = EventPriority.LOWEST)
         @SuppressWarnings("unchecked")
         public void onInventoryClick(@NotNull InventoryClickEvent event) {
             if (!(event.getWhoClicked() instanceof Player)) return;
@@ -409,7 +409,7 @@ public class InventoryManager {
             if (clickedInventory == topInventory) {
                 if (!hasContents(player.getUniqueId()))
                     return;
-                if (slot < 0 || (mainInventory.getInventoryOpenerType() == InventoryOpenerType.CHEST && slot > mainInventory.size())) {
+                if (slot < 0 || (mainInventory.getInventoryOpenerType() == InventoryOpenerType.CHEST && slot > mainInventory.size(contents))) {
                     return;
                 }
 
@@ -558,6 +558,7 @@ public class InventoryManager {
                                                      @Nullable ItemStack itemStack,
                                                      @NotNull RyseInventory mainInventory) {
             int[] data = new int[2];
+            data[0] = -1;
             for (int i = 0; i < topInventory.getSize(); i++) {
                 ItemStack inventoryItem = topInventory.getItem(i);
                 if (!mainInventory.getIgnoredSlots().contains(i)) continue;
@@ -620,7 +621,7 @@ public class InventoryManager {
 
                 ItemStack topItem = topInventory.getItem(targetSlot);
 
-                if(topItem != null && topItem.getType() != Material.AIR)
+                if (topItem != null && topItem.getType() != Material.AIR)
                     if (!itemStack.isSimilar(topInventory.getItem(targetSlot)))
                         return true;
 
@@ -736,6 +737,7 @@ public class InventoryManager {
 
             if (clickType == ClickType.RIGHT) {
                 if (mainInventory.isIgnoreManualItems()) return;
+                if (itemStack == null) return;
 
                 ItemStack finalItemStack = itemStack.clone();
                 finalItemStack.setAmount(itemStack.getAmount() / 2);

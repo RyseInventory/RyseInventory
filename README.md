@@ -36,7 +36,8 @@ point [Features](https://github.com/Rysefoxx/RyseInventory#features)
 
 # Dependency
 
-_Make sure you shade the API._
+_(Make sure you shade the API.)_
+_In the newer versions you can specify the API in your plugin.yml under Libraries. As a result, you no longer need to shade the API._
 
 ### Gradle (Groovy)
 
@@ -46,7 +47,7 @@ repositories {
     maven { url "https://s01.oss.sonatype.org/content/groups/public/" }
 }
 dependencies {
-    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.4.8'
+    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.4.9'
 }
 ```
 
@@ -58,7 +59,7 @@ repositories
     maven { url = uri("https://s01.oss.sonatype.org/content/groups/public/") }
 }
 dependencies {
-    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.4.8")
+    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.4.9")
 }
 ```
 
@@ -75,7 +76,7 @@ dependencies {
 <dependency>
   <groupId>io.github.rysefoxx</groupId>
   <artifactId>RyseInventory-Plugin</artifactId>
-  <version>1.4.8</version>
+  <version>1.4.9</version>
 </dependency>
 ```
 

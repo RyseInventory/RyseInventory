@@ -55,7 +55,7 @@ import java.util.Map;
 public class IntelligentItemLoreAnimator {
 
     private static Plugin plugin;
-    private final List<BukkitTask> task = new ArrayList<>();
+    private final List<BukkitTask> tasks = new ArrayList<>();
     private IntelligentItem intelligentItem;
     private HashMap<Integer, String> loreData = new HashMap<>();
     private HashMap<Character, IntelligentItemColor> frameColor = new HashMap<>();
@@ -82,6 +82,21 @@ public class IntelligentItemLoreAnimator {
     public void animate() {
         this.inventory.addLoreAnimator(this);
         animateByType();
+    }
+
+    /**
+     * This stops the animation for the item.
+     *
+     * @return true if the animation was stopped.
+     */
+    public boolean stop() {
+        if (this.tasks.isEmpty())
+            return false;
+
+        this.tasks.stream()
+                .filter(task -> task != null && Bukkit.getScheduler().isQueued(task.getTaskId()))
+                .forEach(BukkitTask::cancel);
+        return true;
     }
 
     private void animateByType() {
@@ -159,7 +174,7 @@ public class IntelligentItemLoreAnimator {
                 }
 
             }, this.delay, this.period);
-            this.task.add(bukkitTask);
+            this.tasks.add(bukkitTask);
         }
     }
 
@@ -250,7 +265,7 @@ public class IntelligentItemLoreAnimator {
                     this.currentFrameIndex = 0;
                 }
             }, this.delay, this.period);
-            this.task.add(bukkitTask);
+            this.tasks.add(bukkitTask);
         }
     }
 
@@ -337,7 +352,7 @@ public class IntelligentItemLoreAnimator {
                     this.currentFrameIndex = 0;
                 }
             }, this.delay, this.period);
-            this.task.add(bukkitTask);
+            this.tasks.add(bukkitTask);
         }
     }
 
@@ -356,7 +371,7 @@ public class IntelligentItemLoreAnimator {
     }
 
     protected @NotNull List<BukkitTask> getTasks() {
-        return this.task;
+        return this.tasks;
     }
 
     public @Nullable Object getIdentifier() {

@@ -149,7 +149,8 @@ public class IntelligentItemColor {
     }
 
     public static class Builder {
-        private IntelligentItemColor color = new IntelligentItemColor();
+        private final IntelligentItemColor color = new IntelligentItemColor();
+        private boolean needWrapper;
 
         @SneakyThrows
         @SuppressWarnings("unchecked")
@@ -267,6 +268,7 @@ public class IntelligentItemColor {
             if (red > 255 || green > 255 || blue > 255)
                 throw new IllegalArgumentException("The RGB color can not be greater than 255.");
 
+            this.needWrapper = true;
 
             this.color.rgbColor[0] = red;
             this.color.rgbColor[1] = green;
@@ -324,12 +326,15 @@ public class IntelligentItemColor {
             if (hexColor.length() > 7)
                 throw new IllegalArgumentException("The hex input must not be longer than 7 characters.");
 
+            this.needWrapper = true;
+
             this.color.hexColor = hexColor;
             return this;
         }
 
         public @Nullable IntelligentItemColor build() {
-            tryToSetWrapper();
+            if (this.needWrapper)
+                tryToSetWrapper();
 
             if (this.color.hexColor != null)
                 return new IntelligentItemColor(

@@ -80,6 +80,18 @@ public class IntelligentTitleAnimator {
         animateByType(player);
     }
 
+    /**
+     * This stops the animation for the item.
+     * @return true if the animation was stopped.
+     */
+    public boolean stop() {
+        if(this.task == null || !Bukkit.getScheduler().isQueued(this.task.getTaskId()))
+            return false;
+
+        this.task.cancel();
+        return true;
+    }
+
     private void animateByType(@NotNull Player player) {
         if (this.type == IntelligentItemAnimatorType.FULL_WORD) {
             animateByFullWord(player);

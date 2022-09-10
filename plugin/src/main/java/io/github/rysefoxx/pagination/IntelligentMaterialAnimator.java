@@ -77,6 +77,18 @@ public class IntelligentMaterialAnimator {
         animateItem();
     }
 
+    /**
+     * This stops the animation for the item.
+     * @return true if the animation was stopped.
+     */
+    public boolean stop() {
+        if(this.task == null || !Bukkit.getScheduler().isQueued(this.task.getTaskId()))
+            return false;
+
+        this.task.cancel();
+        return true;
+    }
+
     private void animateItem() {
         int finalLength = getFrameLength();
 
@@ -160,6 +172,7 @@ public class IntelligentMaterialAnimator {
         }
         return length;
     }
+
 
     public static class Builder {
 
