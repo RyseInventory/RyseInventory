@@ -10,3 +10,4 @@
 
 - [ ] The code runs without problems
 - [ ] I myself have tested it
+- [ ] The code was written by myself personally and not copied by anyone
