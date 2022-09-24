@@ -32,7 +32,6 @@ import io.github.rysefoxx.enums.TimeSetting;
 import io.github.rysefoxx.util.SlotUtils;
 import io.github.rysefoxx.util.StringConstants;
 import io.github.rysefoxx.util.TimeUtils;
-import lombok.ToString;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -47,10 +46,8 @@ import java.util.*;
  * @author Rysefoxx | Rysefoxx#6772
  * @since 4/15/2022
  */
-@ToString(exclude = {"contents", "task", "timeHandler"})
 public class SlideAnimation {
 
-    private static final String ANIMATION_KEY = "RYSEINVENTORY_SLIDE_ANIMATION_KEY";
     private static Plugin plugin;
     private final List<BukkitTask> task = new ArrayList<>();
     private final HashMap<Integer, Integer> timeHandler = new HashMap<>();
@@ -90,6 +87,10 @@ public class SlideAnimation {
         animateByTyp();
     }
 
+    /**
+     * If the direction is horizontal, animate horizontally. If the direction is vertical, animate vertically. If the
+     * direction is diagonal, animate diagonally
+     */
     private void animateByTyp() {
         if (this.direction == AnimatorDirection.HORIZONTAL_LEFT_RIGHT || this.direction == AnimatorDirection.HORIZONTAL_RIGHT_LEFT) {
             animateHorizontal();
@@ -108,6 +109,9 @@ public class SlideAnimation {
         }
     }
 
+    /**
+     * It animates the items from the top left to the bottom right
+     */
     private void animateDiagonalTopBottomLeft() {
         for (int i = 0; i < this.items.size(); i++) {
             boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
@@ -144,17 +148,12 @@ public class SlideAnimation {
                         return;
                     }
 
-                    if (this.fromIndex == from.get(finalI)) {
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    } else {
-
-                        Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
+                    if (this.fromIndex != from.get(finalI)) {
                         contents.removeItemWithConsumer(this.previousIndex);
-
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
                     }
+
+                    contents.set(this.fromIndex, this.item);
+                    contents.update(this.fromIndex, this.item);
 
                     this.previousIndex = this.fromIndex;
                     if (this.isTopLeft) {
@@ -168,6 +167,9 @@ public class SlideAnimation {
         }
     }
 
+    /**
+     * It animates the items from the top right
+     */
     private void animateDiagonalTopBottomRight() {
         for (int i = 0; i < this.items.size(); i++) {
             boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
@@ -228,6 +230,9 @@ public class SlideAnimation {
         }
     }
 
+    /**
+     * It moves the items from one slot to another
+     */
     private void animateHorizontal() {
         for (int i = 0; i < this.items.size(); i++) {
             boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
@@ -289,6 +294,9 @@ public class SlideAnimation {
         }
     }
 
+    /**
+     * It animates the items in the inventory from one slot to another
+     */
     private void animateVertical() {
         for (int i = 0; i < this.items.size(); i++) {
             boolean moreDelay = i != 0 && Objects.equals(this.from.get(i), this.from.get(i - 1));
@@ -325,18 +333,12 @@ public class SlideAnimation {
                         return;
                     }
 
-                    if (this.fromIndex == from.get(finalI)) {
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    } else {
-
-                        Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
-
+                    if (this.fromIndex != from.get(finalI)) {
                         contents.removeItemWithConsumer(this.previousIndex);
-
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
                     }
+
+                    contents.set(this.fromIndex, this.item);
+                    contents.update(this.fromIndex, this.item);
 
                     this.previousIndex = this.fromIndex;
                     if (this.upToDown) {
@@ -351,7 +353,16 @@ public class SlideAnimation {
         }
     }
 
-    private void checkIfInvalid(@Nonnegative int from, @Nonnegative int to, @NotNull RyseInventory inventory) {
+    /**
+     * It checks if the animation is valid
+     *
+     * @param from      The start slot of the animation.
+     * @param to        The end slot of the animation.
+     * @param inventory The inventory that the animation is being performed on.
+     */
+    private void checkIfInvalid(@Nonnegative int from,
+                                @Nonnegative int to,
+                                @NotNull RyseInventory inventory) {
         if (this.direction == AnimatorDirection.HORIZONTAL_LEFT_RIGHT || this.direction == AnimatorDirection.HORIZONTAL_RIGHT_LEFT) {
             if ((from - 1) / 9 != (to - 1) / 9 && from / 9 != to / 9) {
                 throw new IllegalArgumentException("The start position " + from + " and the end position " + to + " are not on the same row.");
@@ -387,14 +398,29 @@ public class SlideAnimation {
 
     }
 
+    /**
+     * Returns true if the click event is blocked.
+     *
+     * @return The boolean value of the blockClickEvent variable.
+     */
     protected boolean isBlockClickEvent() {
         return this.blockClickEvent;
     }
 
+    /**
+     * It returns a list of tasks that are currently running
+     *
+     * @return A list of BukkitTasks
+     */
     protected @NotNull List<BukkitTask> getTasks() {
         return this.task;
     }
 
+    /**
+     * Returns the identifier of this object, or null if it has none.
+     *
+     * @return The identifier of the object.
+     */
     public @Nullable Object getIdentifier() {
         return this.identifier;
     }

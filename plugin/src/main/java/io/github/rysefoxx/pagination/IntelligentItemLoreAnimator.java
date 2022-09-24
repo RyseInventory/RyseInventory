@@ -99,6 +99,10 @@ public class IntelligentItemLoreAnimator {
         return true;
     }
 
+    /**
+     * If the type is FULL_WORD, animate by full word, if the type is WORD_BY_WORD, animate word by word, if the type is
+     * FLASH, animate with flash
+     */
     private void animateByType() {
         if (this.type == IntelligentItemAnimatorType.FULL_WORD) {
             animateByFullWord();
@@ -113,6 +117,9 @@ public class IntelligentItemLoreAnimator {
         }
     }
 
+    /**
+     * It loops through each frame of each line of lore, and updates the lore with the current frame
+     */
     private void animateWithFlash() {
         for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
             BukkitTask bukkitTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
@@ -178,6 +185,9 @@ public class IntelligentItemLoreAnimator {
         }
     }
 
+    /**
+     * It takes a list of frames, and animates them by coloring each letter of the lore
+     */
     private void animateByFullWord() {
         for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
             BukkitTask bukkitTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
@@ -269,6 +279,10 @@ public class IntelligentItemLoreAnimator {
         }
     }
 
+    /**
+     * It loops through each frame, and then loops through each letter in the frame, and then loops through each color in
+     * the frame, and then adds the color to the letter, and then adds the letter to the lore
+     */
     private void animateWordByWord() {
         for (Map.Entry<Integer, String> entry : this.loreData.entrySet()) {
             BukkitTask bukkitTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
@@ -356,7 +370,16 @@ public class IntelligentItemLoreAnimator {
         }
     }
 
-    private void updateLore(@NotNull InventoryContents contents, @NotNull String lore, @Nonnegative int index) {
+    /**
+     * It updates the lore of the item in the slot
+     *
+     * @param contents The InventoryContents object that contains the current state of the inventory.
+     * @param lore The new lore to set.
+     * @param index The index of the lore to update.
+     */
+    private void updateLore(@NotNull InventoryContents contents,
+                            @NotNull String lore,
+                            @Nonnegative int index) {
         ItemStack globalItemStack = this.itemStack;
 
         ItemMeta itemMeta = globalItemStack.getItemMeta();
@@ -370,10 +393,20 @@ public class IntelligentItemLoreAnimator {
         this.itemStack = globalItemStack;
     }
 
+    /**
+     * This function returns a list of tasks.
+     *
+     * @return A list of BukkitTasks
+     */
     protected @NotNull List<BukkitTask> getTasks() {
         return this.tasks;
     }
 
+    /**
+     * Returns the identifier of this object, or null if it has none.
+     *
+     * @return The identifier of the object.
+     */
     public @Nullable Object getIdentifier() {
         return this.identifier;
     }

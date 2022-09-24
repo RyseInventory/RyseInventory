@@ -50,13 +50,17 @@ import java.util.stream.Collectors;
 public class Pagination {
 
     private final RyseInventory inventory;
-    private
+    private int page;
+
+    @Getter
+    private SlotIterator slotIterator;
+
     @Getter
     @Nonnegative
-    int itemsPerPage;
-    private @Getter SlotIterator slotIterator;
-    private int page;
-    private @Setter(AccessLevel.PROTECTED) List<IntelligentItemData> inventoryData = new ArrayList<>();
+    private int itemsPerPage;
+
+    @Setter(AccessLevel.PROTECTED)
+    private List<IntelligentItemData> inventoryData = new ArrayList<>();
 
     /**
      * Pagination constructor with a default size of 1 element per page.
@@ -234,13 +238,13 @@ public class Pagination {
      * @param newItem The Item
      * @throws IllegalArgumentException if slot > 53
      */
-    protected void setItem(@Nonnegative int slot, @NotNull IntelligentItem newItem, boolean transfer) throws IllegalArgumentException {
+    protected void setItem(@Nonnegative int slot, @NotNull IntelligentItem newItem) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         remove(slot);
 
-        this.inventoryData.add(new IntelligentItemData(newItem, this.page, slot, transfer));
+        this.inventoryData.add(new IntelligentItemData(newItem, this.page, slot, false));
     }
 
     /**

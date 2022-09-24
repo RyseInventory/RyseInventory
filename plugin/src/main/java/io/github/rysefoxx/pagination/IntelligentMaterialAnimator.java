@@ -89,6 +89,9 @@ public class IntelligentMaterialAnimator {
         return true;
     }
 
+    /**
+     * It loops through the frames, and updates the material of the item in the inventory
+     */
     private void animateItem() {
         int finalLength = getFrameLength();
 
@@ -156,14 +159,29 @@ public class IntelligentMaterialAnimator {
         }, this.delay, this.period);
     }
 
+    /**
+     * This function returns the task that is currently running.
+     *
+     * @return The task that is being run.
+     */
     protected @NotNull BukkitTask getTask() {
         return this.task;
     }
 
+    /**
+     * Returns the identifier of this object, or null if it has none.
+     *
+     * @return The identifier of the object.
+     */
     public @Nullable Object getIdentifier() {
         return this.identifier;
     }
 
+    /**
+     * This function returns the length of the frames array.
+     *
+     * @return The length of the frames array.
+     */
     @Contract(pure = true)
     private int getFrameLength() {
         int length = 0;
@@ -172,7 +190,6 @@ public class IntelligentMaterialAnimator {
         }
         return length;
     }
-
 
     public static class Builder {
 

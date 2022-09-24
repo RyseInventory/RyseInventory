@@ -699,9 +699,7 @@ public class InventoryContents {
         int rows = inventorySize / 9;
         double middle = rows / 2D;
         int endSlot;
-        boolean even;
-
-        even = !String.valueOf(middle).contains(".") || Integer.parseInt(String.valueOf(middle).split("\\.")[1]) <= 0;
+        boolean even = !String.valueOf(middle).contains(".") || Integer.parseInt(String.valueOf(middle).split("\\.")[1]) <= 0;
 
         if (!even)
             middle = Math.round(middle);
@@ -1010,7 +1008,7 @@ public class InventoryContents {
         if (!optional.isPresent()) return false;
 
         int slot = optional.get();
-        this.pagination.setItem(slot, item, false);
+        this.pagination.setItem(slot, item);
         return true;
     }
 
@@ -1694,7 +1692,7 @@ public class InventoryContents {
         if (slot > this.inventory.size(this))
             throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
-        this.pagination.setItem(slot, item, false);
+        this.pagination.setItem(slot, item);
     }
 
     /**

@@ -49,7 +49,6 @@ public class Page {
         this.rows = rows;
     }
 
-
     /**
      * Gives the page a specified number of rows.
      *

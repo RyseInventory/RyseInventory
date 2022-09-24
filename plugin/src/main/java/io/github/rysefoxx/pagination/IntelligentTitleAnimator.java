@@ -82,16 +82,23 @@ public class IntelligentTitleAnimator {
 
     /**
      * This stops the animation for the item.
+     *
      * @return true if the animation was stopped.
      */
     public boolean stop() {
-        if(this.task == null || !Bukkit.getScheduler().isQueued(this.task.getTaskId()))
+        if (this.task == null || !Bukkit.getScheduler().isQueued(this.task.getTaskId()))
             return false;
 
         this.task.cancel();
         return true;
     }
 
+    /**
+     * If the type is FULL_WORD, animate by full word, if the type is WORD_BY_WORD, animate word by word, if the type is
+     * FLASH, animate with flash
+     *
+     * @param player The player to animate the item for.
+     */
     private void animateByType(@NotNull Player player) {
         if (this.type == IntelligentItemAnimatorType.FULL_WORD) {
             animateByFullWord(player);
@@ -105,6 +112,12 @@ public class IntelligentTitleAnimator {
             animateWithFlash(player);
     }
 
+    /**
+     * It takes the frames and the title, and then it loops through the frames and the title, and then it updates the title
+     * with the current frame and the current letter
+     *
+     * @param player The player to animate the title for.
+     */
     private void animateWithFlash(@NotNull Player player) {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(title).toCharArray();
@@ -177,6 +190,11 @@ public class IntelligentTitleAnimator {
         }, this.delay, this.period);
     }
 
+    /**
+     * It takes the title, splits it into letters, and then adds the colors from the frames to the letters
+     *
+     * @param player The player to animate the title for.
+     */
     private void animateByFullWord(@NotNull Player player) {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(title).toCharArray();
@@ -277,6 +295,11 @@ public class IntelligentTitleAnimator {
         }, this.delay, this.period);
     }
 
+    /**
+     * It takes the title, splits it into letters, and then adds the colors from the frames to the letters
+     *
+     * @param player The player to animate the title for.
+     */
     private void animateWordByWord(@NotNull Player player) {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(title).toCharArray();
@@ -368,10 +391,20 @@ public class IntelligentTitleAnimator {
         }, this.delay, this.period);
     }
 
+    /**
+     * This function returns the task that is currently running.
+     *
+     * @return The task that is being run.
+     */
     protected @NotNull BukkitTask getTask() {
         return this.task;
     }
 
+    /**
+     * Returns the identifier of this object, or null if it has none.
+     *
+     * @return The identifier of the object.
+     */
     public @Nullable Object getIdentifier() {
         return this.identifier;
     }

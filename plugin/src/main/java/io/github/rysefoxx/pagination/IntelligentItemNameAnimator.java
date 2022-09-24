@@ -94,6 +94,10 @@ public class IntelligentItemNameAnimator {
         return true;
     }
 
+    /**
+     * If the type is FULL_WORD, animate by full word, if the type is WORD_BY_WORD, animate word by word, if the type is
+     * FLASH, animate with flash
+     */
     private void animateByType() {
         if (this.type == IntelligentItemAnimatorType.FULL_WORD) {
             animateByFullWord();
@@ -108,6 +112,10 @@ public class IntelligentItemNameAnimator {
         }
     }
 
+    /**
+     * It takes the frames, and loops through them, and then loops through the characters in the frame, and then loops
+     * through the characters in the display name, and then updates the display name with the current frame character
+     */
     private void animateWithFlash() {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(displayName).toCharArray();
@@ -178,6 +186,10 @@ public class IntelligentItemNameAnimator {
         }, this.delay, this.period);
     }
 
+    /**
+     * It takes the frames and the display name, and then it loops through the frames and the display name, and then it
+     * updates the display name with the current frame and the current letter
+     */
     private void animateByFullWord() {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(displayName).toCharArray();
@@ -268,6 +280,10 @@ public class IntelligentItemNameAnimator {
         }, this.delay, this.period);
     }
 
+    /**
+     * It takes the frames and the display name, and then it loops through the frames and the display name, and then it
+     * updates the display name with the current frame and the current letter
+     */
     private void animateWordByWord() {
         this.task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             final char[] letters = ChatColor.stripColor(displayName).toCharArray();
@@ -345,7 +361,17 @@ public class IntelligentItemNameAnimator {
         }, this.delay, this.period);
     }
 
-    private void updateDisplayName(@NotNull InventoryContents contents, @NotNull String currentName) {
+    /**
+     * "Update the display name of the item in the slot to the current name."
+     * <p>
+     * The first parameter is the `InventoryContents` object, which is used to update the item in the slot. The second
+     * parameter is the current name of the item
+     *
+     * @param contents The InventoryContents object that contains all the items in the inventory.
+     * @param currentName The current name of the item.
+     */
+    private void updateDisplayName(@NotNull InventoryContents contents,
+                                   @NotNull String currentName) {
         ItemStack itemStack = new ItemStack(intelligentItem.getItemStack());
 
         ItemMeta itemMeta = itemStack.getItemMeta();
@@ -355,10 +381,20 @@ public class IntelligentItemNameAnimator {
         contents.update(slot, itemStack);
     }
 
+    /**
+     * This function returns the task that is currently running.
+     *
+     * @return The task that is being run.
+     */
     protected @NotNull BukkitTask getTask() {
         return this.task;
     }
 
+    /**
+     * Returns the identifier of this object, or null if it has none.
+     *
+     * @return The identifier of the object.
+     */
     public @Nullable Object getIdentifier() {
         return this.identifier;
     }

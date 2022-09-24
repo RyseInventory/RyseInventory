@@ -54,6 +54,11 @@ public class EventCreator<T> {
         this.consumer.accept(t);
     }
 
+    /**
+     * Returns the class of the object.
+     *
+     * @return The class of the object.
+     */
     public @NotNull Class<T> getClazz() {
         return clazz;
     }

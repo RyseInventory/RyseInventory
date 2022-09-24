@@ -41,7 +41,9 @@ import io.github.rysefoxx.pattern.SlotIteratorPattern;
 import io.github.rysefoxx.util.StringConstants;
 import io.github.rysefoxx.util.TimeUtils;
 import io.github.rysefoxx.util.TitleUpdater;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -59,6 +61,7 @@ import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RyseInventory {
 
     private InventoryManager manager;
@@ -100,15 +103,11 @@ public class RyseInventory {
     private List<Integer> ignoredSlots = new ArrayList<>();
     private List<Action> enabledActions = new ArrayList<>();
     private List<DisabledEvents> disabledEvents = new ArrayList<>();
-    private final List<Page> pages = new ArrayList<>();
+    private List<Page> pages = new ArrayList<>();
     protected final List<Player> delayed = new ArrayList<>();
 
     private final HashMap<UUID, Inventory> privateInventory = new HashMap<>();
     private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
-
-    //Empty constructor for Builder
-    private RyseInventory() {
-    }
 
     /**
      * Copy constructor
@@ -137,6 +136,8 @@ public class RyseInventory {
         this.titleHolder = inventory.titleHolder;
         this.inventoryOpenerType = inventory.inventoryOpenerType;
         this.ignoredSlots = inventory.ignoredSlots;
+        this.fixedPageSize = inventory.fixedPageSize;
+        this.ignoreManualItems = inventory.ignoreManualItems;
         this.enabledActions.addAll(inventory.enabledActions);
         this.disabledEvents.addAll(inventory.disabledEvents);
         this.delayed.addAll(inventory.delayed);
@@ -150,6 +151,8 @@ public class RyseInventory {
         this.loreAnimator.addAll(inventory.loreAnimator);
         this.privateInventory.putAll(inventory.privateInventory);
         this.playerInventory.putAll(inventory.playerInventory);
+        this.pages.addAll(inventory.pages);
+
     }
 
     /**
@@ -164,6 +167,9 @@ public class RyseInventory {
         if (data.isEmpty()) return null;
 
         RyseInventory inventory = new RyseInventory();
+        inventory.manager = manager;
+
+        inventory.clearAndSafe = (boolean) data.get("clear-and-safe");
         inventory.title = (String) data.get("title");
         inventory.size = (int) data.get("size");
         inventory.delay = (int) data.get("delay");
@@ -190,9 +196,10 @@ public class RyseInventory {
         inventory.enabledActions = (List<Action>) data.get("enabled-actions");
         inventory.provider = (InventoryProvider) data.get("provider");
         inventory.identifier = data.get("identifier");
-        inventory.clearAndSafe = (boolean) data.get("clear-and-safe");
-        inventory.manager = manager;
         inventory.plugin = Bukkit.getPluginManager().getPlugin((String) data.get("plugin"));
+        inventory.fixedPageSize = (int) data.get("fixed-page-size");
+        inventory.ignoreManualItems = (boolean) data.get("ignore-manual-items");
+        inventory.pages = (List<Page>) data.get("pages");
 
         return inventory;
     }
@@ -243,6 +250,9 @@ public class RyseInventory {
         map.put("ignored-slots", this.ignoredSlots);
         map.put("disabled-events", this.disabledEvents);
         map.put("enabled-actions", this.enabledActions);
+        map.put("fixed-page-size", this.fixedPageSize);
+        map.put("ignore-manual-items", this.ignoreManualItems);
+        map.put("pages", this.pages);
 
         return map;
     }
@@ -621,21 +631,8 @@ public class RyseInventory {
      * @return the size of the inventory.
      */
     @Nonnegative
-    public int size(InventoryContents contents) {
-        return size(contents, contents.pagination().page()-1);
-    }
-
-    @Nonnegative
-    private int size(InventoryContents contents, int pageNumber) {
-        if (!this.pages.isEmpty() && this.size == -1) {
-            return this.pages.stream()
-                    .filter(page -> page.page() == pageNumber)
-                    .findFirst()
-                    .map(page -> page.rows() * 9)
-                    .orElseThrow(() -> new IllegalArgumentException("There is no page with the number " + pageNumber));
-        }
-
-        return this.size;
+    public int size(@NotNull InventoryContents contents) {
+        return size(contents, contents.pagination().page() - 1);
     }
 
     /**
@@ -660,20 +657,26 @@ public class RyseInventory {
     }
 
     /**
-     * @return if the inventory can be closed
+     * Returns true if the window is closeable, false otherwise.
+     *
+     * @return The closeAble variable is being returned.
      */
     public boolean isCloseAble() {
         return this.closeAble;
     }
 
     /**
-     * @return Whether manually set items can be saved.
+     * Returns whether or not the plugin should ignore manual items
+     *
+     * @return A boolean value.
      */
     public boolean isIgnoreManualItems() {
         return this.ignoreManualItems;
     }
 
     /**
+     * It returns a list of DisabledInventoryClick objects
+     *
      * @return A list of DisabledInventoryClick objects.
      */
     public @NotNull List<DisabledInventoryClick> getIgnoreClickEvent() {
@@ -681,23 +684,29 @@ public class RyseInventory {
     }
 
     /**
-     * @return A list of all ignored slots.
+     * Returns a list of slots that are ignored by the plugin.
+     *
+     * @return A list of integers.
      */
     public @NotNull List<Integer> getIgnoredSlots() {
         return ignoredSlots;
     }
 
     /**
-     * @return A list of all enabled actions.
+     * Returns a list of enabled actions.
+     *
+     * @return A list of enabled actions.
      */
     public @NotNull List<Action> getEnabledActions() {
         return enabledActions;
     }
 
     /**
+     * This function returns a list of disabled events
+     *
      * @return A list of DisabledEvents objects.
      */
-    public List<DisabledEvents> getDisabledEvents() {
+    public @NotNull List<DisabledEvents> getDisabledEvents() {
         return disabledEvents;
     }
 
@@ -710,7 +719,9 @@ public class RyseInventory {
     }
 
     /**
-     * @return the type.
+     * Returns the type of inventory opener that opened this inventory.
+     *
+     * @return The inventoryOpenerType
      */
     public @NotNull InventoryOpenerType getInventoryOpenerType() {
         return this.inventoryOpenerType;
@@ -724,22 +735,111 @@ public class RyseInventory {
     }
 
     /**
-     * @return All the setting options that have been set.
+     * Returns a list of all the options that are available for this inventory.
+     *
+     * @return A list of InventoryOptions
      */
     public @NotNull List<InventoryOptions> getOptions() {
         return options;
     }
 
     /**
-     * @return the load delay
+     * This function returns the loadDelay variable
+     *
+     * @return The loadDelay variable is being returned.
      */
     public int getLoadDelay() {
         return loadDelay;
     }
 
     /**
-     * @param uuid Player's uuid
-     * @return the correct inventory based on whether it is split or not.
+     * Returns the slide animation object
+     *
+     * @return The slideAnimator object.
+     */
+    protected @Nullable SlideAnimation getSlideAnimator() {
+        return this.slideAnimator;
+    }
+
+    /**
+     * If the slideAnimator is not null, then for each task in the slideAnimator, if the task is queued, then increment the
+     * counter.
+     *
+     * @return The number of active slide animator tasks.
+     */
+    protected @Nonnegative int activeSlideAnimatorTasks() {
+        if (this.slideAnimator == null) return 0;
+        AtomicInteger counter = new AtomicInteger();
+
+        this.slideAnimator.getTasks().forEach(task -> {
+            if (!Bukkit.getScheduler().isQueued(task.getTaskId())) return;
+            counter.getAndIncrement();
+        });
+        return counter.get();
+    }
+
+    /**
+     * This function returns a list of close reasons
+     *
+     * @return A list of CloseReason objects.
+     */
+    protected @NotNull List<CloseReason> getCloseReasons() {
+        return closeReasons;
+    }
+
+    /**
+     * Returns the InventoryManager instance that this Inventory is associated with.
+     *
+     * @return The InventoryManager object.
+     */
+    protected @NotNull InventoryManager getManager() {
+        return manager;
+    }
+
+    /**
+     * If the page number is not in the pages list, throw an exception. Otherwise, return the number of rows in the page.
+     *
+     * @param contents   The InventoryContents object that is passed to the InventoryProvider.
+     * @param pageNumber The page number of the inventory.
+     * @return The size of the inventory.
+     */
+    @Nonnegative
+    private int size(@NotNull InventoryContents contents,
+                     @Nonnegative int pageNumber) {
+        if (!this.pages.isEmpty() && this.size == -1) {
+            return this.pages.stream()
+                    .filter(page -> page.page() == pageNumber)
+                    .findFirst()
+                    .map(page -> page.rows() * 9)
+                    .orElseThrow(() -> new IllegalArgumentException("There is no page with the number " + pageNumber));
+        }
+
+        return this.size;
+    }
+
+    /**
+     * If the page size is -1, then return the highest page number in the pages list, otherwise return the last page
+     * number.
+     *
+     * @param contents The InventoryContents object that contains all the information about the inventory.
+     * @return The last page of the pagination.
+     */
+    private int lastPage(@NotNull InventoryContents contents) {
+        if (!this.pages.isEmpty() && this.size == -1) {
+            return this.pages.stream()
+                    .mapToInt(Page::page)
+                    .max()
+                    .orElseThrow(() -> new IllegalArgumentException("There is no page with the number " + contents.pagination().page()));
+        }
+
+        return contents.pagination().lastPage();
+    }
+
+    /**
+     * If the privateInventory map contains the UUID, return the inventory associated with it
+     *
+     * @param uuid The UUID of the player you want to get the inventory of.
+     * @return An Optional<Inventory>
      */
     protected @NotNull Optional<Inventory> inventoryBasedOnOption(@NotNull UUID uuid) {
         if (!this.privateInventory.containsKey(uuid)) return Optional.empty();
@@ -747,6 +847,12 @@ public class RyseInventory {
         return Optional.of(this.privateInventory.get(uuid));
     }
 
+    /**
+     * It checks if the object is equal to the object that is being compared to.
+     *
+     * @param o The object to compare to.
+     * @return The hashcode of the object.
+     */
     @Contract(value = "null -> false", pure = true)
     @Override
     public boolean equals(Object o) {
@@ -757,21 +863,50 @@ public class RyseInventory {
         return clearAndSafe == that.clearAndSafe && size == that.size && delay == that.delay && openDelay == that.openDelay && period == that.period && closeAfter == that.closeAfter && loadDelay == that.loadDelay && loadTitle == that.loadTitle && closeAble == that.closeAble && transferData == that.transferData && Objects.equals(title, that.title) && Objects.equals(slideAnimator, that.slideAnimator) && Objects.equals(identifier, that.identifier) && Objects.equals(titleHolder, that.titleHolder) && inventoryOpenerType == that.inventoryOpenerType && Objects.equals(options, that.options) && Objects.equals(events, that.events) && Objects.equals(ignoreClickEvent, that.ignoreClickEvent) && Objects.equals(closeReasons, that.closeReasons);
     }
 
-    protected void load(@NotNull Pagination pagination, @NotNull Player player, @Nonnegative int page) {
-        pagination.getDataByPage(page).forEach(item -> placeItem(player, item.getModifiedSlot(), item.getItem()));
+    /**
+     * "Loads the items of the given page into the inventory of the given player."
+     * <p>
+     * The `Pagination` object is the one we created earlier. The `Player` object is the player we want to load the items
+     * for. The `page` is the page we want to load
+     *
+     * @param pagination The Pagination object that you created.
+     * @param player     The player who's viewing the inventory
+     * @param page       The page number to load
+     */
+    protected void load(@NotNull Pagination pagination,
+                        @NotNull Player player,
+                        @Nonnegative int page) {
+        pagination.getDataByPage(page)
+                .forEach(item -> placeItem(player, item.getModifiedSlot(), item.getItem()));
     }
 
-    private void placeItem(@NotNull Player player, @Nonnegative int integer, @NotNull IntelligentItem item) {
+    /**
+     * If the player can see the item, place it in the inventory.
+     *
+     * @param player The player who is viewing the inventory.
+     * @param slot   The slot to place the item in.
+     * @param item   The item to place in the inventory.
+     */
+    private void placeItem(@NotNull Player player,
+                           @Nonnegative int slot,
+                           @NotNull IntelligentItem item) {
         if (this.inventory != null)
-            if (integer >= this.inventory.getSize()) return;
+            if (slot >= this.inventory.getSize()) return;
 
         if (!item.isCanSee()) {
             item.getError().cantSee(player, item);
             return;
         }
-        this.inventory.setItem(integer, item.getItemStack());
+        this.inventory.setItem(slot, item.getItemStack());
     }
 
+    /**
+     * If the closeAfter variable is not -1, and the closeAble variable is true, then close the inventory after the
+     * closeAfter variable amount of ticks
+     *
+     * @param player The player who will be closing the inventory.
+     * @throws IllegalStateException if the closeAble variable is false.
+     */
     private void closeInventoryWhenEnabled(@NotNull Player player) throws IllegalStateException {
         if (this.closeAfter == -1) return;
         if (!this.closeAble)
@@ -780,6 +915,9 @@ public class RyseInventory {
         Bukkit.getScheduler().runTaskLater(this.plugin, () -> close(player), this.closeAfter);
     }
 
+    /**
+     * It removes all the active animations
+     */
     private void removeActiveAnimations() {
         for (int i = 0; i < this.itemAnimator.size(); i++)
             removeItemAnimator(this.itemAnimator.get(i));
@@ -796,14 +934,18 @@ public class RyseInventory {
         removeSlideAnimator();
     }
 
+    /**
+     * This function sets the backward variable to true.
+     */
     protected void setBackward() {
         this.backward = true;
     }
 
-    protected @NotNull InventoryManager getManager() {
-        return manager;
-    }
-
+    /**
+     * If the player has a saved inventory, remove it and restore the player's inventory
+     *
+     * @param player The player who's inventory is being saved.
+     */
     private void finishSavedInventory(@NotNull Player player) {
         Optional<RyseInventory> savedInventory = this.manager.getInventory(player.getUniqueId());
 
@@ -819,6 +961,11 @@ public class RyseInventory {
         });
     }
 
+    /**
+     * Save the player's inventory and clear it
+     *
+     * @param player The player who's inventory is being cleared.
+     */
     private void clearInventoryWhenNeeded(@NotNull Player player) {
         if (!this.clearAndSafe) return;
 
@@ -826,6 +973,12 @@ public class RyseInventory {
         player.getInventory().clear();
     }
 
+    /**
+     * It creates an inventory with the title of the menu and the size of the menu
+     *
+     * @param pageNumber The page number that the inventory is being opened for.
+     * @return An Inventory
+     */
     private @NotNull Inventory setupInventory(@Nonnegative int pageNumber) {
         if (this.inventoryOpenerType == InventoryOpenerType.CHEST) {
             int finalSize = this.size;
@@ -844,13 +997,29 @@ public class RyseInventory {
         return inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), buildTitle());
     }
 
+    /**
+     * If the title is not loaded, return the title, otherwise return the title holder.
+     *
+     * @return The title of the book.
+     */
     @Contract(pure = true)
     private @NotNull String buildTitle() {
         if (this.loadTitle == -1) return this.title;
         return this.titleHolder;
     }
 
-    private void transferData(InventoryContents oldContents, @NotNull InventoryContents newContents, @Nullable String[] keys, @Nullable Object[] values) {
+    /**
+     * It transfers data from the old inventory to the new inventory
+     *
+     * @param oldContents The old InventoryContents object.
+     * @param newContents The new InventoryContents object that will be used for the new inventory.
+     * @param keys        The keys to transfer data from the old inventory to the new inventory.
+     * @param values      The values that will be passed to the new inventory.
+     */
+    private void transferData(@Nullable InventoryContents oldContents,
+                              @NotNull InventoryContents newContents,
+                              @Nullable String[] keys,
+                              @Nullable Object[] values) {
         if (oldContents != null) {
             for (IntelligentItemData item : oldContents.pagination().getInventoryData()) {
                 if (!item.isTransfer()) continue;
@@ -877,14 +1046,31 @@ public class RyseInventory {
         }
     }
 
-    private void setupData(@NotNull Player player, @NotNull Inventory inventory, @NotNull InventoryContents contents) {
+    /**
+     * It sets the contents of the inventory to the contents of the inventory that the player is viewing
+     *
+     * @param player    The player who is viewing the inventory.
+     * @param inventory The inventory that the player is viewing.
+     * @param contents  The InventoryContents object that contains the inventory's contents.
+     */
+    private void setupData(@NotNull Player player,
+                           @NotNull Inventory inventory,
+                           @NotNull InventoryContents contents) {
         this.manager.setContents(player.getUniqueId(), contents);
 
         this.inventory = inventory;
         this.privateInventory.put(player.getUniqueId(), inventory);
     }
 
-    private void initProvider(@NotNull Player player, @NotNull InventoryContents contents) {
+    /**
+     * If the slideAnimator is null, then the provider is initialized with the player and contents. If the slideAnimator is
+     * not null, then the provider is initialized with the player, contents, and slideAnimator
+     *
+     * @param player   The player who is viewing the inventory.
+     * @param contents The InventoryContents object that you can use to set items in the inventory.
+     */
+    private void initProvider(@NotNull Player player,
+                              @NotNull InventoryContents contents) {
         if (this.slideAnimator == null) {
             this.provider.init(player, contents);
             return;
@@ -892,7 +1078,16 @@ public class RyseInventory {
         this.provider.init(player, contents, this.slideAnimator);
     }
 
-    private void loadDelay(@Nonnegative int page, @NotNull Pagination pagination, @NotNull Player player) {
+    /**
+     * It loads the inventory with a delay
+     *
+     * @param page       The page number to load
+     * @param pagination The pagination object that you want to load.
+     * @param player     The player who is viewing the inventory
+     */
+    private void loadDelay(@Nonnegative int page,
+                           @NotNull Pagination pagination,
+                           @NotNull Player player) {
         if (this.loadDelay != -1) {
             Bukkit.getScheduler().runTaskLater(this.plugin, () -> load(pagination, player, page), this.loadDelay);
         } else {
@@ -903,6 +1098,11 @@ public class RyseInventory {
             Bukkit.getScheduler().runTaskLater(this.plugin, () -> updateTitle(player, this.title), this.loadTitle);
     }
 
+    /**
+     * It opens the inventory
+     *
+     * @param player The player who will open the inventory.
+     */
     private void finalizeInventoryAndOpen(@NotNull Player player) {
         Bukkit.getScheduler().runTask(this.plugin, () -> {
             if (this.openDelay == -1 || this.delayed.contains(player)) {
@@ -922,126 +1122,33 @@ public class RyseInventory {
         });
     }
 
-    protected void loadByPage(@NotNull InventoryContents contents) {
-        Pagination pagination = contents.pagination();
-        SlotIterator iterator = contents.iterator();
-
-        if (iterator == null) return;
-
-        SlotIterator.SlotIteratorType type = iterator.getType();
-        SlotIteratorPattern pattern = iterator.getPatternBuilder();
-
+    /**
+     * If the inventory opener type is not a chest or ender chest, and the pattern is not null, throw an exception.
+     *
+     * @param pattern The pattern to use for the SlotIterator.
+     */
+    private void checkIfInventoryTypeIsValid(@Nullable SlotIteratorPattern pattern) {
         if (this.inventoryOpenerType != InventoryOpenerType.CHEST
                 && this.inventoryOpenerType != InventoryOpenerType.ENDER_CHEST
                 && pattern != null) {
             throw new IllegalStateException("SlotIterator with PatternBuilder is not supported for InventoryOpenerType " + this.inventoryOpenerType.getType().toString());
         }
-
-        int itemsSet = 0;
-        int page = 0;
-        int startSlot = iterator.getSlot();
-        int slot = startSlot;
-        List<IntelligentItemData> data = contents.pagination().getInventoryData();
-
-        int patternSlot = -1;
-        int patternLineIndex = 0;
-        int stoppedAtIndex = 0;
-
-        for (int i = 0; i < data.size(); i++) {
-            IntelligentItemData itemData = data.get(i);
-            if (itemData.getModifiedSlot() != -1) continue;
-
-            if (itemsSet >= pagination.getItemsPerPage() || (slot >= iterator.getEndPosition() && iterator.getEndPosition() != -1 && pattern == null)) {
-                itemsSet = 0;
-                patternSlot = -1;
-                patternLineIndex = 0;
-                stoppedAtIndex = 0;
-                slot = startSlot;
-                page++;
-            }
-
-            if (pattern != null) {
-                String line = pattern.getLines().get(patternLineIndex);
-
-                if (stoppedAtIndex >= line.toCharArray().length) stoppedAtIndex = 0;
-
-                for (int j = stoppedAtIndex; j < line.toCharArray().length; j++) {
-                    char c = line.charAt(j);
-                    patternSlot++;
-
-                    if (patternSlot >= size(contents)) {
-                        j = -1;
-                        patternLineIndex = 0;
-                        patternSlot = -1;
-                        page++;
-                        itemsSet = 0;
-                        stoppedAtIndex = 0;
-                        line = pattern.getLines().get(patternLineIndex);
-                        continue;
-                    }
-
-                    if (j + 1 >= line.toCharArray().length && (c != pattern.getAttachedChar() || get(data, patternSlot, page) != null)) {
-                        j = -1;
-                        if (patternSlot == 8 || patternSlot == 8 + 9 || patternSlot == 8 + 18 || patternSlot == 8 + 27 || patternSlot == 8 + 36)
-                            patternLineIndex++;
-                        if (patternSlot == 8 + 45) {
-                            patternLineIndex = 0;
-                            patternSlot = -1;
-                            page++;
-                        }
-                        itemsSet = 0;
-                        stoppedAtIndex = 0;
-                        line = pattern.getLines().get(patternLineIndex);
-                        continue;
-                    }
-
-                    if (c != pattern.getAttachedChar() || get(data, patternSlot, page) != null)
-                        continue;
-
-                    itemData.setPage(page);
-                    itemData.setModifiedSlot(patternSlot);
-
-                    data.set(i, itemData);
-                    itemsSet++;
-                    stoppedAtIndex = j + 1;
-
-                    if (patternSlot == 8 + 45) {
-                        patternLineIndex = 0;
-                        patternSlot = -1;
-                        itemsSet = 0;
-                        stoppedAtIndex = 0;
-                        page++;
-                    }
-                    break;
-                }
-                continue;
-            }
-
-            if (!iterator.isOverride()) {
-                int[] dataArray = nextSlotAlgorithm(contents, type, page, slot, startSlot);
-                page = dataArray[0];
-                slot = dataArray[1];
-
-                int resetItemsSet = dataArray[2];
-                if (resetItemsSet == 1)
-                    itemsSet = 0;
-            }
-
-            pagination.remove(slot, page);
-
-            itemData.setPage(page);
-            itemData.setModifiedSlot(slot);
-
-            data.set(i, itemData);
-            itemsSet++;
-
-            slot = updateForNextSlot(type, slot, startSlot, contents);
-        }
-
-        contents.pagination().setInventoryData(data);
     }
 
-    private @Nullable IntelligentItem get(@NotNull List<IntelligentItemData> inventoryData, @Nonnegative int slot, @Nonnegative int page) {
+    /**
+     * Get the item in the given slot on the given page.
+     * <p>
+     * The first thing you'll notice is that the function is private. This is because it's only used internally by the
+     * class
+     *
+     * @param inventoryData The list of IntelligentItemData objects that are stored in the inventory.
+     * @param slot          The slot in the inventory that you want to get the item from.
+     * @param page          The page of the inventory.
+     * @return The item in the slot and page.
+     */
+    private @Nullable IntelligentItem get(@NotNull List<IntelligentItemData> inventoryData,
+                                          @Nonnegative int slot,
+                                          @Nonnegative int page) {
         for (IntelligentItemData data : inventoryData) {
             if (data.getPage() == page && data.getModifiedSlot() == slot)
                 return data.getItem();
@@ -1049,7 +1156,20 @@ public class RyseInventory {
         return null;
     }
 
-    private int updateForNextSlot(@NotNull SlotIterator.SlotIteratorType type, @Nonnegative int slot, @Nonnegative int startSlot, InventoryContents contents) {
+    /**
+     * If the iterator type is horizontal, increment the slot by one. If the iterator type is vertical, increment the slot
+     * by nine.
+     *
+     * @param type      The type of iterator you want to use.
+     * @param slot      The current slot being iterated over.
+     * @param startSlot The slot to start at.
+     * @param contents  The InventoryContents object that you're iterating over.
+     * @return The next slot to be iterated over.
+     */
+    private int updateForNextSlot(@NotNull SlotIterator.SlotIteratorType type,
+                                  @Nonnegative int slot,
+                                  @Nonnegative int startSlot,
+                                  @NotNull InventoryContents contents) {
         if (type == SlotIterator.SlotIteratorType.HORIZONTAL)
             return ++slot;
 
@@ -1063,20 +1183,40 @@ public class RyseInventory {
         return slot;
     }
 
+    /**
+     * If the slot is occupied, or if the slot is blacklisted, or if the slot is outside of the current page, then
+     * increment the slot and try again.
+     *
+     * @param contents       The InventoryContents object
+     * @param type           The type of iterator you want to use.
+     * @param page           The page that the slot is on.
+     * @param calculatedSlot The slot that is currently being calculated.
+     * @param startSlot      The slot that the algorithm will start at.
+     * @return An array of integers.
+     */
     @Contract("_, _, _, _, _ -> new")
-    private int @NotNull [] nextSlotAlgorithm(@NotNull InventoryContents contents, @NotNull SlotIterator.SlotIteratorType type, @Nonnegative int page, @Nonnegative int calculatedSlot, @Nonnegative int startSlot) {
+    private int @NotNull [] nextSlotAlgorithm(@NotNull InventoryContents contents,
+                                              @NotNull SlotIterator.SlotIteratorType type,
+                                              @Nonnegative int page,
+                                              @Nonnegative int calculatedSlot,
+                                              @Nonnegative int startSlot) {
         SlotIterator iterator = Objects.requireNonNull(contents.iterator());
 
         int toAdd = 0;
         int resetItemsSet = 0;
         while (!contents.firstEmpty().isPresent()
-                ? iterator.getBlackList().contains(calculatedSlot) || calculatedSlot > size(contents, page)
+                ? iterator.getBlackList().contains(calculatedSlot)
+                || (page <= lastPage(contents) && calculatedSlot > size(contents, page))
+
                 : contents.getInPage(page, calculatedSlot).isPresent()
-                || iterator.getBlackList().contains(calculatedSlot) || calculatedSlot > size(contents, page)) {
+                || iterator.getBlackList().contains(calculatedSlot)
+                || (page <= lastPage(contents) && calculatedSlot > size(contents, page))) {
+
             if (calculatedSlot >= 53) {
                 calculatedSlot = startSlot;
                 page++;
             }
+
             if (calculatedSlot > size(contents, page)) {
                 resetItemsSet = 1;
                 calculatedSlot = startSlot - 1;
@@ -1099,6 +1239,11 @@ public class RyseInventory {
         return new int[]{page, calculatedSlot, resetItemsSet};
     }
 
+    /**
+     * It removes the player's inventory from the plugin's memory
+     *
+     * @param player The player who's inventory is being cleared.
+     */
     protected void clearData(@NotNull Player player) {
         if (this.playerInventory.containsKey(player.getUniqueId())) {
             player.getInventory().setContents(this.playerInventory.remove(player.getUniqueId()));
@@ -1109,14 +1254,30 @@ public class RyseInventory {
         this.manager.removeInventoryFromPlayer(player.getUniqueId());
     }
 
+    /**
+     * Adds an item animator to the list of item animators.
+     *
+     * @param animator The animator to add.
+     */
     protected void addItemAnimator(@NotNull IntelligentItemNameAnimator animator) {
         this.itemAnimator.add(animator);
     }
 
+    /**
+     * Adds an IntelligentMaterialAnimator to the list of IntelligentMaterialAnimators.
+     *
+     * @param animator The IntelligentMaterialAnimator to add.
+     */
     protected void addMaterialAnimator(@NotNull IntelligentMaterialAnimator animator) {
         this.materialAnimator.add(animator);
     }
 
+    /**
+     * It removes an IntelligentMaterialAnimator from the list of animators, and if the animator is currently running, it
+     * cancels the task
+     *
+     * @param animator The IntelligentMaterialAnimator to remove.
+     */
     protected void removeMaterialAnimator(@NotNull IntelligentMaterialAnimator animator) {
         this.materialAnimator.remove(animator);
 
@@ -1124,6 +1285,11 @@ public class RyseInventory {
         animator.getTask().cancel();
     }
 
+    /**
+     * It removes an item animator from the list of item animators
+     *
+     * @param animator The IntelligentItemNameAnimator to remove.
+     */
     protected void removeItemAnimator(@NotNull IntelligentItemNameAnimator animator) {
         this.itemAnimator.remove(animator);
 
@@ -1131,10 +1297,20 @@ public class RyseInventory {
         animator.getTask().cancel();
     }
 
+    /**
+     * Adds an IntelligentTitleAnimator to the list of IntelligentTitleAnimators.
+     *
+     * @param animator The animator to add.
+     */
     protected void addTitleAnimator(@NotNull IntelligentTitleAnimator animator) {
         this.titleAnimator.add(animator);
     }
 
+    /**
+     * It removes a title animator from the list of title animators
+     *
+     * @param animator The IntelligentTitleAnimator to remove.
+     */
     protected void removeTitleAnimator(@NotNull IntelligentTitleAnimator animator) {
         this.titleAnimator.remove(animator);
 
@@ -1142,10 +1318,20 @@ public class RyseInventory {
         animator.getTask().cancel();
     }
 
+    /**
+     * Adds an IntelligentItemLoreAnimator to the list of lore animators
+     *
+     * @param animator The animator to add.
+     */
     protected void addLoreAnimator(@NotNull IntelligentItemLoreAnimator animator) {
         this.loreAnimator.add(animator);
     }
 
+    /**
+     * It removes the animator from the list of animators, and cancels all of the tasks that the animator has
+     *
+     * @param animator The animator to remove.
+     */
     protected void removeLoreAnimator(@NotNull IntelligentItemLoreAnimator animator) {
         this.loreAnimator.remove(animator);
 
@@ -1155,6 +1341,10 @@ public class RyseInventory {
         });
     }
 
+    /**
+     * If the slideAnimator is null, return. If the slideAnimator is not null, get all the tasks in the slideAnimator and
+     * for each task, if the task is queued, cancel it
+     */
     protected void removeSlideAnimator() {
         if (this.slideAnimator == null) return;
 
@@ -1164,23 +1354,150 @@ public class RyseInventory {
         });
     }
 
-    protected @Nullable SlideAnimation getSlideAnimator() {
-        return this.slideAnimator;
+    /**
+     * It takes a list of items, and places them in a paginated inventory
+     *
+     * @param contents The InventoryContents object that contains all the information about the inventory.
+     */
+    protected void loadByPage(@NotNull InventoryContents contents) {
+        Pagination pagination = contents.pagination();
+        SlotIterator iterator = contents.iterator();
+
+        if (iterator == null) return;
+
+        SlotIterator.SlotIteratorType type = iterator.getType();
+        SlotIteratorPattern pattern = iterator.getPatternBuilder();
+
+        checkIfInventoryTypeIsValid(pattern);
+
+        int itemsSet = 0;
+        int page = 0;
+        int startSlot = iterator.getSlot();
+        List<IntelligentItemData> data = contents.pagination().getInventoryData();
+
+        if (pattern != null) {
+            applyPattern(pagination, iterator, pattern, data, itemsSet, page, startSlot, startSlot);
+            return;
+        }
+
+        applyStandardPagination(contents, pagination, iterator, type, data, itemsSet, page, startSlot, startSlot);
+
+        contents.pagination().setInventoryData(data);
     }
 
-    protected @Nonnegative int activeSlideAnimatorTasks() {
-        if (this.slideAnimator == null) return 0;
-        AtomicInteger counter = new AtomicInteger();
+    /**
+     * It applies the standard pagination algorithm to the given data
+     *
+     * @param contents   The InventoryContents object that is passed to the Pagination object.
+     * @param pagination The pagination object that is being used.
+     * @param iterator   The slot iterator that is being used.
+     * @param type       The type of slot iterator.
+     * @param data       The list of items to be paginated.
+     * @param itemsSet   The amount of items that have been set on the current page.
+     * @param page       The current page
+     * @param startSlot  The slot to start at.
+     * @param slot       The current slot
+     */
+    private void applyStandardPagination(@NotNull InventoryContents contents,
+                                         @NotNull Pagination pagination,
+                                         @NotNull SlotIterator iterator,
+                                         @NotNull SlotIterator.SlotIteratorType type,
+                                         @NotNull List<IntelligentItemData> data,
+                                         @Nonnegative int itemsSet,
+                                         @Nonnegative int page,
+                                         int startSlot,
+                                         int slot) {
 
-        this.slideAnimator.getTasks().forEach(task -> {
-            if (!Bukkit.getScheduler().isQueued(task.getTaskId())) return;
-            counter.getAndIncrement();
-        });
-        return counter.get();
+        for (int i = 0; i < data.size(); i++) {
+            IntelligentItemData itemData = data.get(i);
+            if (itemData.getModifiedSlot() != -1) continue;
+
+            if (itemsSet >= pagination.getItemsPerPage()
+                    || slot >= iterator.getEndPosition() && iterator.getEndPosition() != -1) {
+                itemsSet = 0;
+                slot = startSlot;
+                page++;
+            }
+
+            if (!iterator.isOverride()) {
+                int[] dataArray = nextSlotAlgorithm(contents, type, page, slot, startSlot);
+                page = dataArray[0];
+                slot = dataArray[1];
+
+                int resetItemsSet = dataArray[2];
+                if (resetItemsSet == 1)
+                    itemsSet = 0;
+            }
+
+            pagination.remove(slot, page);
+
+            itemData.setPage(page);
+            itemData.setModifiedSlot(slot);
+
+            data.set(i, itemData);
+            itemsSet++;
+
+            slot = updateForNextSlot(type, slot, startSlot, contents);
+        }
     }
 
-    protected List<CloseReason> getCloseReasons() {
-        return closeReasons;
+    /**
+     * It applies the pattern to the inventory
+     *
+     * @param pagination The pagination object that contains the items per page, the page, and the inventory.
+     * @param iterator   The iterator that will be used to iterate through the slots.
+     * @param pattern    The pattern that will be applied to the inventory.
+     * @param data       The list of IntelligentItemData objects that are being applied to the inventory.
+     * @param itemsSet   The amount of items that have been set on the current page.
+     * @param page       The page number of the inventory
+     * @param startSlot  The slot where the pagination starts.
+     * @param slot       The current slot that the iterator is on.
+     */
+    private void applyPattern(@NotNull Pagination pagination,
+                              @NotNull SlotIterator iterator,
+                              @NotNull SlotIteratorPattern pattern,
+                              @NotNull List<IntelligentItemData> data,
+                              @Nonnegative int itemsSet,
+                              @Nonnegative int page,
+                              int startSlot,
+                              int slot) {
+        List<String> lines = pattern.getLines();
+
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
+            for (char lineChar : line.toCharArray()) {
+                if (itemsSet >= pagination.getItemsPerPage()
+                        || (slot >= iterator.getEndPosition() && iterator.getEndPosition() != -1)) {
+                    itemsSet = 0;
+                    slot = startSlot;
+                    page++;
+                    break;
+                }
+
+                slot++;
+
+                if (lineChar != pattern.getAttachedChar())
+                    continue;
+
+                if (get(data, slot, page) != null && !iterator.isOverride()) {
+                    lines.add(line);
+                    continue;
+                }
+
+                IntelligentItemData itemData = data.stream()
+                        .filter(item -> item.getModifiedSlot() == -1)
+                        .collect(Collectors.toList())
+                        .get(0);
+
+                int index = data.indexOf(itemData);
+
+                itemData.setPage(page);
+                itemData.setModifiedSlot(slot);
+
+                data.set(index, itemData);
+                itemsSet++;
+            }
+        }
     }
 
     /**
@@ -1476,7 +1793,7 @@ public class RyseInventory {
         }
 
         /**
-         * If you do not have a size but a row and column, you can also create an inventory by doing this.
+         * If you do not have a size but a row, you can also create an inventory by doing this.
          * This number of rows is used for each page.
          *
          * @param rows The row

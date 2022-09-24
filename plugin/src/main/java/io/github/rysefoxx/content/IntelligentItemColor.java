@@ -56,7 +56,12 @@ public class IntelligentItemColor {
     private boolean strikeThrough;
 
     @Contract(pure = true)
-    private IntelligentItemColor(@NotNull String hexColor, boolean bold, boolean underline, boolean italic, boolean obfuscated, boolean strikeThrough) {
+    private IntelligentItemColor(@NotNull String hexColor,
+                                 boolean bold,
+                                 boolean underline,
+                                 boolean italic,
+                                 boolean obfuscated,
+                                 boolean strikeThrough) {
         this.hexColor = hexColor;
         this.bold = bold;
         this.underline = underline;
@@ -66,7 +71,12 @@ public class IntelligentItemColor {
     }
 
     @Contract(pure = true)
-    private IntelligentItemColor(int[] rgbColor, boolean bold, boolean underline, boolean italic, boolean obfuscated, boolean strikeThrough) {
+    private IntelligentItemColor(int[] rgbColor,
+                                 boolean bold,
+                                 boolean underline,
+                                 boolean italic,
+                                 boolean obfuscated,
+                                 boolean strikeThrough) {
         this.rgbColor = rgbColor;
         this.bold = bold;
         this.underline = underline;
@@ -76,7 +86,12 @@ public class IntelligentItemColor {
     }
 
     @Contract(pure = true)
-    private IntelligentItemColor(@NotNull net.md_5.bungee.api.ChatColor bungeeColor, boolean bold, boolean underline, boolean italic, boolean obfuscated, boolean strikeThrough) {
+    private IntelligentItemColor(@NotNull net.md_5.bungee.api.ChatColor bungeeColor,
+                                 boolean bold,
+                                 boolean underline,
+                                 boolean italic,
+                                 boolean obfuscated,
+                                 boolean strikeThrough) {
         this.bungeeColor = bungeeColor;
         this.bold = bold;
         this.underline = underline;
@@ -86,7 +101,12 @@ public class IntelligentItemColor {
     }
 
     @Contract(pure = true)
-    private IntelligentItemColor(@NotNull ChatColor bukkitColor, boolean bold, boolean underline, boolean italic, boolean obfuscated, boolean strikeThrough) {
+    private IntelligentItemColor(@NotNull ChatColor bukkitColor,
+                                 boolean bold,
+                                 boolean underline,
+                                 boolean italic,
+                                 boolean obfuscated,
+                                 boolean strikeThrough) {
         this.bukkitColor = bukkitColor;
         this.bold = bold;
         this.underline = underline;
@@ -95,11 +115,18 @@ public class IntelligentItemColor {
         this.strikeThrough = strikeThrough;
     }
 
+
     @Contract(" -> new")
     public static @NotNull Builder builder() {
         return new Builder();
     }
 
+    /**
+     * If the color is already set, return it. If it's not set, try to get it from the color wrapper. If the color wrapper
+     * is null, throw an exception
+     *
+     * @return The color of the text.
+     */
     public @NotNull net.md_5.bungee.api.ChatColor getColor() {
         if (this.bungeeColor != null) return this.bungeeColor;
         if (this.bukkitColor != null) return this.bukkitColor.asBungee();

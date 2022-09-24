@@ -31,6 +31,7 @@ import io.github.rysefoxx.pagination.InventoryContents;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnegative;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -60,6 +61,24 @@ public class ContentPattern {
             throw new IllegalArgumentException("Passed pattern must contain 9 characters");
 
         this.lines.addAll(Arrays.asList(lines));
+    }
+
+    /**
+     * Defines the pattern to be searched for.
+     *
+     * @param line The line of the pattern.
+     * @param amount How often this pattern should be repeated.
+     * @throws IllegalArgumentException If the line length is not 9 or the amount is higher than 6.
+     */
+    public void define(@NotNull String line, @Nonnegative int amount) throws IllegalArgumentException {
+        if (line.length() != 9)
+            throw new IllegalArgumentException("Passed pattern must contain 9 characters");
+
+        if(amount > 6)
+            throw new IllegalArgumentException("Passed amount must be lower than 6");
+
+        for (int i = 0; i < amount; i++)
+            this.lines.add(line);
     }
 
     /**
