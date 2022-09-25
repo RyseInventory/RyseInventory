@@ -1,6 +1,6 @@
 version: 2
 updates:
-  - package-ecosystem: github-actions
+  - package-ecosystem: maven
     directory: /
     target-branch: master
     schedule:
