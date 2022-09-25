@@ -7,3 +7,52 @@ updates:
       interval: daily
     reviewers:
       - rysefoxx
+  - package-ecosystem: maven
+    directory: /api
+    target-branch: master
+    schedule:
+      interval: daily
+    reviewers:
+      - rysefoxx
+  - package-ecosystem: maven
+    directory: /examples
+    target-branch: master
+    schedule:
+      interval: daily
+    reviewers:
+      - rysefoxx
+  - package-ecosystem: maven
+    directory: /plugin
+    target-branch: master
+    schedule:
+      interval: daily
+    reviewers:
+      - rysefoxx
+  - package-ecosystem: maven
+    directory: /v1_16
+    target-branch: master
+    schedule:
+      interval: daily
+    reviewers:
+      - rysefoxx
+  - package-ecosystem: maven
+    directory: /v1_17
+    target-branch: master
+    schedule:
+      interval: daily
+    reviewers:
+      - rysefoxx
+  - package-ecosystem: maven
+    directory: /v1_18
+    target-branch: master
+    schedule:
+      interval: daily
+    reviewers:
+      - rysefoxx
+  - package-ecosystem: maven
+    directory: /v1_19
+    target-branch: master
+    schedule:
+      interval: daily
+    reviewers:
+      - rysefoxx
