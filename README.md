@@ -82,7 +82,7 @@ dependencies {
 
 # Found an issue?
 
-- Create a new issue with a detailed description. Use label **bug**
+- Create a new issue with a detailed description. [Click here](https://github.com/Rysefoxx/RyseInventory/blob/master/.github/ISSUE_TEMPLATE/bug_report.md) for an example. Alternatively, find it in the source code at .github/ISSUE_TEMPLATE.
 - You have an idea for a feature? Use label **enhancement**
 
 # You need help?
