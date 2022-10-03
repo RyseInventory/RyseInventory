@@ -374,8 +374,8 @@ public class IntelligentItemLoreAnimator {
      * It updates the lore of the item in the slot
      *
      * @param contents The InventoryContents object that contains the current state of the inventory.
-     * @param lore The new lore to set.
-     * @param index The index of the lore to update.
+     * @param lore     The new lore to set.
+     * @param index    The index of the lore to update.
      */
     private void updateLore(@NotNull InventoryContents contents,
                             @NotNull String lore,
@@ -430,7 +430,8 @@ public class IntelligentItemLoreAnimator {
          *
          * @param preset The animator to be copied.
          * @return The Builder to perform further editing.
-         * @apiNote When copying the animator, the identification is not copied if present!
+         * <p>
+         * When copying the animator, the identification is not copied if present!
          */
         public @NotNull Builder copy(@NotNull IntelligentItemLoreAnimator preset) {
             this.preset = preset;
@@ -508,7 +509,7 @@ public class IntelligentItemLoreAnimator {
          *
          * @param slot The inventory slot
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if slot > 53
+         * @throws IllegalArgumentException if slot is greater than 53
          */
         public @NotNull Builder slot(@Nonnegative int slot) {
             this.slot = slot;
@@ -530,8 +531,8 @@ public class IntelligentItemLoreAnimator {
         /**
          * Several frames are assigned individual colors.
          *
-         * @param frames
-         * @param color
+         * @param frames The frames that should receive the color.
+         * @param color  The color you want the frame to have.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
@@ -547,8 +548,8 @@ public class IntelligentItemLoreAnimator {
         /**
          * Several frames are assigned individual colors.
          *
-         * @param frames
-         * @param color
+         * @param frames The frames that should receive the color.
+         * @param color  The color you want the frame to have.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
@@ -564,8 +565,8 @@ public class IntelligentItemLoreAnimator {
         /**
          * Several frames are assigned individual colors.
          *
-         * @param frames
-         * @param color
+         * @param frames The frames that should receive the color.
+         * @param color  The color you want the frame to have.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
@@ -605,6 +606,7 @@ public class IntelligentItemLoreAnimator {
         /**
          * This creates the animation class but does not start it yet! {@link IntelligentItemLoreAnimator#animate()}
          *
+         * @param contents The inventory contents
          * @return The animation class
          * @throws IllegalArgumentException if no slot was specified, if lore is empty, if frameColor is empty or if loreData is empty.
          * @throws NullPointerException     if item is null or if lore is null.

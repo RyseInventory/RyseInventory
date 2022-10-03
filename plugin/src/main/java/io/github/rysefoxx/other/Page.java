@@ -54,6 +54,7 @@ public class Page {
      *
      * @param page The page number. First page is 0.
      * @param rows The number of rows. Must be between 1 and 6.
+     * @return The page with the specified number of rows.
      */
     @Contract(value = "_, _ -> new", pure = true)
     public static @NotNull Page of(@Nonnegative int page, @Nonnegative int rows) {

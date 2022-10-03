@@ -28,6 +28,10 @@ package io.github.rysefoxx.enums;
 import lombok.Getter;
 import org.bukkit.event.inventory.InventoryType;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
 
 /**
  * All possible inventory types supported by RyseInventory.
@@ -43,13 +47,25 @@ public enum InventoryOpenerType {
     ENCHANTMENT_TABLE(InventoryType.ENCHANTING),
     FURNACE(InventoryType.FURNACE),
     HOPPER(InventoryType.HOPPER),
-    ENDER_CHEST(InventoryType.ENDER_CHEST)
-    ;
+    ENDER_CHEST(InventoryType.ENDER_CHEST);
 
     private final InventoryType type;
 
     @Contract(pure = true)
     InventoryOpenerType(InventoryType type) {
         this.type = type;
+    }
+
+    /**
+     * It takes a string, and returns the enum value that matches the string
+     *
+     * @param name The name of the enum.
+     * @return The first InventoryOpenerType that matches the name. Null if there is no such value.
+     */
+    public static @Nullable InventoryOpenerType fromName(@NotNull String name) {
+        return Arrays.stream(values())
+                .filter(type -> type.name().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
     }
 }

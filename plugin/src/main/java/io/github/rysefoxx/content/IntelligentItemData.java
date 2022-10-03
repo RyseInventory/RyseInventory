@@ -45,15 +45,18 @@ public class IntelligentItemData {
     private int page;
     private int originalSlot;
     private int modifiedSlot;
+
     private boolean transfer;
+    private boolean presetOnAllPages;
 
     @Contract(pure = true)
-    public IntelligentItemData(@NotNull IntelligentItem item, @Nonnegative int page, int originalSlot, boolean transfer) {
+    public IntelligentItemData(@NotNull IntelligentItem item, @Nonnegative int page, int originalSlot, boolean transfer, boolean presetOnAllPages) {
         this.item = item;
         this.page = page;
         this.originalSlot = originalSlot;
         this.modifiedSlot = this.originalSlot;
         this.transfer = transfer;
+        this.presetOnAllPages = presetOnAllPages;
         this.amount = item.getItemStack().getAmount();
     }
 }

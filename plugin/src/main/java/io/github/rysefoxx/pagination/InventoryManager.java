@@ -109,7 +109,7 @@ public class InventoryManager {
     /**
      * With this method you can get the inventory from the player.
      *
-     * @param uuid
+     * @param uuid The UUID of the player.
      * @return null if the player has no inventory open.
      */
     public @NotNull Optional<RyseInventory> getInventory(@NotNull UUID uuid) {
@@ -156,7 +156,8 @@ public class InventoryManager {
      *
      * @param identifier The ID to identify
      * @return null if no inventory with the ID could be found.
-     * @implNote Only works if the inventory has also been assigned an identifier.
+     * <p>
+     * Only works if the inventory has also been assigned an identifier.
      */
     public @NotNull Optional<RyseInventory> getInventory(@NotNull Object identifier) {
         return this.inventories.values().stream().filter(inventory -> Objects.equals(inventory.getIdentifier(), identifier)).findFirst();
@@ -165,7 +166,7 @@ public class InventoryManager {
     /**
      * With this method you can get the inventory content from the player.
      *
-     * @param uuid
+     * @param uuid The UUID of the player.
      * @return the player inventory content.
      */
     public @NotNull Optional<InventoryContents> getContents(@NotNull UUID uuid) {

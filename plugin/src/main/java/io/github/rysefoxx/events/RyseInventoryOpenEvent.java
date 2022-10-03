@@ -47,7 +47,9 @@ public class RyseInventoryOpenEvent extends Event implements Cancellable {
     private boolean isCancelled;
 
     /**
-     * The event is called when a new RyseInventory is opened.
+     * @param player    The player who opened the inventory.
+     * @param inventory The inventory that was opened.
+     *                  The event is called when a new RyseInventory is opened.
      */
     public RyseInventoryOpenEvent(@NotNull Player player, @NotNull RyseInventory inventory) {
         this.player = player;

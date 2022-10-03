@@ -25,6 +25,11 @@
 
 package io.github.rysefoxx.enums;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+
 /**
  * @author Rysefoxx | Rysefoxx#6772
  * @since 2/25/2022
@@ -52,5 +57,18 @@ public enum InventoryOptions {
      */
     NO_HUNGER,
     ;
+
+    /**
+     * Return the InventoryOption with the given name, or null if there is no such option.
+     *
+     * @param name The name of the option.
+     * @return The first value in the array that matches the name.
+     */
+    public static @Nullable InventoryOptions fromName(@NotNull String name) {
+        return Arrays.stream(values())
+                .filter(option -> option.name().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+    }
 
 }

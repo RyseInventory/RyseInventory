@@ -27,12 +27,34 @@ package io.github.rysefoxx.content;
 
 /**
  * @author Rysefoxx(Rysefoxx # 6772)
- * @apiNote An enum that is used to determine how the text will be animated.
+ * <p>
+ * An enum that is used to determine how the text will be animated.
  * @since 4/12/2022
  */
 public enum IntelligentItemAnimatorType {
 
+    /**
+     * The text will be animated from left to right.
+     * <p>
+     * Your Text: Hello World
+     * <p>
+     *  First H is animated then e then l then o and so on.
+     */
     WORD_BY_WORD,
+    /**
+     * The whole text is animated.
+     * <p>
+     * Your Text: Hello World
+     * <p>
+     * First the whole text is animated e.g. in red then in aqua.
+     * <p>
+     *  -> §4Hello World
+     * <p>
+     *  -> §bHello World
+     */
     FULL_WORD,
+    /**
+     * All the text is animated as Flash.
+     */
     FLASH
 }

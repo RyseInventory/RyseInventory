@@ -79,10 +79,11 @@ public class IntelligentMaterialAnimator {
 
     /**
      * This stops the animation for the item.
+     *
      * @return true if the animation was stopped.
      */
     public boolean stop() {
-        if(this.task == null || !Bukkit.getScheduler().isQueued(this.task.getTaskId()))
+        if (this.task == null || !Bukkit.getScheduler().isQueued(this.task.getTaskId()))
             return false;
 
         this.task.cancel();
@@ -208,7 +209,7 @@ public class IntelligentMaterialAnimator {
         /**
          * This tells which item is to be animated.
          *
-         * @param intelligentItem
+         * @param intelligentItem The item that is to be animated.
          * @return The Builder to perform further editing.
          */
         public @NotNull Builder item(@NotNull IntelligentItem intelligentItem) {
@@ -222,7 +223,8 @@ public class IntelligentMaterialAnimator {
          *
          * @param preset The animator to be copied.
          * @return The Builder to perform further editing.
-         * @apiNote When copying the animator, the identification is not copied if present!
+         * <p>
+         * When copying the animator, the identification is not copied if present!
          */
         public @NotNull Builder copy(@NotNull IntelligentMaterialAnimator preset) {
             this.preset = preset;
@@ -242,9 +244,9 @@ public class IntelligentMaterialAnimator {
         /**
          * This tells us in which slot the animation should take place.
          *
-         * @param slot
+         * @param slot The slot in which the animation should take place.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if slot > 53
+         * @throws IllegalArgumentException if slot is greater than 53
          */
         public @NotNull Builder slot(@Nonnegative int slot) throws IllegalArgumentException {
             if (slot > 53)
@@ -320,9 +322,9 @@ public class IntelligentMaterialAnimator {
         /**
          * Adds another frame.
          *
-         * @param frame
+         * @param frame The frame that should be added.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException If no material has been assigned to the frame yet. e.g {@link IntelligentMaterialAnimator.Builder#material(char, Material)}
+         * @throws IllegalArgumentException If no material has been assigned to the frame yet. e.g {@link Builder#material(char, Material)}
          */
         public @NotNull Builder frame(@NotNull String frame) throws IllegalArgumentException {
             this.frames.add(frame);
@@ -332,9 +334,9 @@ public class IntelligentMaterialAnimator {
         /**
          * Adds several frames.
          *
-         * @param frames
+         * @param frames The frames that should be added.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException If no material has been assigned to the frame yet. e.g {@link IntelligentMaterialAnimator.Builder#material(char, Material)}
+         * @throws IllegalArgumentException If no material has been assigned to the frame yet. e.g {@link Builder#material(char, Material)}
          */
         public @NotNull Builder frames(String @NotNull ... frames) {
             for (String frame : frames)
@@ -346,9 +348,9 @@ public class IntelligentMaterialAnimator {
         /**
          * Adds several frames.
          *
-         * @param frames
+         * @param frames The frames that should be added.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException If no material has been assigned to the frame yet. e.g {@link IntelligentMaterialAnimator.Builder#material(char, Material)}
+         * @throws IllegalArgumentException If no material has been assigned to the frame yet. e.g {@link Builder#material(char, Material)}
          */
         public @NotNull Builder frames(@NotNull List<String> frames) {
             frames.forEach(this::frame);
@@ -384,7 +386,8 @@ public class IntelligentMaterialAnimator {
          *
          * @param identifier The ID through which you can get the animation
          * @return The Builder to perform further editing
-         * @apiNote When copying the animator, the identification is not copied if present!
+         * <p>
+         * When copying the animator, the identification is not copied if present!
          */
         public @NotNull Builder identifier(@NotNull Object identifier) {
             this.identifier = identifier;
@@ -394,6 +397,7 @@ public class IntelligentMaterialAnimator {
         /**
          * This creates the animation class but does not start it yet! {@link IntelligentMaterialAnimator#animate()}
          *
+         * @param contents The contents of the inventory.
          * @return The animation class
          * @throws IllegalArgumentException if no slot was specified, if frameMaterial is empty, if frames is empty or if no material has been assigned to a frame.
          * @throws NullPointerException     if item is null.

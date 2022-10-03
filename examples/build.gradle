@@ -1,0 +1,17 @@
+group = "io.github.rysefoxx.examples"
+description = "RyseInventory-Examples"
+
+repositories {
+    maven {
+        url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+    }
+}
+
+dependencies {
+    implementation(project(":plugin"))
+    compileOnly("com.google.code.findbugs:jsr305:3.0.2")
+    compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
+
+    annotationProcessor("org.projectlombok:lombok:1.18.24")
+    compileOnly("org.projectlombok:lombok:1.18.24")
+}

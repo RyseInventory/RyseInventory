@@ -49,7 +49,10 @@ public class RyseInventoryCloseEvent extends Event implements Cancellable {
     /**
      * The event is called when a RyseInventory is closed.
      *
-     * @apiNote The event is called only when the inventory is closed with the {@link RyseInventory#close(Player)} method.
+     * @param player    The player who closed the inventory.
+     * @param inventory The inventory that was closed.
+     * <p>
+     * The event is called only when the inventory is closed with the {@link RyseInventory#close(Player)} method.
      */
     public RyseInventoryCloseEvent(@NotNull Player player, @NotNull RyseInventory inventory) {
         this.player = player;

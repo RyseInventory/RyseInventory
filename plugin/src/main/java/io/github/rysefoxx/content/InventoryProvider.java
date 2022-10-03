@@ -37,25 +37,34 @@ import org.bukkit.entity.Player;
 public interface InventoryProvider {
 
     /**
-     * A method to update the contents of the inventory. By default, this method is executed 20 times a second.
+     * @param player   The player
+     * @param contents The contents
+     *                 A method to update the contents of the inventory. By default, this method is executed 20 times a second.
      */
     default void update(Player player, InventoryContents contents) {
     }
 
     /**
-     * A method to close the inventory.
+     * @param player    The player
+     * @param inventory The inventory
+     *                  A method to close the inventory.
      */
     default void close(Player player, RyseInventory inventory) {
     }
 
     /**
-     * This method is called 1x. Namely, when the inventory is opened for the player.
+     * @param player   The player
+     * @param contents The contents
+     *                 This method is called 1x. Namely, when the inventory is opened for the player.
      */
     default void init(Player player, InventoryContents contents) {
     }
 
     /**
-     * This method is called 1x. Namely, when the inventory is opened for the player. Another parameter is the animation that can be started.
+     * @param player    The player
+     * @param contents  The contents
+     * @param animation The animation
+     *                  This method is called 1x. Namely, when the inventory is opened for the player. Another parameter is the animation that can be started.
      */
     default void init(Player player, InventoryContents contents, SlideAnimation animation) {
     }

@@ -84,10 +84,11 @@ public class IntelligentItemNameAnimator {
 
     /**
      * This stops the animation for the item.
+     *
      * @return true if the animation was stopped.
      */
     public boolean stop() {
-        if(this.task == null || !Bukkit.getScheduler().isQueued(this.task.getTaskId()))
+        if (this.task == null || !Bukkit.getScheduler().isQueued(this.task.getTaskId()))
             return false;
 
         this.task.cancel();
@@ -367,7 +368,7 @@ public class IntelligentItemNameAnimator {
      * The first parameter is the `InventoryContents` object, which is used to update the item in the slot. The second
      * parameter is the current name of the item
      *
-     * @param contents The InventoryContents object that contains all the items in the inventory.
+     * @param contents    The InventoryContents object that contains all the items in the inventory.
      * @param currentName The current name of the item.
      */
     private void updateDisplayName(@NotNull InventoryContents contents,
@@ -418,7 +419,7 @@ public class IntelligentItemNameAnimator {
         /**
          * This tells which item is to be animated.
          *
-         * @param intelligentItem
+         * @param intelligentItem The item that is to be animated.
          * @return The Builder to perform further editing.
          */
         public @NotNull Builder item(@NotNull IntelligentItem intelligentItem) {
@@ -468,7 +469,7 @@ public class IntelligentItemNameAnimator {
          *
          * @param slot The slot to be animated.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if slot > 53
+         * @throws IllegalArgumentException if slot is greater than 53
          */
         public @NotNull Builder slot(@Nonnegative int slot) throws IllegalArgumentException {
             if (slot > 53)
@@ -546,7 +547,7 @@ public class IntelligentItemNameAnimator {
          *
          * @param frame The frame to be added.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link IntelligentItemNameAnimator.Builder#colors(List, IntelligentItemColor...)}
+         * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link Builder#colors(List, IntelligentItemColor...)}
          */
         public @NotNull Builder frame(@NotNull String frame) throws IllegalArgumentException {
             for (char c : frame.toCharArray()) {
@@ -563,7 +564,7 @@ public class IntelligentItemNameAnimator {
          *
          * @param frames The frames to be added.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link IntelligentItemNameAnimator.Builder#colors(List, IntelligentItemColor...)}
+         * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link Builder#colors(List, IntelligentItemColor...)}
          */
         public @NotNull Builder frames(String @NotNull ... frames) {
             for (String frame : frames)
@@ -577,7 +578,7 @@ public class IntelligentItemNameAnimator {
          *
          * @param frames The frames to be added.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link IntelligentItemNameAnimator.Builder#colors(List, IntelligentItemColor...)}
+         * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link Builder#colors(List, IntelligentItemColor...)}
          */
         public @NotNull Builder frames(@NotNull List<String> frames) {
             frames.forEach(this::frame);
@@ -613,7 +614,8 @@ public class IntelligentItemNameAnimator {
          *
          * @param identifier The ID through which you can get the animation
          * @return The Builder to perform further editing
-         * @apiNote When copying the animator, the identification is not copied if present!
+         * <p>
+         * When copying the animator, the identification is not copied if present!
          */
         public @NotNull Builder identifier(@NotNull Object identifier) {
             this.identifier = identifier;
@@ -623,6 +625,7 @@ public class IntelligentItemNameAnimator {
         /**
          * This creates the animation class but does not start it yet! {@link IntelligentItemNameAnimator#animate()}
          *
+         * @param contents The contents of the inventory.
          * @return The animation class
          * @throws IllegalArgumentException if no slot was specified, if frameColor is empty, if frames is empty or if no color has been assigned to a frame.
          * @throws NullPointerException     if item is null.

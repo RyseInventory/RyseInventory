@@ -49,7 +49,8 @@ import java.util.Objects;
 
 /**
  * @author Rysefoxx(Rysefoxx # 6772)
- * @apiNote The title animation is currently only available for Chest or EnderChest. Other inventory types like BREWING_STAND will not work!
+ * <p>
+ * The title animation is currently only available for Chest or EnderChest. Other inventory types like BREWING_STAND will not work!
  * @since 4/12/2022
  */
 public class IntelligentTitleAnimator {
@@ -73,7 +74,8 @@ public class IntelligentTitleAnimator {
     }
 
     /**
-     * This starts the animation for the item.
+     * @param player the player to send the title to.
+     *               This starts the animation for the item.
      */
     public void animate(@NotNull Player player) {
         this.inventory.addTitleAnimator(this);
@@ -426,7 +428,8 @@ public class IntelligentTitleAnimator {
          *
          * @param preset The animator to be copied.
          * @return The Builder to perform further editing.
-         * @apiNote When copying the animator, the identification is not copied if present!
+         * <p>
+         * When copying the animator, the identification is not copied if present!
          */
         public @NotNull Builder copy(@NotNull IntelligentTitleAnimator preset) {
             this.preset = preset;
@@ -472,8 +475,8 @@ public class IntelligentTitleAnimator {
         /**
          * Several frames are assigned individual colors.
          *
-         * @param frames
-         * @param color
+         * @param frames The frames that should receive the color.
+         * @param color The color you want the frames to have.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
@@ -489,8 +492,8 @@ public class IntelligentTitleAnimator {
         /**
          * Several frames are assigned individual colors.
          *
-         * @param frames
-         * @param color
+         * @param frames The frames that should receive the color.
+         * @param color The color you want the frames to have.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
@@ -506,8 +509,8 @@ public class IntelligentTitleAnimator {
         /**
          * Several frames are assigned individual colors.
          *
-         * @param frames
-         * @param color
+         * @param frames The frames that should receive the color.
+         * @param color The color you want the frames to have.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If the parameters are not equal.
          */
@@ -523,7 +526,7 @@ public class IntelligentTitleAnimator {
         /**
          * Adds another frame.
          *
-         * @param frame
+         * @param frame The frame to be added.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link IntelligentItemNameAnimator.Builder#colors(List, IntelligentItemColor...)}
          */
@@ -535,7 +538,7 @@ public class IntelligentTitleAnimator {
         /**
          * Adds several frames.
          *
-         * @param frames
+         * @param frames The frames to be added.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link IntelligentItemNameAnimator.Builder#colors(List, IntelligentItemColor...)}
          */
@@ -549,7 +552,7 @@ public class IntelligentTitleAnimator {
         /**
          * Adds several frames.
          *
-         * @param frames
+         * @param frames The frames to be added.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException If no color has been assigned to the frame yet. e.g {@link IntelligentItemNameAnimator.Builder#colors(List, IntelligentItemColor...)}
          */
@@ -596,6 +599,7 @@ public class IntelligentTitleAnimator {
         /**
          * This creates the animation class but does not start it yet! {@link IntelligentTitleAnimator#animate(Player)}
          *
+         * @param contents The contents of the inventory.
          * @return The animation class
          * @throws IllegalArgumentException if frameColor is empty, if frames is empty or if no color has been assigned to a frame.
          */

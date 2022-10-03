@@ -170,6 +170,8 @@ public class IntelligentItem {
      * Sets the id of an IntelligentItem
      *
      * @param id The id of the item
+     * @param manager The manager that will be used to update the inventory.
+     * @return The IntelligentItem object.
      */
     public IntelligentItem identifier(@NotNull Object id, @NotNull InventoryManager manager) {
         this.id = id;

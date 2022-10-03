@@ -1,0 +1,99 @@
+plugins {
+    id("signing")
+    id("maven-publish")
+}
+
+group = "io.github.rysefoxx"
+description = "RyseInventory"
+
+repositories {
+    maven {
+        url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+    }
+}
+
+dependencies {
+    implementation(project(":v1_19"))
+    implementation(project(":v1_18"))
+    implementation(project(":v1_17"))
+    implementation(project(":v1_16"))
+    implementation(project(":api"))
+
+    compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
+    compileOnly("org.apache.commons:commons-lang3:3.12.0")
+    compileOnly("org.jetbrains:annotations:23.0.0")
+    compileOnly("com.google.code.findbugs:jsr305:3.0.2")
+    compileOnly("javax.xml.parsers:jaxp-api:1.4.5")
+
+    annotationProcessor("org.projectlombok:lombok:1.18.24")
+    compileOnly("org.projectlombok:lombok:1.18.24")
+}
+
+signing {
+    useGpgCmd()
+    sign publishing.publications
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            shadow(MavenPublication) {
+                project.shadow.component(it)
+
+                groupId = "io.github.rysefoxx"
+                artifactId = "RyseInventory-Plugin"
+                version = "${project.version}"
+
+                artifact(javadocJar)
+                artifact(sourcesJar)
+
+                pom {
+                    name = "RyseInventory"
+                    packaging = "jar"
+                    description = "Inventory System"
+                    url = "https://github.com/Rysefoxx/RyseInventory"
+
+                    scm {
+                        connection = SCM_CONNECTION
+                        developerConnection = SCM_DEV_CONNECTION
+                        url = SCM_URL
+                    }
+
+                    issueManagement {
+                        system = "GitHub"
+                        url = ISSUE_URL
+                    }
+
+                    licenses {
+                        license {
+                            name = "MIT License"
+                            url = LICENSE_URL
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = "Rysefoxx"
+                            name = "Rysefoxx"
+                        }
+                    }
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                name = "OSSRH"
+                String snapshot = uri(OSSRH_SNAPSHOT)
+                String release = uri(OSSRH_RELEASE)
+
+                if (version.toString().endsWith("SNAPSHOT")) url = snapshot else url = release
+
+                credentials {
+                    username = OSSRH_USERNAME
+                    password = OSSRH_PASSWORD
+                }
+            }
+        }
+    }
+}

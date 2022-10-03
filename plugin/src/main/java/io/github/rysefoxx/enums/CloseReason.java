@@ -25,6 +25,11 @@
 
 package io.github.rysefoxx.enums;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+
 public enum CloseReason {
 
     /**
@@ -38,6 +43,19 @@ public enum CloseReason {
     /**
      * When the player clicks an slot in the lower inventory.
      */
-    CLICK_BOTTOM_INVENTORY,
+    CLICK_BOTTOM_INVENTORY;
+
+    /**
+     * Return the first CloseReason whose name matches the given name, or null if no such CloseReason exists.
+     *
+     * @param name The name of the enum constant, exactly as declared in its enum declaration.
+     * @return A CloseReason enum value.
+     */
+    public static @Nullable CloseReason fromName(@NotNull String name) {
+        return Arrays.stream(values())
+                .filter(closeReason -> closeReason.name().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+    }
 
 }

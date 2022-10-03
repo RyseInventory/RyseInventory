@@ -25,7 +25,6 @@
 
 package io.github.rysefoxx.pattern;
 
-import com.google.common.annotations.Beta;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -37,10 +36,10 @@ import java.util.List;
 
 /**
  * @author Rysefoxx | Rysefoxx#6772
- * @apiNote The class is marked as 'beta' because of possible bugs.
+ * <p>
+ * The class is marked as 'beta' because of possible bugs.
  * @since 6/11/2022
  */
-@Beta
 public class SlotIteratorPattern {
     private @Getter List<String> lines = new ArrayList<>();
     private @Getter char attachedChar;
@@ -58,6 +57,7 @@ public class SlotIteratorPattern {
          * Defines the pattern.
          *
          * @param lines The lines of the pattern.
+         * @return The builder.
          * @throws IllegalArgumentException If the line length is not 9.
          */
         @Contract("_ -> this")
@@ -73,15 +73,16 @@ public class SlotIteratorPattern {
         /**
          * Defines the pattern.
          *
-         * @param line The line of the pattern.
+         * @param line   The line of the pattern.
          * @param amount How often this pattern should be repeated.
+         * @return The builder.
          * @throws IllegalArgumentException If the line length is not 9 or the amount is higher than 6.
          */
         public @NotNull Builder define(@NotNull String line, @Nonnegative int amount) throws IllegalArgumentException {
             if (line.length() != 9)
                 throw new IllegalArgumentException("Passed pattern must contain 9 characters");
 
-            if(amount > 6)
+            if (amount > 6)
                 throw new IllegalArgumentException("Passed amount must be lower than 6");
 
             for (int i = 0; i < amount; i++)
@@ -94,6 +95,7 @@ public class SlotIteratorPattern {
          * Using this method, you can decide which frame will receive the items.
          *
          * @param frame The frame to place the items in.
+         * @return The builder.
          */
         @Contract(value = "_ -> this", mutates = "this")
         public @NotNull Builder attach(char frame) {

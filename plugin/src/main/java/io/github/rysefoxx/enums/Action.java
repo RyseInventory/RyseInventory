@@ -29,14 +29,14 @@ public enum Action {
 
     /**
      * If this value is selected, the player can shift-click to get the item in the inventory.
-     *
-     * @apiNote The player can only shift items in where the player could also drag and drop items in.
+     * <p>
+     * The player can only shift items in where the player could also drag and drop items in.
      */
     MOVE_TO_OTHER_INVENTORY,
     /**
      * If this value is selected, the player can double-click the item in the inventory.
-     *
-     * @apiNote This can have the consequence that the same items in the inventory are then stacked!
+     * <p>
+     * This can have the consequence that the same items in the inventory are then stacked!
      */
     DOUBLE_CLICK,
 

@@ -25,6 +25,11 @@
 
 package io.github.rysefoxx.enums;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+
 public enum DisabledInventoryClick {
 
     /**
@@ -38,6 +43,19 @@ public enum DisabledInventoryClick {
     /**
      * Disables the InventoryClickEvent for the upper inventory.
      */
-    TOP
+    TOP;
+
+    /**
+     * Returns the DisabledInventoryClick enum value with the given name, or null if there is no such value.
+     *
+     * @param name The name of the enum.
+     * @return The first element in the stream that matches the name.
+     */
+    public static @Nullable DisabledInventoryClick fromName(@NotNull String name) {
+        return Arrays.stream(values())
+                .filter(click -> click.name().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+    }
 
 }

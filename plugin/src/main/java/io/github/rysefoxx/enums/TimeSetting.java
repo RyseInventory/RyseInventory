@@ -25,11 +25,33 @@
 
 package io.github.rysefoxx.enums;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+
 public enum TimeSetting {
 
-    MILLISECONDS,
-    SECONDS,
-    MINUTES,
+    MILLISECONDS("ms"),
+    SECONDS("s"),
+    MINUTES("m"),
     ;
+
+    private final String shortCut;
+
+    @Contract(pure = true)
+    TimeSetting(@NotNull String shortCut) {
+        this.shortCut = shortCut;
+    }
+
+    public static @Nullable TimeSetting fromName(@NotNull String name) {
+        return Arrays.stream(values())
+                .filter(timeSetting ->
+                        timeSetting.name().equalsIgnoreCase(name)
+                                || timeSetting.shortCut.equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+    }
 
 }

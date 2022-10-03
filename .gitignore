@@ -5,6 +5,9 @@
 *.ipr
 *.iws
 
+#IMPORTANT! KEYDATA
+gradle.properties
+
 # IntelliJ
 out/
 

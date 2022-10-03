@@ -452,7 +452,8 @@ public class SlideAnimation {
          *
          * @param preset The animator to be copied.
          * @return The Builder to perform further editing.
-         * @apiNote When copying the animator, the identification is not copied if present!
+         * <p>
+         * When copying the animator, the identification is not copied if present!
          */
         public @NotNull Builder copy(@NotNull SlideAnimation preset) {
             this.preset = preset;
@@ -499,7 +500,7 @@ public class SlideAnimation {
          *
          * @param slot The slot to start at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if slot is > 53
+         * @throws IllegalArgumentException if slot is greater than 53
          */
         public @NotNull Builder from(@Nonnegative int slot) throws IllegalArgumentException {
             if (slot > 53)
@@ -515,7 +516,7 @@ public class SlideAnimation {
          * @param row    The row to start at.
          * @param column The column to start at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if slot > 53
+         * @throws IllegalArgumentException if slot greater than 53
          */
         public @NotNull Builder from(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
             return from(SlotUtils.toSlot(row, column));
@@ -526,7 +527,7 @@ public class SlideAnimation {
          *
          * @param slots The slots to start at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if slot is > 53
+         * @throws IllegalArgumentException if slot is greater than 53
          */
         public @NotNull Builder from(Integer @NotNull ... slots) throws IllegalArgumentException {
             for (Integer slot : slots)
@@ -541,7 +542,7 @@ public class SlideAnimation {
          * @param rows    The rows to start at.
          * @param columns The columns to start at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if row is > 5 or if column > 8
+         * @throws IllegalArgumentException if row is greater than 5 or if column greater than 8
          */
         public @NotNull Builder from(Integer @NotNull [] rows, Integer @NotNull [] columns) throws IllegalArgumentException {
             Preconditions.checkArgument(rows.length == columns.length, StringConstants.INVALID_ROW_LENGTH);
@@ -557,8 +558,9 @@ public class SlideAnimation {
          *
          * @param slots The slots to start at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if slot is > 53
-         * @apiNote We recommend passing the list from small to large. e.g .from(Arrays.asList(1, 1, 4)) NOT .from(Arrays.asList(4,1,1))
+         * @throws IllegalArgumentException if slot is greater than 53
+         * <p>
+         * We recommend passing the list from small to large. e.g .from(Arrays.asList(1, 1, 4)) NOT .from(Arrays.asList(4,1,1))
          */
         public @NotNull Builder from(@NotNull List<Integer> slots) throws IllegalArgumentException {
             slots.forEach(this::from);
@@ -571,7 +573,7 @@ public class SlideAnimation {
          * @param rows    The rows to start at.
          * @param columns The columns to start at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if row is > 5 or if column > 8
+         * @throws IllegalArgumentException if row is greater than 5 or if column greater than 8
          */
         public @NotNull Builder from(@NotNull List<Integer> rows, @NotNull List<Integer> columns) throws IllegalArgumentException {
             Preconditions.checkArgument(rows.size() == columns.size(), StringConstants.INVALID_ROW_LENGTH);
@@ -587,7 +589,7 @@ public class SlideAnimation {
          *
          * @param slot The slot to end at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if slot is > 53
+         * @throws IllegalArgumentException if slot is greater than 53
          */
         public @NotNull Builder to(@Nonnegative int slot) throws IllegalArgumentException {
             if (slot > 53)
@@ -603,7 +605,7 @@ public class SlideAnimation {
          * @param row    The row to end at.
          * @param column The column to end at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if slot is > 53
+         * @throws IllegalArgumentException if slot is greater than 53
          */
         public @NotNull Builder to(@Nonnegative int row, @Nonnegative int column) throws IllegalArgumentException {
             return to(SlotUtils.toSlot(row, column));
@@ -614,7 +616,7 @@ public class SlideAnimation {
          *
          * @param slots The slots to end at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if slot is > 53
+         * @throws IllegalArgumentException if slot is greater than 53
          */
         public @NotNull Builder to(int @NotNull ... slots) throws IllegalArgumentException {
             for (int slot : slots)
@@ -629,7 +631,7 @@ public class SlideAnimation {
          * @param rows    The rows to end at.
          * @param columns The columns to end at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if row is > 5 or if column > 8
+         * @throws IllegalArgumentException if row is greater than 5 or if column greater than 8
          */
         public @NotNull Builder to(Integer @NotNull [] rows, Integer @NotNull [] columns) throws IllegalArgumentException {
             Preconditions.checkArgument(rows.length == columns.length, StringConstants.INVALID_ROW_LENGTH);
@@ -645,7 +647,7 @@ public class SlideAnimation {
          *
          * @param slots The slots to end at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if slot is > 53
+         * @throws IllegalArgumentException if slot is greater than 53
          */
         public @NotNull Builder to(@NotNull List<Integer> slots) throws IllegalArgumentException {
             slots.forEach(this::to);
@@ -658,7 +660,7 @@ public class SlideAnimation {
          * @param rows    The rows to end at.
          * @param columns The columns to end at.
          * @return The Builder to perform further editing.
-         * @throws IllegalArgumentException if row is > 5 or if column > 8
+         * @throws IllegalArgumentException if row is greater than 5 or if column greater than 8
          */
         public @NotNull Builder to(@NotNull List<Integer> rows, @NotNull List<Integer> columns) throws IllegalArgumentException {
             Preconditions.checkArgument(rows.size() == columns.size(), StringConstants.INVALID_ROW_LENGTH);

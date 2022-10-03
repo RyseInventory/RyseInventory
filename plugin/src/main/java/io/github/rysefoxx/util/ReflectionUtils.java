@@ -172,6 +172,10 @@ public final class ReflectionUtils {
      * This method is purely for readability.
      * No performance is gained.
      *
+     * @param <T>     The type of the class.
+     * @param handle  The handle to get the class from.
+     * @param version The version to get the class from.
+     * @return The class.
      * @since 5.0.0
      */
     public static <T> VersionHandler<T> v(int version, T handle) {
@@ -289,21 +293,30 @@ public final class ReflectionUtils {
 
 
     /**
-     * @apiNote https://github.com/kangarko/Foundation
+     * @param text the text to colorize
+     * @return the colorized text
+     * <p>
+     * <a href="https://github.com/kangarko/Foundation">...</a>
      */
     public static Object toIChatBaseComponentPlain(String text) {
         return toIChatBaseComponent(TextComponent.fromLegacyText(text));
     }
 
     /**
-     * @apiNote https://github.com/kangarko/Foundation
+     * @param baseComponents the base components to convert.
+     * @return the converted object.
+     * <p>
+     * <a href="https://github.com/kangarko/Foundation">...</a>
      */
     public static Object toIChatBaseComponent(BaseComponent[] baseComponents) {
         return toIChatBaseComponent(toJson(baseComponents));
     }
 
     /**
-     * @apiNote https://github.com/kangarko/Foundation
+     * @param comps the components to convert
+     * @return the json string
+     * <p>
+     * <a href="https://github.com/kangarko/Foundation">...</a>
      */
     public static String toJson(final BaseComponent... comps) {
         String json;
@@ -319,7 +332,10 @@ public final class ReflectionUtils {
     }
 
     /**
-     * @apiNote https://github.com/kangarko/Foundation
+     * @param json the json to convert to IChatBaseComponent
+     * @return the IChatBaseComponent
+     * <p>
+     * <a href="https://github.com/kangarko/Foundation">...</a>
      */
     public static Object toIChatBaseComponent(String json) {
         final Class<?> chatSerializer = ReflectionUtils.getNMSClass("network.chat", "IChatBaseComponent$ChatSerializer");

@@ -25,7 +25,6 @@
 
 package io.github.rysefoxx;
 
-import com.google.common.annotations.Beta;
 import io.github.rysefoxx.pagination.Pagination;
 import io.github.rysefoxx.pattern.SlotIteratorPattern;
 import io.github.rysefoxx.util.SlotUtils;
@@ -95,7 +94,8 @@ public class SlotIterator {
 
     /**
      * @return where the last item should be placed.
-     * @apiNote If the endPosition was set, the {@link Pagination#setItemsPerPage(int)} specification is ignored.
+     * <p>
+     * If the endPosition was set, the {@link Pagination#setItemsPerPage(int)} specification is ignored.
      */
     public int getEndPosition() {
         return this.endPosition;
@@ -170,7 +170,8 @@ public class SlotIterator {
          *
          * @param slot The slot to stop at.
          * @return The Builder object itself.
-         * @apiNote If this method is used, {@link Pagination#setItemsPerPage(int)} is ignored.
+         * <p>
+         * If this method is used, {@link Pagination#setItemsPerPage(int)} is ignored.
          */
         public @NotNull Builder endPosition(@Nonnegative int slot) {
             this.slotIterator.endPosition = slot;
@@ -183,7 +184,8 @@ public class SlotIterator {
          * @param row    The row to stop at.
          * @param column The column to stop at.
          * @return The Builder object itself.
-         * @apiNote If this method is used, {@link Pagination#setItemsPerPage(int)} is ignored.
+         * <p>
+         * If this method is used, {@link Pagination#setItemsPerPage(int)} is ignored.
          */
         public @NotNull Builder endPosition(@Nonnegative int row, @Nonnegative int column) {
             return endPosition(SlotUtils.toSlot(row, column));
@@ -213,13 +215,12 @@ public class SlotIterator {
 
         /**
          * Using this method, you can decide for yourself how the items should be placed in the inventory.
-         *
-         * <br><br>This method has higher priority than #startPosition and #type. If both are used, this method is preferred.</br></br>
+         * <p>
+         * This method has higher priority than #startPosition and #type. If both are used, this method is preferred.
          *
          * @param builder The {@link SlotIteratorPattern} to use.
          * @return The Builder object itself.
          */
-        @Beta
         public @NotNull Builder withPattern(@NotNull SlotIteratorPattern builder) {
             this.slotIterator.pattern = builder;
             return this;

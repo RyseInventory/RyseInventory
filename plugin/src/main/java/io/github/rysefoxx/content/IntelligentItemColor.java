@@ -309,7 +309,8 @@ public class IntelligentItemColor {
          * @param number e.g 4 for DARK_RED
          * @return The Builder to perform further editing
          * @throws NullPointerException if an invalid character was passed.
-         * @apiNote Transfer a char from the ChatColor of org.bukkit
+         * <p>
+         * Transfer a char from the ChatColor of org.bukkit
          */
         public @NotNull Builder colorByChar(char number) throws NullPointerException {
             ChatColor color = ChatColor.getByChar(number);
@@ -339,7 +340,7 @@ public class IntelligentItemColor {
         /**
          * The letter gets this color
          *
-         * @param hexColor
+         * @param hexColor e.g #FF0000 for RED
          * @return The Builder to perform further editing
          * @throws IllegalArgumentException     If it is not a valid hex string.
          * @throws UnsupportedClassVersionError If the server is running under 1.16.
@@ -382,6 +383,7 @@ public class IntelligentItemColor {
                 return new IntelligentItemColor(
                         this.color.rgbColor, this.color.bold, this.color.underline, this.color.italic,
                         this.color.obfuscated, this.color.strikeThrough);
+
             return null;
         }
     }

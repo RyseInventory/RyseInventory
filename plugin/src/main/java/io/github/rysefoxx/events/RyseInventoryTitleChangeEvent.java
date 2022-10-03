@@ -47,7 +47,10 @@ public class RyseInventoryTitleChangeEvent extends Event implements Cancellable 
     private boolean isCancelled;
 
     /**
-     * This event is called when the title of the inventory changes.
+     * @param player   The player who changed the title.
+     * @param newTitle The new title of the inventory.
+     * @param oldTitle The old title of the inventory.
+     *                 This event is called when the title of the inventory changes.
      */
     public RyseInventoryTitleChangeEvent(@NotNull Player player, @NotNull String oldTitle, @NotNull String newTitle) {
         this.player = player;
@@ -92,7 +95,8 @@ public class RyseInventoryTitleChangeEvent extends Event implements Cancellable 
      * Gives the inventory a new title.
      *
      * @param newTitle The new title of the inventory.
-     * @apiNote If isCancelled is true, the title will not be set.
+     * <p>
+     * If isCancelled is true, the title will not be set.
      */
     public void setNewTitle(@NotNull String newTitle) {
         if (this.isCancelled) return;
