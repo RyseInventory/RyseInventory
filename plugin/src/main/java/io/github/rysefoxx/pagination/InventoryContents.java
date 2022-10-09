@@ -2703,7 +2703,7 @@ public class InventoryContents {
     }
 
     /**
-     * Update multiple items at once, with a new ItemStack.
+     * Update multiple items at once, with a new IntelligentItem.
      *
      * @param slots     The slots
      * @param itemStack The new IntelligentItems that should be displayed.
