@@ -1,7 +1,3 @@
-plugins {
-    id("java")
-}
-
 group = "io.github.rysefoxx.v1_19"
 description = "RyseInventory-v1_19"
 

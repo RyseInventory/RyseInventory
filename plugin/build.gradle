@@ -1,6 +1,6 @@
 plugins {
-    id("signing")
-    id("maven-publish")
+    id "signing"
+    id "maven-publish"
 }
 
 group = "io.github.rysefoxx"

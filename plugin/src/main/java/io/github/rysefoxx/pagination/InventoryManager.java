@@ -28,6 +28,8 @@ package io.github.rysefoxx.pagination;
 import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.enums.*;
 import io.github.rysefoxx.other.EventCreator;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -65,9 +67,10 @@ import java.util.*;
 public class InventoryManager {
 
     private final Plugin plugin;
+    @Getter(AccessLevel.PROTECTED)
+    private boolean invoked = false;
 
     private final Set<IntelligentItem> items = new HashSet<>();
-
     private final HashMap<UUID, RyseInventory> inventories = new HashMap<>();
     private final HashMap<UUID, InventoryContents> content = new HashMap<>();
     private final HashMap<UUID, BukkitTask> updaterTask = new HashMap<>();
@@ -179,6 +182,7 @@ public class InventoryManager {
      */
     public void invoke() {
         Bukkit.getPluginManager().registerEvents(new InventoryListener(), this.plugin);
+        invoked = true;
     }
 
     /**

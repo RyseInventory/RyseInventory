@@ -8,6 +8,9 @@
 #IMPORTANT! KEYDATA
 gradle.properties
 
+gradlew
+gradlew.bat
+
 # IntelliJ
 out/
 

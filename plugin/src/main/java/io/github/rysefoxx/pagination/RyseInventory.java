@@ -57,6 +57,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
@@ -1328,7 +1329,7 @@ public class RyseInventory {
         int resetItemsSet = 0;
         int resetStartSlot = 0;
 
-        while (calculatedSlot < 54 && contents.get(calculatedSlot).isPresent()
+        while (calculatedSlot < 54 && contents.getPresent(calculatedSlot).isPresent()
                 || iterator.getBlackList().contains(calculatedSlot)
                 || (page <= lastPage(contents) && calculatedSlot >= size(contents, page))) {
 
@@ -1566,7 +1567,11 @@ public class RyseInventory {
             itemData.setPage(page);
             itemData.setModifiedSlot(slot);
 
-            data.set(i, itemData);
+            if (i >= data.size()) {
+                data.add(itemData);
+            } else {
+                data.set(i, itemData);
+            }
             itemsSet++;
 
             int[] nextSlotData = updateForNextSlot(type, slot, startSlot, page, contents);
@@ -1697,7 +1702,7 @@ public class RyseInventory {
          * @param condition The condition must return true for the slots to be ignored.
          * @return The Inventory Builder to set additional options.
          */
-        public @NotNull Builder ignoredSlots(BooleanSupplier condition, int... slots) {
+        public @NotNull Builder ignoredSlots(@NotNull BooleanSupplier condition, int... slots) {
             if (!condition.getAsBoolean()) return this;
 
             this.ryseInventory.ignoredSlots.addAll(Arrays.stream(slots)
@@ -1711,7 +1716,9 @@ public class RyseInventory {
          *
          * @param manager InventoryManager
          * @return The Inventory Builder to set additional options.
+         * @deprecated You no longer need to pass the InventoryManager in the Builder. It is enough to create a field in your main class and invoke the InventoryManager.
          */
+        @Deprecated
         public @NotNull Builder manager(@NotNull InventoryManager manager) {
             this.ryseInventory.manager = manager;
             return this;
@@ -2097,8 +2104,10 @@ public class RyseInventory {
          * @throws IllegalStateException if manager is null or if the provider is null
          */
         public @NotNull RyseInventory build(@NotNull Plugin plugin) throws IllegalStateException {
+            readOutInventoryManager(plugin);
+
             if (this.ryseInventory.manager == null)
-                throw new IllegalStateException("No manager could be found. Make sure you pass a manager to the builder.");
+                throw new IllegalStateException("No manager could be found. Please create an InventoryManager field in your main class.");
 
             if (!this.ryseInventory.closeAble && !this.ryseInventory.closeReasons.isEmpty())
                 throw new IllegalStateException("The #close() method could not be executed because you have forbidden closing the inventory by #preventClose.");
@@ -2115,6 +2124,31 @@ public class RyseInventory {
             }
 
             return this.ryseInventory;
+        }
+
+        /**
+         * It finds the InventoryManager field in the plugin class and sets it to the RyseInventory.manager field
+         *
+         * @param plugin The plugin instance.
+         */
+        private void readOutInventoryManager(@NotNull Plugin plugin) {
+            for (Field declaredField : plugin.getClass().getDeclaredFields()) {
+                declaredField.setAccessible(true);
+
+                if (!declaredField.getType().isAssignableFrom(InventoryManager.class))
+                    continue;
+
+                try {
+                    InventoryManager inventoryManager = (InventoryManager) declaredField.get(plugin);
+                    if (!inventoryManager.isInvoked())
+                        throw new IllegalStateException("The InventoryManager is not invoked. Please invoke it in the onEnable method.");
+
+                    this.ryseInventory.manager = inventoryManager;
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+                break;
+            }
         }
     }
 }

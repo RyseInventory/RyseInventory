@@ -325,6 +325,20 @@ public class Pagination {
     }
 
     /**
+     * Returns the item in the specified slot, or null if the slot is empty.
+     *
+     * @param slot The slot number of the item you want to get.
+     * @return The item in the slot.
+     */
+    protected @Nullable IntelligentItem getPresent(@Nonnegative int slot) {
+        return this.inventoryData.stream()
+                .filter(data -> data.getPage() == page && data.getModifiedSlot() == slot && data.isPresetOnAllPages())
+                .findFirst()
+                .map(IntelligentItemData::getItem)
+                .orElse(null);
+    }
+
+    /**
      * Return the item in the given slot on the given page, or null if there is no item in that slot.
      * <p>
      * The first thing we do is filter the inventory data to only include data that matches the given page and slot. Then
@@ -337,7 +351,7 @@ public class Pagination {
      */
     protected @Nullable IntelligentItem get(@Nonnegative int slot, @Nonnegative int page) {
         return this.inventoryData.stream()
-                .filter(data -> data.getPage() == page && data.getModifiedSlot() == slot && data.isPresetOnAllPages())
+                .filter(data -> data.getPage() == page && data.getModifiedSlot() == slot)
                 .findFirst()
                 .map(IntelligentItemData::getItem)
                 .orElse(null);

@@ -2982,4 +2982,18 @@ public class InventoryContents {
             get(i).ifPresent(item -> removeItemWithConsumer(finalI));
         }
     }
+
+    /**
+     * Fetches a intelligent ItemStack based on the slot.
+     *
+     * @param slot The slot
+     * @return The intelligent ItemStack or an empty Optional instance.
+     * @throws IllegalArgumentException if slot greater than 53
+     */
+    protected Optional<IntelligentItem> getPresent(@Nonnegative int slot) throws IllegalArgumentException {
+        if (slot > 53)
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        return Optional.ofNullable(this.pagination.getPresent(slot));
+    }
 }

@@ -10,10 +10,10 @@ buildscript {
 plugins {
     id "java-library"
     id "com.github.johnrengelman.shadow" version "7.1.2"
-    id("signing")
-    id("maven-publish")
+    id "signing"
+    id "maven-publish"
 }
-apply plugin: 'io.codearte.nexus-staging'
+apply plugin: "io.codearte.nexus-staging"
 
 group = "io.github.rysefoxx"
 description = "RyseInventory"
@@ -27,8 +27,8 @@ allprojects {
 }
 
 subprojects {
-    apply(plugin: "java-library")
-    apply(plugin: "com.github.johnrengelman.shadow")
+    apply plugin: "java-library"
+    apply plugin: "com.github.johnrengelman.shadow"
 
     repositories {
         mavenLocal()

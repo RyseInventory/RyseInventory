@@ -26,6 +26,7 @@
 package io.github.rysefoxx.other;
 
 import lombok.Getter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
