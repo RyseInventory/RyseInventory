@@ -53,23 +53,23 @@ afterEvaluate {
                     description = "Inventory System"
                     url = "https://github.com/Rysefoxx/RyseInventory"
 
-                    scm {
-                        connection = SCM_CONNECTION
-                        developerConnection = SCM_DEV_CONNECTION
-                        url = SCM_URL
-                    }
-
-                    issueManagement {
-                        system = "GitHub"
-                        url = ISSUE_URL
-                    }
-
-                    licenses {
-                        license {
-                            name = "MIT License"
-                            url = LICENSE_URL
-                        }
-                    }
+//                    scm {
+//                        connection = SCM_CONNECTION
+//                        developerConnection = SCM_DEV_CONNECTION
+//                        url = SCM_URL
+//                    }
+//
+//                    issueManagement {
+//                        system = "GitHub"
+//                        url = ISSUE_URL
+//                    }
+//
+//                    licenses {
+//                        license {
+//                            name = "MIT License"
+//                            url = LICENSE_URL
+//                        }
+//                    }
 
                     developers {
                         developer {
@@ -82,18 +82,18 @@ afterEvaluate {
         }
 
         repositories {
-            maven {
-                name = "OSSRH"
-                String snapshot = uri(OSSRH_SNAPSHOT)
-                String release = uri(OSSRH_RELEASE)
-
-                if (version.toString().endsWith("SNAPSHOT")) url = snapshot else url = release
-
-                credentials {
-                    username = OSSRH_USERNAME
-                    password = OSSRH_PASSWORD
-                }
-            }
+//            maven {
+//                name = "OSSRH"
+//                String snapshot = uri(OSSRH_SNAPSHOT)
+//                String release = uri(OSSRH_RELEASE)
+//
+//                if (version.toString().endsWith("SNAPSHOT")) url = snapshot else url = release
+//
+//                credentials {
+//                    username = OSSRH_USERNAME
+//                    password = OSSRH_PASSWORD
+//                }
+//            }
         }
     }
 }

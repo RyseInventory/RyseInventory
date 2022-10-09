@@ -301,11 +301,6 @@ public class Pagination {
      * @param slot The slot to remove the item from.
      */
     protected void remove(@Nonnegative int slot) {
-
-        System.out.println("Removing " + slot);
-        System.out.println("this Page: "+ this.page);
-        inventoryData.forEach(data -> System.out.println("dataPage: " + data.getPage()));
-
         this.inventoryData.removeIf(data -> data.getPage() == this.page && data.getModifiedSlot() == slot);
     }
 

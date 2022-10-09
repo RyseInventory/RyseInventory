@@ -2703,6 +2703,24 @@ public class InventoryContents {
     }
 
     /**
+     * Update multiple items at once, with a new ItemStack.
+     *
+     * @param slots     The slots
+     * @param itemStack The new IntelligentItems what should be displayed.
+     * @return true if all items were updated, false if not.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean update(@NotNull List<Integer> slots,
+                          @NotNull IntelligentItem itemStack) throws IllegalArgumentException {
+        AtomicInteger updated = new AtomicInteger();
+        slots.forEach(integer -> {
+            update(integer, itemStack);
+            updated.getAndIncrement();
+        });
+        return updated.get() >= slots.size();
+    }
+
+    /**
      * Update multiple items at once, with a new ItemStack for all players with the same inventory.
      *
      * @param slots     The slots
