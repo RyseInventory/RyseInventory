@@ -137,6 +137,12 @@ plugin/build/tmp/compileJava/previous-compilation-data.bin
 plugin/build/tmp/shadowJar/MANIFEST.MF
 v1_16/build/tmp/compileJava/previous-compilation-data.bin
 v1_16/build/tmp/jar/MANIFEST.MF
+.gradle/7.4/fileHashes/resourceHashesCache.bin
+api/build/tmp/compileJava/previous-compilation-data.bin
+api/build/tmp/jar/MANIFEST.MF
+api/build/tmp/shadowJar/MANIFEST.MF
+build/tmp/shadowJar/MANIFEST.MF
+plugin/build.gradle
 v1_16/build/tmp/shadowJar/MANIFEST.MF
 v1_17/build/tmp/compileJava/previous-compilation-data.bin
 v1_17/build/tmp/jar/MANIFEST.MF
@@ -147,9 +153,4 @@ v1_18/build/tmp/shadowJar/MANIFEST.MF
 v1_19/build/tmp/compileJava/previous-compilation-data.bin
 v1_19/build/tmp/jar/MANIFEST.MF
 v1_19/build/tmp/shadowJar/MANIFEST.MF
-build/tmp/shadowJar/MANIFEST.MF
-api/build/tmp/shadowJar/MANIFEST.MF
-api/build/tmp/jar/MANIFEST.MF
-api/build/tmp/compileJava/previous-compilation-data.bin
 .gradle/file-system.probe
-.gradle/7.4/fileHashes/resourceHashesCache.bin

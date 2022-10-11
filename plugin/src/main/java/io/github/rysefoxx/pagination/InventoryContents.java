@@ -2520,6 +2520,66 @@ public class InventoryContents {
     }
 
     /**
+     * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
+     *
+     * @param slot      The slot
+     * @param itemStack The new ItemStack what should be displayed.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public void updateOrSet(@Nonnegative Collection<Integer> slot,
+                               @NotNull ItemStack itemStack) throws IllegalArgumentException {
+
+        for (Integer integer : slot) {
+            updateOrSet(integer, itemStack);
+        }
+    }
+
+    /**
+     * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
+     *
+     * @param slot      The slot
+     * @param intelligentItem The new ItemStack what should be displayed.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public void updateOrSet(@Nonnegative Collection<Integer> slot,
+                               @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
+        for (Integer integer : slot) {
+            updateOrSet(integer, intelligentItem);
+        }
+    }
+
+    /**
+     * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
+     *
+     * @param slot      The slot
+     * @param itemStack The new ItemStack what should be displayed.
+     * @return true if the ItemStack was updated, false if set.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean updateOrSet(@Nonnegative int slot,
+                          @NotNull ItemStack itemStack) throws IllegalArgumentException {
+        return updateOrSet(slot, IntelligentItem.empty(itemStack));
+    }
+
+    /**
+     * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
+     *
+     * @param slot      The slot
+     * @param intelligentItem The new ItemStack what should be displayed.
+     * @return true if the ItemStack was updated, false if set.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean updateOrSet(@Nonnegative int slot,
+                               @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
+        if (get(slot).isPresent()) {
+            return update(slot, intelligentItem);
+        } else {
+            set(slot, intelligentItem);
+            return true;
+        }
+    }
+
+    /**
      * Updates the ItemStack in the same place with a new ItemStack for all players with the same inventory.
      *
      * @param slot      The slot
@@ -2784,12 +2844,30 @@ public class InventoryContents {
      * Update multiple items at once, with a new ItemStack.
      *
      * @param slots     The slots
-     * @param itemStack The new ItemStack what should be displayed.
+     * @param itemStack The new ItemStack that should be displayed.
      * @return true if all items were updated, false if not.
      * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
      */
     public boolean update(@NotNull List<Integer> slots,
                           @NotNull ItemStack itemStack) throws IllegalArgumentException {
+        AtomicInteger updated = new AtomicInteger();
+        slots.forEach(integer -> {
+            update(integer, itemStack);
+            updated.getAndIncrement();
+        });
+        return updated.get() >= slots.size();
+    }
+
+    /**
+     * Update multiple items at once, with a new IntelligentItem.
+     *
+     * @param slots     The slots
+     * @param itemStack The new IntelligentItems that should be displayed.
+     * @return true if all items were updated, false if not.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean update(@NotNull List<Integer> slots,
+                          @NotNull IntelligentItem itemStack) throws IllegalArgumentException {
         AtomicInteger updated = new AtomicInteger();
         slots.forEach(integer -> {
             update(integer, itemStack);
