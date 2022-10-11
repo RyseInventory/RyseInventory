@@ -113,6 +113,24 @@ public class InventoryContents {
     }
 
     /**
+     * Update multiple items at once, with a new ItemStack.
+     *
+     * @param slots     The slots
+     * @param itemStack The new IntelligentItems what should be displayed.
+     * @return true if all items were updated, false if not.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean update(@NotNull List<Integer> slots,
+                          @NotNull IntelligentItem itemStack) throws IllegalArgumentException {
+        AtomicInteger updated = new AtomicInteger();
+        slots.forEach(integer -> {
+            update(integer, itemStack);
+            updated.getAndIncrement();
+        });
+        return updated.get() >= slots.size();
+    }
+
+    /**
      * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
      *
      * @param slot      The slot
@@ -2471,6 +2489,7 @@ public class InventoryContents {
         return updated.get() == this.inventory.getOpenedPlayers().size();
     }
 
+
     /**
      * Updates the ItemStack in the same place with a new ItemStack.
      *
@@ -2674,12 +2693,29 @@ public class InventoryContents {
      *
      * @param slot            The slot
      * @param intelligentItem The new IntelligentItem what should be displayed.
-     * @return true if the ItemStack was updated, false if not.
+     * @return true if the IntelligentItem was updated, false if not.
      * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
      */
     public boolean update(@Nonnegative int slot,
                           @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
-        return update(slot, intelligentItem.getItemStack());
+
+        if (slot > 53)
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
+
+        Optional<IntelligentItem> itemOptional = get(slot);
+        if (!itemOptional.isPresent()) return false;
+
+        IntelligentItem item = itemOptional.get();
+        IntelligentItem newItem = item.update(intelligentItem);
+
+        set(slot, newItem);
+
+        Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
+        inventoryOptional.ifPresent(savedInventory -> savedInventory.setItem(slot, newItem.getItemStack()));
+        return true;
     }
 
     /**
