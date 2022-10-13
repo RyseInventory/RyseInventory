@@ -78,6 +78,11 @@ public class InventoryContents {
         this.pagination = new Pagination(inventory);
     }
 
+    
+    public RyseInventory inventory() {
+        return inventory;
+    }
+
     /**
      * This function updates the fixed page size of the inventory.
      *
