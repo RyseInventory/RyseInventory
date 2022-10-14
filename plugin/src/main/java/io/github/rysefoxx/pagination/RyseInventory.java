@@ -109,8 +109,8 @@ public class RyseInventory {
     private List<IntelligentMaterialAnimator> materialAnimator = new ArrayList<>();
     private List<IntelligentTitleAnimator> titleAnimator = new ArrayList<>();
     private List<IntelligentItemLoreAnimator> loreAnimator = new ArrayList<>();
-    private List<Integer> ignoredSlots = new ArrayList<>();
     private List<Action> enabledActions = new ArrayList<>();
+    private List<Integer> ignoredSlots = new ArrayList<>();
     private List<DisabledEvents> disabledEvents = new ArrayList<>();
     private List<Page> pages = new ArrayList<>();
     protected final List<Player> delayed = new ArrayList<>();
@@ -995,8 +995,12 @@ public class RyseInventory {
      * @param item   The item to place in the inventory.
      */
     private void placeItem(@NotNull Player player,
-                           @Nonnegative int slot,
+                           int slot,
                            @NotNull IntelligentItem item) {
+        if (slot == -1) {
+            throw new IllegalArgumentException("An attempt is made to place an item in slot -1. Check your pagination. If you could determine that it is not your error, report it on Github.");
+        }
+
         if (this.inventory != null)
             if (slot >= this.inventory.getSize()) return;
 
@@ -1494,7 +1498,7 @@ public class RyseInventory {
         List<IntelligentItemData> data = contents.pagination().getInventoryData();
 
         if (pattern != null) {
-            applyPattern(pagination, iterator, pattern, data, itemsSet, page, startSlot, startSlot);
+            applyPattern(pagination, iterator, pattern, data, contents, itemsSet, page, startSlot);
             return;
         }
 
@@ -1592,53 +1596,72 @@ public class RyseInventory {
      * @param itemsSet   The amount of items that have been set on the current page.
      * @param page       The page number of the inventory
      * @param startSlot  The slot where the pagination starts.
-     * @param slot       The current slot that the iterator is on.
      */
     private void applyPattern(@NotNull Pagination pagination,
                               @NotNull SlotIterator iterator,
                               @NotNull SlotIteratorPattern pattern,
                               @NotNull List<IntelligentItemData> data,
+                              @NotNull InventoryContents contents,
                               @Nonnegative int itemsSet,
                               @Nonnegative int page,
-                              int startSlot,
-                              int slot) {
+                              int startSlot) {
+        int slot = startSlot;
+        if (startSlot == -1) {
+            startSlot = 0;
+            slot = startSlot;
+        }
+
         List<String> lines = pattern.getLines();
 
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
-            for (char lineChar : line.toCharArray()) {
-                if (itemsSet >= pagination.getItemsPerPage()
-                        || (slot >= iterator.getEndPosition() && iterator.getEndPosition() != -1)) {
-                    itemsSet = 0;
-                    slot = startSlot;
-                    page++;
-                    break;
+        do {
+            for (int j = 0; j < lines.size(); j++) {
+                String line = lines.get(j);
+                for (int i = 0; i < line.toCharArray().length; i++) {
+                    char lineChar = line.toCharArray()[i];
+
+                    if (itemsSet >= pagination.getItemsPerPage()
+                            || slot > pagination.inventory().size(contents) - 1
+                            || (slot >= iterator.getEndPosition() && iterator.getEndPosition() != -1)) {
+                        itemsSet = 0;
+                        slot = startSlot;
+                        page++;
+                        j = -1;
+                        break;
+                    }
+
+                    if (lineChar != pattern.getAttachedChar()) {
+                        System.out.println("SLOT=" + slot + " - PAGE=" + page + " - ITEMSET= " + itemsSet + " - I=" + i + " - CHAR=" + lineChar + " - LINE="+line);
+                        slot++;
+                        continue;
+                    }
+
+                    if (get(data, slot, page) != null && !iterator.isOverride()) {
+                        slot++;
+                        continue;
+                    }
+
+                    List<IntelligentItemData> dataList = data.stream()
+                            .filter(item -> item.getModifiedSlot() == -1)
+                            .collect(Collectors.toList());
+
+                    if (dataList.isEmpty())
+                        break;
+
+                    IntelligentItemData itemData = dataList.get(0);
+
+                    int index = data.indexOf(itemData);
+
+                    itemData.setPage(page);
+                    itemData.setModifiedSlot(slot);
+
+                    data.set(index, itemData);
+                    itemsSet++;
+                    slot++;
+
+                    System.out.println("a");
                 }
-
-                slot++;
-
-                if (lineChar != pattern.getAttachedChar())
-                    continue;
-
-                if (get(data, slot, page) != null && !iterator.isOverride()) {
-                    lines.add(line);
-                    continue;
-                }
-
-                IntelligentItemData itemData = data.stream()
-                        .filter(item -> item.getModifiedSlot() == -1)
-                        .collect(Collectors.toList())
-                        .get(0);
-
-                int index = data.indexOf(itemData);
-
-                itemData.setPage(page);
-                itemData.setModifiedSlot(slot);
-
-                data.set(index, itemData);
-                itemsSet++;
             }
-        }
+        } while (data.stream().anyMatch(item -> item.getModifiedSlot() == -1));
     }
 
     /**
@@ -1837,7 +1860,6 @@ public class RyseInventory {
             this.ryseInventory.enabledActions.addAll(Arrays.asList(actions));
             return this;
         }
-
 
         /**
          * When the inventory is opened, the inventory is emptied and saved. When closing the inventory, the inventory will be reloaded.

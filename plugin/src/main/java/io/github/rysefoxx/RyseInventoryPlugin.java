@@ -28,30 +28,42 @@ package io.github.rysefoxx;
 import io.github.rysefoxx.content.IntelligentItem;
 import io.github.rysefoxx.content.InventoryProvider;
 import io.github.rysefoxx.enums.Action;
+import io.github.rysefoxx.enums.DisabledEvents;
+import io.github.rysefoxx.other.EventCreator;
 import io.github.rysefoxx.other.Page;
 import io.github.rysefoxx.pagination.InventoryContents;
 import io.github.rysefoxx.pagination.InventoryManager;
 import io.github.rysefoxx.pagination.Pagination;
 import io.github.rysefoxx.pagination.RyseInventory;
+import io.github.rysefoxx.pattern.SlotIteratorPattern;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-public final class RyseInventoryPlugin extends JavaPlugin {
+public final class RyseInventoryPlugin extends JavaPlugin implements CommandExecutor {
 
     private final InventoryManager manager = new InventoryManager(this);
 
     @Override
     public void onEnable() {
         manager.invoke();
+        getCommand("a").setExecutor(this);
 
         getLogger().info("");
         getLogger().info("§aThanks for using RyseInventory :)");
@@ -63,65 +75,156 @@ public final class RyseInventoryPlugin extends JavaPlugin {
 
 //        Bukkit.getPluginManager().disablePlugin(this);
 
-        int rows = 15;
-        int allRows = rows + 1 % 6 == 0
-                ? rows + 1
-                : rows + 2;
-        int divide = allRows / 6;
-        int modRows = allRows % 6;
-        int pagesCount = modRows == 0 ? divide : divide + 1;
-        Page[] pages = new Page[pagesCount];
-        for (int page = 0; page < pages.length; page++) {
-            int finalRows = page >= pages.length - 1
-                    ? modRows == 0
-                    ? 6
-                    : modRows
-                    : 6;
+    }
 
-            if (finalRows > 0)
-                pages[page] = Page.of(page, finalRows);
-        }
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+
+//        RyseInventory.builder()
+//                .title("a")
+//                .rows(6)
+//                .enableAction(Action.MOVE_TO_OTHER_INVENTORY)
+//                .ignoredSlots(IntStream.range(0,53).toArray())
+//                .listener(new EventCreator<>(InventoryClickEvent.class, new Consumer<InventoryClickEvent>() {
+//                    @Override
+//                    public void accept(InventoryClickEvent event) {
+//                        List<Material> set = Arrays.asList(Material.GLASS, Material.GRASS);
+//                        Inventory clicked = event.getClickedInventory();
+//                        if (clicked == null) return;
+//
+//                        InventoryAction action = event.getAction();
+//                        switch (action) {
+//                            case PLACE_ALL:
+//                            case PLACE_ONE:
+//                            case PLACE_SOME: {
+//                                if (clicked.getType() == InventoryType.CHEST) {
+//                                    if (event.getCursor() != null && event.getCursor().getType() != Material.AIR)
+//                                        if (set.contains(event.getCursor().getType())) {
+//                                            System.out.println("cancel");
+//                                            event.setCancelled(true);
+//                                        }
+//                                }
+//                            }
+//                            case MOVE_TO_OTHER_INVENTORY: {
+//                                if (clicked.getType() == InventoryType.PLAYER) {
+//                                    if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
+//                                        if (set.contains(event.getCurrentItem().getType()) || event.getSlot() == 0) {
+//                                            System.out.println("cancel 2");
+//                                            event.setResult(Event.Result.DENY);
+//                                            event.setCancelled(true);
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }))
+//                .provider(new InventoryProvider() {
+//                    @Override
+//                    public void init(Player player, InventoryContents contents) {
+//
+//                    }
+//                })
+//                .build(this)
+//                .openAll();
 
         RyseInventory.builder()
-                .identifier("SIMPLE_ID")
-                .title("Custom Inventory")
-                .rows(pages)
-                .fixedPageSize(pagesCount)
-                .enableAction(() -> true, Action.MOVE_TO_OTHER_INVENTORY)
+                .identifier("some")
+                .title("title")
+                .rows(6)
+                .ignoreManualItems()
+                .ignoreEvents(DisabledEvents.INVENTORY_DRAG)
+//                .fixedPageSize(1)
+//                .listener(new EventCreator<>(InventoryClickEvent.class, event -> {
+//                    Inventory clicked = event.getClickedInventory();
+//                    if (clicked != null && clicked.getType() != InventoryType.PLAYER
+//                            && event.getAction().name().startsWith("PLACE")) {
+//                        event.setCancelled(true);
+//                    }
+//                }))
                 .provider(new InventoryProvider() {
                     @Override
                     public void init(Player player, InventoryContents contents) {
                         Pagination pagination = contents.pagination();
 
+                        pagination.setItemsPerPage(5);
+
+
+                        contents.set(5, 3, IntelligentItem.of(new ItemBuilder(Material.ARROW).amount((pagination.isFirst() ? 1 : pagination.page() - 1)).displayName(pagination.isFirst() ? "§c§oThis is the first page" : "§ePage §8⇒ §9" + pagination.newInstance(pagination).previous().page()).build(), event -> {
+                            if (pagination.isFirst()) {
+                                player.sendMessage("§c§oYou are already on the first page.");
+                                return;
+                            }
+
+                            RyseInventory currentInventory = pagination.inventory();
+                            currentInventory.open(player, pagination.previous().page());
+                        }));
+
                         for (int i = 0; i < 50; i++) {
-                            int finalI = i;
-                            pagination.addItem(IntelligentItem.of(new ItemStack(Material.MAGMA_CREAM),
-                                    event -> Bukkit.broadcastMessage("§aClicked on item " + finalI)));
+                            pagination.addItem(IntelligentItem.empty(new ItemStack(Material.MOB_SPAWNER)));
                         }
 
-                        int size = pagination.inventory().size(contents);
+                        pagination.iterator(slotIterator());
 
-                        SlotIterator iterator = SlotIterator.builder()
-                                .startPosition(0)
-                                .endPosition(size - 9)
-                                .type(SlotIterator.SlotIteratorType.HORIZONTAL)
-                                .build();
-                        pagination.iterator(iterator);
+                        int page = pagination.newInstance(pagination).next().page();
+                        contents.set(5, 5, IntelligentItem.of(new ItemBuilder(Material.ARROW).amount((pagination.isLast() ? 1 : page)).displayName((!pagination.isLast() ? "§ePage §8⇒ §9" + page : "§c§oThis is the last page")).build(), event -> {
+                            if (pagination.isLast()) {
+                                player.sendMessage("§c§oYou are already on the last page.");
+                                return;
+                            }
 
-                        int fillerStart = size - 10;
-
-                        contents.fillArea(size - 9, size - 1, IntelligentItem.empty(new ItemStack(Material.STAINED_GLASS_PANE)));
-                        contents.set(fillerStart + 5, IntelligentItem.empty(new ItemStack(Material.BOOK)));
-
-                        if (!pagination.isFirst())
-                            contents.set(fillerStart + 1, IntelligentItem.of(new ItemStack(Material.ARROW),
-                                    event -> pagination.inventory().open(player, pagination.previous().page())));
-
-                        if (!pagination.isLast() && size == 54)
-                            contents.set(fillerStart + 9, IntelligentItem.of(new ItemStack(Material.ARROW),
-                                    event -> pagination.inventory().open(player, pagination.next().page())));
+                            RyseInventory currentInventory = pagination.inventory();
+                            currentInventory.open(player, pagination.next().page());
+                        }));
+//
+//                        Pagination pagination = contents.pagination();
+//                        List<ItemStack> items = new ArrayList<>();
+//                        items.add(new ItemBuilder(Material.GRASS).build());
+//
+//                        pagination.setItems(items
+//                                .stream()
+//                                .filter(Objects::nonNull)
+//                                .map(true ? IntelligentItem::ignored : IntelligentItem::empty)
+//                                .collect(Collectors.toList()));
+//
+//                        int size = pagination.inventory().size(contents);
+//
+//                        SlotIterator iterator = SlotIterator.builder()
+//                                .startPosition(0)
+//                                .endPosition(size - 9)
+//                                .type(SlotIterator.SlotIteratorType.HORIZONTAL)
+//                                .build();
+//                        pagination.iterator(iterator);
+//
+//                        int fillerStart = size - 10;
+//
+//                        if (true) {
+//                            contents.removeIgnoredSlots(IntStream.rangeClosed(0, 54).toArray());
+//                            contents.addIgnoredSlots(IntStream.rangeClosed(0, fillerStart).toArray());
+//                        }
+//
+//                        contents.fillArea(size - 9, size - 1, IntelligentItem.empty(new ItemStack(Material.STAINED_GLASS_PANE)));
+//                        contents.set(fillerStart + 4, IntelligentItem.empty(new ItemStack(Material.BOOK)));
                     }
                 })
                 .build(this).openAll();
+        return false;
+    }
+    private SlotIterator slotIterator() {
+        SlotIteratorPattern slotIteratorPattern = SlotIteratorPattern
+                .builder()
+                .define("XXXXXXXXX",
+                        "XOOOOOOXX",
+                        "XOOOOOOXX",
+                        "XOOOOOOXX",
+                        "XOOOOOOXX",
+                        "XXXXXXXXX")
+                .attach('O')
+                .buildPattern();
+
+        return SlotIterator
+                .builder()
+                .withPattern(slotIteratorPattern)
+                .build();
     }
 }

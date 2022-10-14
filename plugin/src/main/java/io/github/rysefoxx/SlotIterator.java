@@ -252,7 +252,7 @@ public class SlotIterator {
                     && this.slotIterator.endPosition != -1)
                 throw new IllegalArgumentException("The start slot must be smaller than the end slot");
 
-            if(this.slotIterator.slot == -1)
+            if(this.slotIterator.slot == -1 && this.slotIterator.pattern == null)
                 throw new IllegalArgumentException("The start slot must be set");
 
             return this.slotIterator;

@@ -222,7 +222,7 @@ public class InventoryManager {
     /**
      * It puts the contents of the inventory into a HashMap
      *
-     * @param uuid The UUID of the player who's inventory you want to set.
+     * @param uuid     The UUID of the player who's inventory you want to set.
      * @param contents The InventoryContents object that you want to set.
      */
     protected void setContents(@NotNull UUID uuid, @NotNull InventoryContents contents) {
@@ -232,7 +232,7 @@ public class InventoryManager {
     /**
      * This function sets the inventory of a player.
      *
-     * @param uuid The UUID of the player
+     * @param uuid      The UUID of the player
      * @param inventory The inventory to set.
      */
     protected void setInventory(@NotNull UUID uuid,
@@ -243,8 +243,8 @@ public class InventoryManager {
     /**
      * It adds the player's current inventory to a list of inventories
      *
-     * @param uuid The UUID of the player
-     * @param inventory The inventory that the player is currently in.
+     * @param uuid         The UUID of the player
+     * @param inventory    The inventory that the player is currently in.
      * @param newInventory The new inventory that the player is switching to.
      */
     protected void setLastInventory(@NotNull UUID uuid,
@@ -273,7 +273,7 @@ public class InventoryManager {
     /**
      * If the player has an inventory, and the inventory is the same as the one passed in, then update the inventory
      *
-     * @param player The player who's inventory is being updated.
+     * @param player    The player who's inventory is being updated.
      * @param inventory The inventory that will be updated.
      */
     protected void invokeScheduler(@NotNull Player player,
@@ -411,9 +411,8 @@ public class InventoryManager {
             }
 
             EventCreator<InventoryClickEvent> customEvent = (EventCreator<InventoryClickEvent>) mainInventory.getEvent(InventoryClickEvent.class);
-            if (customEvent != null) {
+            if (customEvent != null)
                 customEvent.accept(event);
-            }
 
             List<DisabledInventoryClick> list = mainInventory.getIgnoreClickEvent();
 
@@ -432,7 +431,8 @@ public class InventoryManager {
                 }
 
                 if (action == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
-                    if (!mainInventory.getEnabledActions().contains(Action.MOVE_TO_OTHER_INVENTORY)) {
+                    if (!mainInventory.getEnabledActions().contains(Action.MOVE_TO_OTHER_INVENTORY)
+                            || event.isCancelled()) {
                         event.setCancelled(true);
                         return;
                     }

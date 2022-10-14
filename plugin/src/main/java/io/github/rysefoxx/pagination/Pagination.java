@@ -135,7 +135,6 @@ public class Pagination {
         int slide = (int) Math.ceil((double) this.inventoryData.stream()
                 .filter(data -> data.getOriginalSlot() == -1).count() / calculateValueForPage()) + this.pagesToAdd;
 
-
         return this.page >= (slide != 0 ? slide - 1 : 0);
     }
 
@@ -153,9 +152,6 @@ public class Pagination {
      * @throws IllegalStateException if you are on the last page and you try to increase the page.
      */
     public @NotNull Pagination next() throws IllegalStateException {
-        if (isLast())
-            throw new IllegalStateException("You tried to go to the next page, although you are already on the last page.");
-
         this.page++;
         return this;
     }
