@@ -29,6 +29,11 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.24")
 }
 
+shadowJar {
+    archiveClassifier.set("")
+    exclude 'io/github/rysefoxx/ItemBuilder.class'
+}
+
 signing {
     useGpgCmd()
     sign publishing.publications

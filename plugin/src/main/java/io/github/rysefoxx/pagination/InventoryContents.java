@@ -2857,8 +2857,8 @@ public class InventoryContents {
                           @NotNull ItemStack itemStack) throws IllegalArgumentException {
         AtomicInteger updated = new AtomicInteger();
         slots.forEach(integer -> {
-            update(integer, itemStack);
-            updated.getAndIncrement();
+            if (update(integer, itemStack))
+                updated.getAndIncrement();
         });
         return updated.get() >= slots.size();
     }

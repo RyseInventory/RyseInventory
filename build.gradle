@@ -23,7 +23,7 @@ allprojects {
     tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
     }
-    version = "1.5.1"
+    version = "1.5.2"
 }
 
 subprojects {
@@ -40,11 +40,11 @@ subprojects {
         withSourcesJar()
         withJavadocJar()
     }
+}
 
-    shadowJar {
-        mergeServiceFiles()
-        archiveClassifier = ""
-    }
+shadowJar {
+    archiveClassifier.set("")
+    mergeServiceFiles()
 }
 
 java {
@@ -118,7 +118,6 @@ publishing {
         }
     }
 }
-
 
 nexusStaging {
     username = NEXUS_USERNAME
