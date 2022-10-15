@@ -430,15 +430,9 @@ public class RyseInventory {
 
         if (event.isCancelled()) return;
 
-        if (this.playerInventory.containsKey(player.getUniqueId())) {
-            player.getInventory().setContents(this.playerInventory.remove(player.getUniqueId()));
-        }
-
         removeActiveAnimations();
 
-        this.delayed.remove(player);
-        this.privateInventory.remove(player.getUniqueId());
-        this.manager.removeInventoryFromPlayer(player.getUniqueId());
+        clearData(player);
         player.closeInventory();
     }
 
@@ -1499,6 +1493,8 @@ public class RyseInventory {
         int page = 0;
         int startSlot = iterator.getSlot();
         List<IntelligentItemData> data = contents.pagination().getInventoryData();
+
+        System.out.println(data.size());
 
         if (pattern != null) {
             applyPattern(pagination, iterator, pattern, data, contents, itemsSet, page, startSlot);

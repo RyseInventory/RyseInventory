@@ -520,7 +520,7 @@ public class InventoryManager {
             }
         }
 
-        @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+        @EventHandler(priority = EventPriority.LOWEST)
         @SuppressWarnings("unchecked")
         public void onInventoryDrag(@NotNull InventoryDragEvent event) {
             if (!(event.getWhoClicked() instanceof Player)) return;
@@ -546,7 +546,7 @@ public class InventoryManager {
             });
         }
 
-        @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+        @EventHandler(priority = EventPriority.LOWEST)
         @SuppressWarnings("unchecked")
         public void onInventoryClose(@NotNull InventoryCloseEvent event) {
             if (!(event.getPlayer() instanceof Player)) return;
@@ -561,7 +561,6 @@ public class InventoryManager {
                 return;
             }
 
-
             EventCreator<InventoryCloseEvent> customEvent = (EventCreator<InventoryCloseEvent>) mainInventory.getEvent(InventoryCloseEvent.class);
             if (customEvent != null) {
                 customEvent.accept(event);
@@ -573,7 +572,7 @@ public class InventoryManager {
             mainInventory.close(player);
         }
 
-        @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+        @EventHandler(priority = EventPriority.LOWEST)
         @SuppressWarnings("unchecked")
         public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
             Player player = event.getPlayer();
@@ -588,7 +587,7 @@ public class InventoryManager {
             customEvent.accept(event);
         }
 
-        @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+        @EventHandler(priority = EventPriority.LOWEST)
         public void onPluginDisable(@NotNull PluginDisableEvent event) {
             Plugin disabledPlugin = event.getPlugin();
 
@@ -691,12 +690,13 @@ public class InventoryManager {
 
                 topInventory.setItem(targetSlot, finalItemStack);
 
-                if (!mainInventory.isIgnoreManualItems())
+                if (!mainInventory.isIgnoreManualItems()) {
                     contents.pagination().setItem(
                             targetSlot,
                             contents.pagination().page() - 1,
                             IntelligentItem.ignored(finalItemStack),
                             true);
+                }
                 return true;
             }
             return false;
@@ -722,12 +722,13 @@ public class InventoryManager {
             ItemStack toSet = new ItemStack(itemStack.getType(), itemStack.getMaxStackSize());
             topInventory.setItem(targetSlot, toSet);
 
-            if (!mainInventory.isIgnoreManualItems())
+            if (!mainInventory.isIgnoreManualItems()) {
                 contents.pagination().setItem(
                         targetSlot,
                         contents.pagination().page() - 1,
                         IntelligentItem.ignored(toSet),
                         true);
+            }
 
             itemStack.setAmount(itemStack.getAmount() - targetAmount);
         }
