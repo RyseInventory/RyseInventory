@@ -690,8 +690,6 @@ public class RyseInventory {
 
         checkIfIllegalPaginationData(pagination);
 
-        if (optional.isPresent() && optional.get().equals(contents)) return;
-
         this.manager.stopUpdate(player.getUniqueId());
 
         loadByPage(contents);
@@ -1333,11 +1331,14 @@ public class RyseInventory {
         int resetItemsSet = 0;
         int resetStartSlot = 0;
 
+
         while (calculatedSlot < 54 && contents.getPresent(calculatedSlot).isPresent()
                 || iterator.getBlackList().contains(calculatedSlot)
                 || (page <= lastPage(contents) && calculatedSlot >= size(contents, page))) {
 
-            if (calculatedSlot >= 53 || calculatedSlot >= size(contents, page)) {
+            if (calculatedSlot >= 53
+                    || calculatedSlot >= size(contents, page)
+                    && calculatedSlot % 9 == 8) {
                 resetItemsSet = 1;
                 resetStartSlot = 1;
                 calculatedSlot = iterator.getSlot();
@@ -1353,12 +1354,14 @@ public class RyseInventory {
             if ((calculatedSlot + 9) >= size(contents, page)) {
                 toAdd++;
                 calculatedSlot = startSlot + toAdd;
-                page++;
+
+                if (calculatedSlot % 9 == 8)
+                    page++;
             } else {
                 calculatedSlot += 9;
             }
         }
-        return new int[]{page, calculatedSlot, resetItemsSet, resetStartSlot};
+        return new int[]{page, calculatedSlot, resetItemsSet, resetStartSlot, (startSlot + toAdd)};
     }
 
     /**
@@ -1502,7 +1505,7 @@ public class RyseInventory {
             return;
         }
 
-        applyStandardPagination(contents, pagination, iterator, type, data, itemsSet, page, startSlot, startSlot);
+        applyStandardPagination(contents, pagination, iterator, type, data, itemsSet, page, startSlot);
 
         contents.pagination().setInventoryData(data);
     }
@@ -1518,7 +1521,6 @@ public class RyseInventory {
      * @param itemsSet   The amount of items that have been set on the current page.
      * @param page       The current page
      * @param startSlot  The slot to start at.
-     * @param slot       The current slot
      */
     private void applyStandardPagination(@NotNull InventoryContents contents,
                                          @NotNull Pagination pagination,
@@ -1527,8 +1529,9 @@ public class RyseInventory {
                                          @NotNull List<IntelligentItemData> data,
                                          @Nonnegative int itemsSet,
                                          @Nonnegative int page,
-                                         int startSlot,
-                                         int slot) {
+                                         int startSlot) {
+
+        int slot = startSlot;
 
         for (int i = 0; i < data.size(); i++) {
             IntelligentItemData itemData = data.get(i);
@@ -1540,9 +1543,6 @@ public class RyseInventory {
                 slot = iterator.getSlot();
                 startSlot = slot;
                 page++;
-
-                if (iterator.getEndPosition() != -1)
-                    pagination.addExtraPage();
             }
 
             if (!iterator.isOverride()) {
@@ -1555,8 +1555,11 @@ public class RyseInventory {
                     itemsSet = 0;
 
                 int resetStartSlot = dataArray[3];
-                if (resetStartSlot == 1)
+                if (resetStartSlot == 1) {
                     startSlot = iterator.getSlot();
+                } else {
+                    startSlot = dataArray[4];
+                }
 
                 if (type == SlotIterator.SlotIteratorType.VERTICAL
                         && startSlot >= iterator.getSlot() + 9) {
@@ -1581,6 +1584,7 @@ public class RyseInventory {
             int[] nextSlotData = updateForNextSlot(type, slot, startSlot, page, contents);
 
             slot = nextSlotData[0];
+
             if (nextSlotData.length == 2)
                 startSlot += nextSlotData[1];
         }
@@ -1619,7 +1623,7 @@ public class RyseInventory {
                 for (int i = 0; i < line.toCharArray().length; i++) {
                     char lineChar = line.toCharArray()[i];
 
-                    if (itemsSet >= pagination.getItemsPerPage()
+                    if ((itemsSet >= pagination.getItemsPerPage() && iterator.getEndPosition() == -1)
                             || slot > pagination.inventory().size(contents) - 1
                             || (slot >= iterator.getEndPosition() && iterator.getEndPosition() != -1)) {
                         itemsSet = 0;
@@ -1630,7 +1634,6 @@ public class RyseInventory {
                     }
 
                     if (lineChar != pattern.getAttachedChar()) {
-                        System.out.println("SLOT=" + slot + " - PAGE=" + page + " - ITEMSET= " + itemsSet + " - I=" + i + " - CHAR=" + lineChar + " - LINE="+line);
                         slot++;
                         continue;
                     }
@@ -1657,8 +1660,6 @@ public class RyseInventory {
                     data.set(index, itemData);
                     itemsSet++;
                     slot++;
-
-                    System.out.println("a");
                 }
             }
         } while (data.stream().anyMatch(item -> item.getModifiedSlot() == -1));
