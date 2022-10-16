@@ -2801,6 +2801,7 @@ public class InventoryContents {
         return updated.get() >= slots.size();
     }
 
+
     /**
      * Update multiple items at once, with a new ItemStack for all players with the same inventory.
      *

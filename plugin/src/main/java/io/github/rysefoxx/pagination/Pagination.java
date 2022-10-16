@@ -65,8 +65,6 @@ public class Pagination {
     @Setter(AccessLevel.PROTECTED)
     private List<IntelligentItemData> inventoryData = new ArrayList<>();
 
-    private int pagesToAdd;
-
     /**
      * @param inventory The inventory where the pagination is used.
      *                  Pagination constructor with a default size of 1 element per page.
@@ -75,7 +73,6 @@ public class Pagination {
         this.inventory = inventory;
         this.itemsPerPage = 1;
         this.page = 0;
-        this.pagesToAdd = 0;
     }
 
     public Pagination(@NotNull Pagination pagination) {
@@ -84,7 +81,6 @@ public class Pagination {
         this.page = pagination.page;
         this.slotIterator = pagination.slotIterator;
         this.inventoryData = pagination.inventoryData;
-        this.pagesToAdd = pagination.pagesToAdd;
         this.calledItemsPerPage = pagination.calledItemsPerPage;
     }
 
@@ -133,8 +129,7 @@ public class Pagination {
             return this.page == this.inventory.getFixedPageSize() - 1;
 
         int slide = (int) Math.ceil((double) this.inventoryData.stream()
-                .filter(data -> data.getOriginalSlot() == -1).count() / calculateValueForPage()) + this.pagesToAdd;
-
+                .filter(data -> data.getOriginalSlot() == -1).count() / calculateValueForPage());
 
         return this.page >= (slide != 0 ? slide - 1 : 0);
     }
@@ -153,9 +148,6 @@ public class Pagination {
      * @throws IllegalStateException if you are on the last page and you try to increase the page.
      */
     public @NotNull Pagination next() throws IllegalStateException {
-        if (isLast())
-            throw new IllegalStateException("You tried to go to the next page, although you are already on the last page.");
-
         this.page++;
         return this;
     }
@@ -407,12 +399,4 @@ public class Pagination {
                 ? this.itemsPerPage
                 : this.slotIterator.getEndPosition() - this.slotIterator.getSlot();
     }
-
-    /**
-     * If the user wants to add a page, add one to the number of pages to add.
-     */
-    protected void addExtraPage() {
-        this.pagesToAdd++;
-    }
-
 }
