@@ -153,7 +153,7 @@ public class InventoryContents {
      * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
      *
      * @param slot      The slot
-     * @param intelligentItem The new ItemStack what should be displayed.
+     * @param intelligentItem The new IntelligentItem what should be displayed.
      * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
      */
     public void updateOrSet(@Nonnegative Collection<Integer> slot,
@@ -180,7 +180,7 @@ public class InventoryContents {
      * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
      *
      * @param slot      The slot
-     * @param intelligentItem The new ItemStack what should be displayed.
+     * @param intelligentItem The new IntelligentItem what should be displayed.
      * @return true if the ItemStack was updated, false if set.
      * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
      */
