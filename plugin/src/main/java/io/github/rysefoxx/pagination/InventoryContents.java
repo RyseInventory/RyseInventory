@@ -78,6 +78,11 @@ public class InventoryContents {
         this.pagination = new Pagination(inventory);
     }
 
+
+    public RyseInventory inventory() {
+        return inventory;
+    }
+
     /**
      * This function updates the fixed page size of the inventory.
      *
@@ -109,6 +114,83 @@ public class InventoryContents {
                 continue;
 
             this.inventory.open(player, this.pagination.lastPage());
+        }
+    }
+
+    /**
+     * Update multiple items at once, with a new ItemStack.
+     *
+     * @param slots     The slots
+     * @param itemStack The new IntelligentItems what should be displayed.
+     * @return true if all items were updated, false if not.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean update(@NotNull List<Integer> slots,
+                          @NotNull IntelligentItem itemStack) throws IllegalArgumentException {
+        AtomicInteger updated = new AtomicInteger();
+        slots.forEach(integer -> {
+            if (update(integer, itemStack)) updated.getAndIncrement();
+        });
+        return updated.get() >= slots.size();
+    }
+
+    /**
+     * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
+     *
+     * @param slot      The slot
+     * @param itemStack The new ItemStack what should be displayed.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public void updateOrSet(@Nonnegative Collection<Integer> slot,
+                            @NotNull ItemStack itemStack) throws IllegalArgumentException {
+
+        for (Integer integer : slot) {
+            updateOrSet(integer, itemStack);
+        }
+    }
+
+    /**
+     * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
+     *
+     * @param slot      The slot
+     * @param intelligentItem The new IntelligentItem what should be displayed.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public void updateOrSet(@Nonnegative Collection<Integer> slot,
+                            @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
+        for (Integer integer : slot) {
+            updateOrSet(integer, intelligentItem);
+        }
+    }
+
+    /**
+     * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
+     *
+     * @param slot      The slot
+     * @param itemStack The new ItemStack what should be displayed.
+     * @return true if the ItemStack was updated, false if set.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean updateOrSet(@Nonnegative int slot,
+                               @NotNull ItemStack itemStack) throws IllegalArgumentException {
+        return updateOrSet(slot, IntelligentItem.empty(itemStack));
+    }
+
+    /**
+     * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
+     *
+     * @param slot      The slot
+     * @param intelligentItem The new IntelligentItem what should be displayed.
+     * @return true if the ItemStack was updated, false if set.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean updateOrSet(@Nonnegative int slot,
+                               @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
+        if (get(slot).isPresent()) {
+            return update(slot, intelligentItem);
+        } else {
+            set(slot, intelligentItem);
+            return true;
         }
     }
 
@@ -2411,6 +2493,7 @@ public class InventoryContents {
         return updated.get() == this.inventory.getOpenedPlayers().size();
     }
 
+
     /**
      * Updates the ItemStack in the same place with a new ItemStack.
      *
@@ -2614,12 +2697,29 @@ public class InventoryContents {
      *
      * @param slot            The slot
      * @param intelligentItem The new IntelligentItem what should be displayed.
-     * @return true if the ItemStack was updated, false if not.
+     * @return true if the IntelligentItem was updated, false if not.
      * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
      */
     public boolean update(@Nonnegative int slot,
                           @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
-        return update(slot, intelligentItem.getItemStack());
+
+        if (slot > 53)
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
+
+        Optional<IntelligentItem> itemOptional = get(slot);
+        if (!itemOptional.isPresent()) return false;
+
+        IntelligentItem item = itemOptional.get();
+        IntelligentItem newItem = item.update(intelligentItem);
+
+        set(slot, newItem);
+
+        Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
+        inventoryOptional.ifPresent(savedInventory -> savedInventory.setItem(slot, newItem.getItemStack()));
+        return true;
     }
 
     /**
@@ -2688,7 +2788,7 @@ public class InventoryContents {
      * Update multiple items at once, with a new ItemStack.
      *
      * @param slots     The slots
-     * @param itemStack The new ItemStack what should be displayed.
+     * @param itemStack The new ItemStack that should be displayed.
      * @return true if all items were updated, false if not.
      * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
      */
@@ -2696,11 +2796,11 @@ public class InventoryContents {
                           @NotNull ItemStack itemStack) throws IllegalArgumentException {
         AtomicInteger updated = new AtomicInteger();
         slots.forEach(integer -> {
-            if (update(integer, itemStack))
-                updated.getAndIncrement();
+            if (update(integer, itemStack)) updated.getAndIncrement();
         });
         return updated.get() >= slots.size();
     }
+
 
     /**
      * Update multiple items at once, with a new ItemStack for all players with the same inventory.
@@ -2774,8 +2874,7 @@ public class InventoryContents {
                                          @NotNull ItemStack itemStack) {
         AtomicInteger updated = new AtomicInteger();
         pairs.forEach(pair -> {
-            updateViaCoordination(pair.getLeft(), pair.getRight(), itemStack);
-            updated.getAndIncrement();
+            if (updateViaCoordination(pair.getLeft(), pair.getRight(), itemStack)) updated.getAndIncrement();
         });
         return updated.get() >= pairs.size();
     }
