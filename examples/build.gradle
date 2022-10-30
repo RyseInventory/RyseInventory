@@ -1,4 +1,4 @@
-group = "io.github.rysefoxx.examples"
+group = "io.github.rysefoxx.inventory.examples"
 description = "RyseInventory-Examples"
 
 repositories {
