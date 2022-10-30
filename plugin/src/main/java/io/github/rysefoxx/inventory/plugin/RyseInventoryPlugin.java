@@ -25,21 +25,13 @@
 
 package io.github.rysefoxx.inventory.plugin;
 
-import io.github.rysefoxx.inventory.plugin.content.InventoryProvider;
-import io.github.rysefoxx.inventory.plugin.pagination.InventoryContents;
-import io.github.rysefoxx.inventory.plugin.pagination.InventoryManager;
-import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class RyseInventoryPlugin extends JavaPlugin {
 
-    private final InventoryManager inventoryManager = new InventoryManager(this);
-
     @Override
     public void onEnable() {
-        inventoryManager.invoke();
         getLogger().info("");
         getLogger().info("§aThanks for using RyseInventory :)");
         getLogger().info("");
@@ -48,35 +40,6 @@ public final class RyseInventoryPlugin extends JavaPlugin {
         getLogger().severe(" -> https://github.com/Rysefoxx/RyseInventory");
         getLogger().info("");
 
-        RyseInventory.builder()
-                .title("a")
-                .rows(6)
-                .ignoredSlots(0)
-                .ignoredSlot(1, event -> {
-                    if(event.getInventory().getItem(0) == null
-                            || event.getInventory().getItem(0).getType() == Material.AIR) {
-                        event.setCancelled(true);
-                        event.getWhoClicked().sendMessage("IN SLOT 0 MUSS REST EIN ITEM");
-                    }
-                })
-                .provider(new InventoryProvider() {
-                    @Override
-                    public void init(Player player, InventoryContents contents) {
-                        contents.addAdvancedSlot(0, event -> {
-                            if (event.getCursor() != null
-                                    && event.getCursor().getType() != Material.AIR) {
-                                if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR)
-                                    return;
-
-                                event.setCancelled(true);
-                            }
-                        });
-
-                    }
-                })
-                .build(this)
-                .openAll();
-
-//        Bukkit.getPluginManager().disablePlugin(this);
+        Bukkit.getPluginManager().disablePlugin(this);
     }
 }
