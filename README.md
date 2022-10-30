@@ -31,8 +31,7 @@ point [Features](https://github.com/Rysefoxx/RyseInventory#features)
 
 # Install
 
-- Register the `InventoryManager` in the onEnable. After that execute `#invoke()`. In the inventory pass
-  at `#manager(InventoryManager)` the manager from your main class.
+- Register the `InventoryManager` in the onEnable. After that execute `#invoke()`.
 
 # Dependency
 
