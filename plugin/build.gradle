@@ -3,7 +3,7 @@ plugins {
     id "maven-publish"
 }
 
-group = "io.github.rysefoxx"
+group = "io.github.rysefoxx.inventory.plugin"
 description = "RyseInventory"
 
 repositories {
@@ -31,7 +31,7 @@ dependencies {
 
 shadowJar {
     archiveClassifier.set("")
-    exclude 'io/github/rysefoxx/ItemBuilder.class'
+    exclude 'io/github/rysefoxx/inventory/plugin/ItemBuilder.class'
 }
 
 signing {
@@ -45,7 +45,7 @@ afterEvaluate {
             shadow(MavenPublication) {
                 project.shadow.component(it)
 
-                groupId = "io.github.rysefoxx"
+                groupId = "io.github.rysefoxx.inventory"
                 artifactId = "RyseInventory-Plugin"
                 version = "${project.version}"
 
