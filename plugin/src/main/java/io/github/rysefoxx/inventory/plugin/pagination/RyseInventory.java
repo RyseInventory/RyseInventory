@@ -25,27 +25,23 @@
 
 package io.github.rysefoxx.inventory.plugin.pagination;
 
-import com.google.common.annotations.Beta;
 import com.google.common.base.Preconditions;
-import io.github.rysefoxx.inventory.plugin.SlotIterator;
+import io.github.rysefoxx.inventory.plugin.animator.*;
 import io.github.rysefoxx.inventory.plugin.content.IntelligentItem;
 import io.github.rysefoxx.inventory.plugin.content.IntelligentItemData;
+import io.github.rysefoxx.inventory.plugin.content.InventoryContents;
 import io.github.rysefoxx.inventory.plugin.content.InventoryProvider;
 import io.github.rysefoxx.inventory.plugin.enums.*;
-import io.github.rysefoxx.inventory.plugin.events.RyseInventoryCloseEvent;
-import io.github.rysefoxx.inventory.plugin.events.RyseInventoryOpenEvent;
-import io.github.rysefoxx.inventory.plugin.events.RyseInventoryTitleChangeEvent;
+import io.github.rysefoxx.inventory.plugin.events.*;
 import io.github.rysefoxx.inventory.plugin.other.EventCreator;
 import io.github.rysefoxx.inventory.plugin.other.Page;
 import io.github.rysefoxx.inventory.plugin.pattern.SlotIteratorPattern;
 import io.github.rysefoxx.inventory.plugin.util.StringConstants;
 import io.github.rysefoxx.inventory.plugin.util.TimeUtils;
 import io.github.rysefoxx.inventory.plugin.util.TitleUpdater;
-import io.github.rysefoxx.inventory.plugin.xml.InventoryParser;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -53,6 +49,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,13 +76,9 @@ public class RyseInventory {
     private transient Plugin plugin;
 
     @Getter
-    @Setter(AccessLevel.PROTECTED)
     private int fixedPageSize = -1;
-    private boolean backward;
-    private boolean ignoreManualItems;
 
     private String title;
-    private boolean clearAndSafe;
     private Object identifier;
     private int size = -1;
     private int delay = 0;
@@ -94,8 +87,16 @@ public class RyseInventory {
     private int closeAfter = -1;
     private int loadDelay = -1;
     private int loadTitle = -1;
+
+    private boolean backward;
+    private boolean ignoreManualItems;
+    private boolean clearAndSafe;
     private boolean closeAble = true;
     private boolean transferData = true;
+
+    @Getter(AccessLevel.PROTECTED)
+    private boolean updateTask = true;
+
 
     @NotNull
     private String titleHolder = "§e§oLoading§8...§r";
@@ -112,7 +113,6 @@ public class RyseInventory {
     private List<IntelligentTitleAnimator> titleAnimator = new ArrayList<>();
     private List<IntelligentItemLoreAnimator> loreAnimator = new ArrayList<>();
     private List<Action> enabledActions = new ArrayList<>();
-    //    private List<Integer> ignoredSlots = new ArrayList<>();
     private List<DisabledEvents> disabledEvents = new ArrayList<>();
     private List<Page> pages = new ArrayList<>();
     protected final List<Player> delayed = new ArrayList<>();
@@ -143,6 +143,7 @@ public class RyseInventory {
         this.loadDelay = inventory.loadDelay;
         this.loadTitle = inventory.loadTitle;
         this.closeAble = inventory.closeAble;
+        this.updateTask = inventory.updateTask;
         this.transferData = inventory.transferData;
         this.backward = inventory.backward;
         this.titleHolder = inventory.titleHolder;
@@ -217,88 +218,6 @@ public class RyseInventory {
     }
 
     /**
-     * Builder to create an inventory.
-     *
-     * @return The Builder object with several methods
-     */
-    @Contract(" -> new")
-    public static @NotNull Builder builder() {
-        return new Builder();
-    }
-
-    /**
-     * This function takes a path to an XML file, parses it, and returns the first RyseInventory.Builder object in the list
-     * of builders.
-     *
-     * @param pathToXml The path to the XML file you want to parse.
-     * @return A RyseInventory.Builder object. Null if list is empty.
-     */
-    @Beta
-    public static @Nullable Builder parseXml(@NotNull String pathToXml) {
-        List<Builder> builders = new InventoryParser(pathToXml).parse();
-        if (builders.isEmpty())
-            return null;
-
-        return builders.get(0);
-    }
-
-    /**
-     * This function takes a path to an XML file, and returns a list of builders that can be used to create RyseInventory
-     * objects.
-     *
-     * @param pathToXml The path to the XML file you want to parse.
-     * @return A list of RyseInventory.Builder objects.
-     */
-    @Beta
-    public static @NotNull List<Builder> parseAllXml(@NotNull String pathToXml) {
-        return new InventoryParser(pathToXml).parse();
-    }
-
-    /**
-     * It converts the inventory to an XML file
-     *
-     * @return XML String
-     */
-    @Beta
-    public String toXml() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        builder.append("<inventories>\n");
-        builder.append("\t<inventory id=").append(this.identifier == null ? "" : this.identifier.toString()).append(">\n");
-        builder.append("\t\t<title>").append(this.title).append("</title>\n");
-        builder.append("\t\t<clear_and_safe>").append(this.clearAndSafe).append("</clear_and_safe>\n");
-        builder.append("\t\t<title_holder>").append(this.titleHolder).append("</title_holder>\n");
-        builder.append("\t\t<type>").append(this.inventoryOpenerType).append("</type>\n");
-        builder.append("\t\t<close_able>").append(this.closeAble).append("</close_able>\n");
-        builder.append("\t\t<transfer_data>").append(this.transferData).append("</transfer_data>\n");
-        builder.append("\t\t<size>").append(this.size).append("</size>\n");
-        builder.append("\t\t<delay>").append(this.delay).append("</delay>\n");
-        builder.append("\t\t<period>").append(this.period).append("</period>\n");
-        builder.append("\t\t<open_delay>").append(this.openDelay).append("</open_delay>\n");
-        builder.append("\t\t<close_after>").append(this.closeAfter).append("</close_after>\n");
-        builder.append("\t\t<load_delay>").append(this.loadDelay).append("</load_delay>\n");
-        builder.append("\t\t<load_title>").append(this.loadTitle).append("</load_title>\n");
-        builder.append("\t\t<fixed_page_size>").append(this.fixedPageSize).append("</fixed_page_size>\n");
-        builder.append("\t\t<ignore_manual_items>").append(this.ignoreManualItems).append("</ignore_manual_items>\n");
-        builder.append("\t\t<options>").append(this.options.stream()
-                .map(InventoryOptions::toString)
-                .collect(Collectors.joining(","))).append("</options>\n");
-        builder.append("\t\t<ignore_click_event>").append(this.ignoreClickEvent.stream()
-                .map(DisabledInventoryClick::toString)
-                .collect(Collectors.joining(","))).append("</ignore_click_event>\n");
-        builder.append("\t\t<close_reason>").append(this.closeReasons.stream()
-                .map(CloseReason::toString)
-                .collect(Collectors.joining(","))).append("</close_reason>\n");
-        builder.append("\t\t<pages>").append(this.pages.stream()
-                .map(Page::toString)
-                .collect(Collectors.joining("#"))).append("</pages>\n");
-
-        builder.append("\t</inventory>\n");
-        builder.append("</inventories>\n");
-        return builder.toString();
-    }
-
-    /**
      * Serializes the inventory to a map.
      *
      * @return The serialized inventory.
@@ -339,6 +258,16 @@ public class RyseInventory {
         map.put("pages", this.pages);
 
         return map;
+    }
+
+    /**
+     * Builder to create an inventory.
+     *
+     * @return The Builder object with several methods
+     */
+    @Contract(" -> new")
+    public static @NotNull Builder builder() {
+        return new Builder();
     }
 
     /**
@@ -428,15 +357,18 @@ public class RyseInventory {
      * @param player The player which inventory should be closed.
      */
     public void close(@NotNull Player player) {
-        RyseInventoryCloseEvent event = new RyseInventoryCloseEvent(player, this);
-        Bukkit.getPluginManager().callEvent(event);
+        RyseInventoryPreCloseEvent preCloseEvent = new RyseInventoryPreCloseEvent(player, this);
+        Bukkit.getPluginManager().callEvent(preCloseEvent);
 
-        if (event.isCancelled()) return;
+        if (preCloseEvent.isCancelled()) return;
 
         removeActiveAnimations();
 
         clearData(player);
         player.closeInventory();
+
+        RyseInventoryCloseEvent closeEvent = new RyseInventoryCloseEvent(player, this);
+        Bukkit.getPluginManager().callEvent(closeEvent);
     }
 
     /**
@@ -655,7 +587,7 @@ public class RyseInventory {
     }
 
     private void initInventory(@NotNull Player player, @Nonnegative int page, @Nullable String[] keys, @Nullable Object[] values) {
-        RyseInventoryOpenEvent event = new RyseInventoryOpenEvent(player, this);
+        RyseInventoryPreOpenEvent event = new RyseInventoryPreOpenEvent(player, this);
         Bukkit.getPluginManager().callEvent(event);
 
         if (event.isCancelled())
@@ -682,6 +614,8 @@ public class RyseInventory {
         transferData(optional.orElse(null), contents, keys, values);
         setupData(player, setupInventory, contents);
         initProvider(player, contents);
+
+        if (optional.isPresent() && optional.get().equals(contents)) return;
 
         Pagination pagination = contents.pagination();
 
@@ -855,11 +789,13 @@ public class RyseInventory {
     }
 
     /**
-     * Returns the slide animation object
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @return The slideAnimator object.
      */
-    protected @Nullable SlideAnimation getSlideAnimator() {
+    @ApiStatus.Internal
+    public @Nullable SlideAnimation getSlideAnimator() {
         return this.slideAnimator;
     }
 
@@ -891,11 +827,28 @@ public class RyseInventory {
 
     /**
      * Returns the InventoryManager instance that this Inventory is associated with.
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @return The InventoryManager object.
      */
-    protected @NotNull InventoryManager getManager() {
+    @ApiStatus.Internal
+    public @NotNull InventoryManager getManager() {
         return manager;
+    }
+
+    /**
+     * Sets the fixed page size for the query
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
+     *
+     * @param fixedPageSize How many pages the player can open even though no items are set there.
+     */
+    @ApiStatus.Internal
+    public void setFixedPageSize(@Nonnegative int fixedPageSize) {
+        this.fixedPageSize = fixedPageSize;
     }
 
     /**
@@ -939,11 +892,15 @@ public class RyseInventory {
 
     /**
      * If the privateInventory map contains the UUID, return the inventory associated with it
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param uuid The UUID of the player you want to get the inventory of.
      * @return An optional of the inventory.
      */
-    protected @NotNull Optional<Inventory> inventoryBasedOnOption(@NotNull UUID uuid) {
+    @ApiStatus.Internal
+    public @NotNull Optional<Inventory> inventoryBasedOnOption(@NotNull UUID uuid) {
         if (!this.privateInventory.containsKey(uuid)) return Optional.empty();
 
         return Optional.of(this.privateInventory.get(uuid));
@@ -966,18 +923,19 @@ public class RyseInventory {
     }
 
     /**
-     * "Loads the items of the given page into the inventory of the given player."
-     * <p>
-     * The `Pagination` object is the one we created earlier. The `Player` object is the player we want to load the items
-     * for. The `page` is the page we want to load
+     * Loads the items of the given page into the inventory of the given player.
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param pagination The Pagination object that you created.
      * @param player     The player who's viewing the inventory
      * @param page       The page number to load
      */
-    protected void load(@NotNull Pagination pagination,
-                        @NotNull Player player,
-                        @Nonnegative int page) {
+    @ApiStatus.Internal
+    public void load(@NotNull Pagination pagination,
+                     @NotNull Player player,
+                     @Nonnegative int page) {
         pagination.getDataByPage(page)
                 .forEach(item -> placeItem(player, item.getModifiedSlot(), item.getItem()));
     }
@@ -1147,7 +1105,7 @@ public class RyseInventory {
                 Object value = values[n];
                 if (key == null || value == null) continue;
 
-                newContents.setData(key, value);
+                newContents.setProperty(key, value);
             }
         }
     }
@@ -1226,20 +1184,38 @@ public class RyseInventory {
     private void finalizeInventoryAndOpen(@NotNull Player player) {
         Bukkit.getScheduler().runTask(this.plugin, () -> {
             if (this.openDelay == -1 || this.delayed.contains(player)) {
-                player.openInventory(inventory);
-                this.manager.invokeScheduler(player, this);
-                this.manager.setInventory(player.getUniqueId(), this);
+                openInventory(player);
             } else {
                 if (!this.delayed.contains(player)) {
-                    Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
-                        player.openInventory(inventory);
-                        this.manager.invokeScheduler(player, this);
-                        this.manager.setInventory(player.getUniqueId(), this);
-                    }, this.openDelay);
+                    Bukkit.getScheduler().runTaskLater(this.plugin, () ->
+                            openInventory(player), this.openDelay);
                     this.delayed.add(player);
                 }
             }
         });
+    }
+
+    /**
+     * It calls the RyseInventoryOpenEvent event
+     *
+     * @param player The player who opened the inventory
+     */
+    private void callOpenEvent(@NotNull Player player) {
+        RyseInventoryOpenEvent event = new RyseInventoryOpenEvent(player, this);
+        Bukkit.getPluginManager().callEvent(event);
+    }
+
+    /**
+     * It opens the inventory, invokes the scheduler, and sets the inventory
+     *
+     * @param player The player who will open the inventory.
+     */
+    private void openInventory(@NotNull Player player) {
+        player.openInventory(inventory);
+        this.manager.invokeScheduler(player, this);
+        this.manager.setInventory(player.getUniqueId(), this);
+
+        callOpenEvent(player);
     }
 
     /**
@@ -1378,29 +1354,41 @@ public class RyseInventory {
 
     /**
      * Adds an item animator to the list of item animators.
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param animator The animator to add.
      */
-    protected void addItemAnimator(@NotNull IntelligentItemNameAnimator animator) {
+    @ApiStatus.Internal
+    public void addItemAnimator(@NotNull IntelligentItemNameAnimator animator) {
         this.itemAnimator.add(animator);
     }
 
     /**
      * Adds an IntelligentMaterialAnimator to the list of IntelligentMaterialAnimators.
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param animator The IntelligentMaterialAnimator to add.
      */
-    protected void addMaterialAnimator(@NotNull IntelligentMaterialAnimator animator) {
+    @ApiStatus.Internal
+    public void addMaterialAnimator(@NotNull IntelligentMaterialAnimator animator) {
         this.materialAnimator.add(animator);
     }
 
     /**
      * It removes an IntelligentMaterialAnimator from the list of animators, and if the animator is currently running, it
      * cancels the task
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param animator The IntelligentMaterialAnimator to remove.
      */
-    protected void removeMaterialAnimator(@NotNull IntelligentMaterialAnimator animator) {
+    @ApiStatus.Internal
+    public void removeMaterialAnimator(@NotNull IntelligentMaterialAnimator animator) {
         this.materialAnimator.remove(animator);
 
         if (!Bukkit.getScheduler().isQueued(animator.getTask().getTaskId())) return;
@@ -1409,10 +1397,14 @@ public class RyseInventory {
 
     /**
      * It removes an item animator from the list of item animators
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param animator The IntelligentItemNameAnimator to remove.
      */
-    protected void removeItemAnimator(@NotNull IntelligentItemNameAnimator animator) {
+    @ApiStatus.Internal
+    public void removeItemAnimator(@NotNull IntelligentItemNameAnimator animator) {
         this.itemAnimator.remove(animator);
 
         if (!Bukkit.getScheduler().isQueued(animator.getTask().getTaskId())) return;
@@ -1421,19 +1413,27 @@ public class RyseInventory {
 
     /**
      * Adds an IntelligentTitleAnimator to the list of IntelligentTitleAnimators.
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param animator The animator to add.
      */
-    protected void addTitleAnimator(@NotNull IntelligentTitleAnimator animator) {
+    @ApiStatus.Internal
+    public void addTitleAnimator(@NotNull IntelligentTitleAnimator animator) {
         this.titleAnimator.add(animator);
     }
 
     /**
      * It removes a title animator from the list of title animators
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param animator The IntelligentTitleAnimator to remove.
      */
-    protected void removeTitleAnimator(@NotNull IntelligentTitleAnimator animator) {
+    @ApiStatus.Internal
+    public void removeTitleAnimator(@NotNull IntelligentTitleAnimator animator) {
         this.titleAnimator.remove(animator);
 
         if (!Bukkit.getScheduler().isQueued(animator.getTask().getTaskId())) return;
@@ -1442,19 +1442,27 @@ public class RyseInventory {
 
     /**
      * Adds an IntelligentItemLoreAnimator to the list of lore animators
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param animator The animator to add.
      */
-    protected void addLoreAnimator(@NotNull IntelligentItemLoreAnimator animator) {
+    @ApiStatus.Internal
+    public void addLoreAnimator(@NotNull IntelligentItemLoreAnimator animator) {
         this.loreAnimator.add(animator);
     }
 
     /**
      * It removes the animator from the list of animators, and cancels all of the tasks that the animator has
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param animator The animator to remove.
      */
-    protected void removeLoreAnimator(@NotNull IntelligentItemLoreAnimator animator) {
+    @ApiStatus.Internal
+    public void removeLoreAnimator(@NotNull IntelligentItemLoreAnimator animator) {
         this.loreAnimator.remove(animator);
 
         animator.getTasks().forEach(bukkitTask -> {
@@ -1474,14 +1482,19 @@ public class RyseInventory {
             if (!Bukkit.getScheduler().isQueued(bukkitTask.getTaskId())) return;
             bukkitTask.cancel();
         });
+        this.slideAnimator.clearTasks();
     }
 
     /**
      * It takes a list of items, and places them in a paginated inventory
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param contents The InventoryContents object that contains all the information about the inventory.
      */
-    protected void loadByPage(@NotNull InventoryContents contents) {
+    @ApiStatus.Internal
+    public void loadByPage(@NotNull InventoryContents contents) {
         Pagination pagination = contents.pagination();
         SlotIterator iterator = contents.iterator();
 
@@ -1496,8 +1509,6 @@ public class RyseInventory {
         int page = 0;
         int startSlot = iterator.getSlot();
         List<IntelligentItemData> data = contents.pagination().getInventoryData();
-
-        System.out.println(data.size());
 
         if (pattern != null) {
             applyPattern(pagination, iterator, pattern, data, contents, itemsSet, page, startSlot);
@@ -1699,10 +1710,21 @@ public class RyseInventory {
             this.ryseInventory.closeReasons.addAll(builder.ryseInventory.closeReasons);
             this.ryseInventory.fixedPageSize = builder.ryseInventory.fixedPageSize;
             this.ryseInventory.ignoredSlotsWithEvents = builder.ryseInventory.ignoredSlotsWithEvents;
+            this.ryseInventory.updateTask = builder.ryseInventory.updateTask;
         }
 
         public @NotNull Builder newInstance() {
             return new Builder(this);
+        }
+
+        /**
+         * This function disables the update task.
+         *
+         * @return A Builder object.
+         */
+        public @NotNull Builder disableUpdateTask() {
+            this.ryseInventory.updateTask = false;
+            return this;
         }
 
         /**
@@ -1748,8 +1770,8 @@ public class RyseInventory {
          * In all these slots items can be taken or added by the player. However, you can now add your own logic.
          *
          * @param condition The condition must return true for the slots to be ignored.
-         * @param slots The slots
-         * @param event Your event with your own logic when the item is clicked.
+         * @param slots     The slots
+         * @param event     Your event with your own logic when the item is clicked.
          * @return The Inventory Builder to set additional options.
          */
         public @NotNull Builder ignoredSlots(@NotNull BooleanSupplier condition, @NotNull List<Integer> slots, @NotNull Consumer<InventoryClickEvent> event) {

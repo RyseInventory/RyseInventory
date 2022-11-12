@@ -23,15 +23,15 @@
  *
  */
 
-package io.github.rysefoxx.inventory.plugin.pagination;
+package io.github.rysefoxx.inventory.plugin.content;
 
 import com.google.common.base.Preconditions;
-import io.github.rysefoxx.inventory.plugin.SlotIterator;
-import io.github.rysefoxx.inventory.plugin.content.IntelligentItem;
-import io.github.rysefoxx.inventory.plugin.content.IntelligentItemData;
 import io.github.rysefoxx.inventory.plugin.enums.Alignment;
 import io.github.rysefoxx.inventory.plugin.enums.IntelligentType;
 import io.github.rysefoxx.inventory.plugin.enums.InventoryOpenerType;
+import io.github.rysefoxx.inventory.plugin.pagination.Pagination;
+import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
+import io.github.rysefoxx.inventory.plugin.pagination.SlotIterator;
 import io.github.rysefoxx.inventory.plugin.pattern.ContentPattern;
 import io.github.rysefoxx.inventory.plugin.pattern.SearchPattern;
 import io.github.rysefoxx.inventory.plugin.util.PlaceHolderConstants;
@@ -47,13 +47,16 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -68,7 +71,7 @@ public class InventoryContents {
     private final Pagination pagination;
     private final RyseInventory inventory;
 
-    private final HashMap<String, Object> data = new HashMap<>();
+    private final HashMap<String, Object> properties = new HashMap<>();
     private final SearchPattern searchPattern = new SearchPattern(this);
     private final ContentPattern contentPattern = new ContentPattern(this);
 
@@ -77,6 +80,260 @@ public class InventoryContents {
         this.player = player;
         this.inventory = inventory;
         this.pagination = new Pagination(inventory);
+    }
+
+    /**
+     * Find the first item in the current page that matches the given material, and return the slot and item.
+     *
+     * @param material The material of the item you want to find.
+     * @return A pair of the slot and the item. Or null if no item was found.
+     */
+    public @Nullable Pair<Integer, IntelligentItem> firstEqual(@NotNull Material material) {
+        AtomicReference<Pair<Integer, IntelligentItem>> pair = new AtomicReference<>(null);
+        getAllData().stream()
+                .filter(data -> data.getItem().getItemStack().getType() == material)
+                .filter(data -> data.getPage() == this.pagination.page() - 1)
+                .findFirst()
+                .ifPresent(data -> pair.set(Pair.of(data.getModifiedSlot(), data.getItem())));
+        return pair.get();
+    }
+
+    /**
+     * Find the first item in the current page that matches the given itemStack, and return the slot and item.
+     *
+     * @param itemStack The itemStack of the item you want to find.
+     * @return A pair of the slot and the item. Or null if no item was found.
+     */
+    public @Nullable Pair<Integer, IntelligentItem> firstEqual(@NotNull ItemStack itemStack) {
+        AtomicReference<Pair<Integer, IntelligentItem>> pair = new AtomicReference<>(null);
+        getAllData().stream()
+                .filter(data -> data.getItem().getItemStack().isSimilar(itemStack))
+                .filter(data -> data.getPage() == this.pagination.page() - 1)
+                .findFirst()
+                .ifPresent(data -> pair.set(Pair.of(data.getModifiedSlot(), data.getItem())));
+        return pair.get();
+    }
+
+    /**
+     * Find the first item in the current page that matches the given intelligentitem, and return the slot and item.
+     *
+     * @param intelligentItem The intelligentitem of the item you want to find.
+     * @return A pair of the slot and the item. Or null if no item was found.
+     */
+    public @Nullable Pair<Integer, IntelligentItem> firstEqual(@NotNull IntelligentItem intelligentItem) {
+        AtomicReference<Pair<Integer, IntelligentItem>> pair = new AtomicReference<>(null);
+        getAllData().stream()
+                .filter(data -> data.getItem().equals(intelligentItem))
+                .filter(data -> data.getPage() == this.pagination.page() - 1)
+                .findFirst()
+                .ifPresent(data -> pair.set(Pair.of(data.getModifiedSlot(), data.getItem())));
+        return pair.get();
+    }
+
+    /**
+     * Replace all old items with new items.
+     *
+     * @param oldMaterial The material you want to replace.
+     * @param newMaterial The new material to replace the old material with.
+     * @param page        The page you want to search on.
+     */
+    public void replaceAll(@NotNull Material oldMaterial, @NotNull Material newMaterial, @Nonnegative int page) {
+        getAllData().stream()
+                .filter(data -> data.getItem().getItemStack().getType() == oldMaterial)
+                .filter(data -> data.getPage() == page)
+                .forEach(data -> {
+                    IntelligentItem intelligentItem = data.getItem();
+
+                    Optional<Integer> optional = getPositionOfItem(intelligentItem);
+                    if (!optional.isPresent()) return;
+
+                    intelligentItem.getItemStack().setType(newMaterial);
+                    update(optional.get(), intelligentItem.update(intelligentItem));
+                });
+    }
+
+    /**
+     * Replace all old items with new items.
+     *
+     * @param oldItemStack The itemstack you want to replace.
+     * @param newItemStack The new itemstack to replace the old itemstack with.
+     * @param page         The page you want to search on.
+     */
+    public void replaceAll(@NotNull ItemStack oldItemStack, @NotNull ItemStack newItemStack, @Nonnegative int page) {
+        getAllData().stream()
+                .filter(data -> data.getItem().getItemStack().isSimilar(oldItemStack))
+                .filter(data -> data.getPage() == page)
+                .forEach(data -> {
+                    IntelligentItem intelligentItem = data.getItem();
+
+                    Optional<Integer> optional = getPositionOfItem(intelligentItem);
+                    if (!optional.isPresent()) return;
+
+                    update(optional.get(), intelligentItem.update(newItemStack));
+                });
+    }
+
+    /**
+     * Replace all old items with new items.
+     *
+     * @param oldIntelligentItem The intelligentitem you want to replace.
+     * @param newIntelligentItem The new intelligentitem to replace the old intelligentitem with.
+     * @param page               The page you want to search on.
+     */
+    public void replaceAll(@NotNull IntelligentItem oldIntelligentItem, @NotNull IntelligentItem newIntelligentItem, @Nonnegative int page) {
+        getAllData().stream()
+                .filter(data -> data.getItem().equals(oldIntelligentItem))
+                .filter(data -> data.getPage() == page)
+                .forEach(data -> {
+                    IntelligentItem intelligentItem = data.getItem();
+
+                    Optional<Integer> optional = getPositionOfItem(intelligentItem);
+                    if (!optional.isPresent()) return;
+
+                    update(optional.get(), intelligentItem.update(newIntelligentItem));
+                });
+    }
+
+    /**
+     * Replace all old items with new items.
+     *
+     * @param oldMaterial The material you want to replace.
+     * @param newMaterial The new material to replace the old material with.
+     */
+    public void replaceAll(@NotNull Material oldMaterial, @NotNull Material newMaterial) {
+        replaceAll(oldMaterial, newMaterial, 0);
+    }
+
+    /**
+     * Replace all old items with new items.
+     *
+     * @param oldItemStack The itemstack you want to replace.
+     * @param newItemStack The new itemstack to replace the old itemstack with.
+     */
+    public void replaceAll(@NotNull ItemStack oldItemStack, @NotNull ItemStack newItemStack) {
+        replaceAll(oldItemStack, newItemStack, 0);
+    }
+
+    /**
+     * Replace all old items with new items.
+     *
+     * @param oldIntelligentItem The intelligentitem you want to replace.
+     * @param newIntelligentItem The new intelligentitem to replace the old intelligentitem with.
+     */
+    public void replaceAll(@NotNull IntelligentItem oldIntelligentItem, @NotNull IntelligentItem newIntelligentItem) {
+        replaceAll(oldIntelligentItem, newIntelligentItem, 0);
+    }
+
+    /**
+     * If the item is found, replace it with the new material
+     *
+     * @param oldMaterial The material you want to replace.
+     * @param newMaterial The new material to replace the old material with.
+     * @param page        The page you want to search on.
+     * @return true if the item was found and replaced.
+     */
+    public boolean replace(@NotNull Material oldMaterial, @NotNull Material newMaterial, @Nonnegative int page) {
+        AtomicBoolean replaced = new AtomicBoolean(false);
+        getAllData().stream()
+                .filter(data -> data.getItem().getItemStack().getType() == oldMaterial)
+                .filter(data -> data.getPage() == page)
+                .findFirst()
+                .ifPresent(data -> {
+                    IntelligentItem intelligentItem = data.getItem();
+
+                    Optional<Integer> optional = getPositionOfItem(intelligentItem);
+                    if (!optional.isPresent()) return;
+
+                    intelligentItem.getItemStack().setType(newMaterial);
+                    replaced.set(update(optional.get(), intelligentItem.update(intelligentItem)));
+                });
+
+        return replaced.get();
+    }
+
+    /**
+     * If the item is found, replace it with the new itemstack
+     *
+     * @param oldItemStack The itemstack you want to replace.
+     * @param newItemStack The new itemstack to replace the old material with.
+     * @param page         The page you want to search on.
+     * @return true if the item was found and replaced.
+     */
+    public boolean replace(@NotNull ItemStack oldItemStack, @NotNull ItemStack newItemStack, @Nonnegative int page) {
+        AtomicBoolean replaced = new AtomicBoolean(false);
+        getAllData().stream()
+                .filter(data -> data.getItem().getItemStack().isSimilar(oldItemStack))
+                .filter(data -> data.getPage() == page)
+                .findFirst()
+                .ifPresent(data -> {
+                    IntelligentItem intelligentItem = data.getItem();
+
+                    Optional<Integer> optional = getPositionOfItem(intelligentItem);
+                    if (!optional.isPresent()) return;
+
+                    replaced.set(update(optional.get(), intelligentItem.update(newItemStack)));
+                });
+
+        return replaced.get();
+    }
+
+    /**
+     * If the item is found, replace it with the new intelligentitem
+     *
+     * @param oldIntelligentItem The intelligentitem you want to replace.
+     * @param newIntelligentItem The new intelligentitem to replace the old intelligentitem with.
+     * @param page               The page you want to search on.
+     * @return true if the item was found and replaced.
+     */
+    public boolean replace(@NotNull IntelligentItem oldIntelligentItem, @NotNull IntelligentItem newIntelligentItem, @Nonnegative int page) {
+        AtomicBoolean replaced = new AtomicBoolean(false);
+        getAllData().stream()
+                .filter(data -> data.getItem().equals(oldIntelligentItem))
+                .filter(data -> data.getPage() == page)
+                .findFirst()
+                .ifPresent(data -> {
+                    IntelligentItem intelligentItem = data.getItem();
+
+                    Optional<Integer> optional = getPositionOfItem(intelligentItem);
+                    if (!optional.isPresent()) return;
+
+                    replaced.set(update(optional.get(), intelligentItem.update(newIntelligentItem)));
+                });
+
+        return replaced.get();
+    }
+
+    /**
+     * If the item is found, replace it with the new material
+     *
+     * @param oldMaterial The material you want to replace.
+     * @param newMaterial The new material to replace the old material with.
+     * @return true if the item was found and replaced.
+     */
+    public boolean replace(@NotNull Material oldMaterial, @NotNull Material newMaterial) {
+        return replace(oldMaterial, newMaterial, 0);
+    }
+
+    /**
+     * If the item is found, replace it with the new itemstack
+     *
+     * @param oldItemStack The itemstack you want to replace.
+     * @param newItemStack The new itemstack to replace the old itemstack with.
+     * @return true if the item was found and replaced.
+     */
+    public boolean replace(@NotNull ItemStack oldItemStack, @NotNull ItemStack newItemStack) {
+        return replace(oldItemStack, newItemStack, 0);
+    }
+
+    /**
+     * If the item is found, replace it with the new intelligentitem
+     *
+     * @param oldIntelligentItem The intelligentitem you want to replace.
+     * @param newIntelligentItem The new itemstack to replace the old intelligentitem with.
+     * @return true if the item was found and replaced.
+     */
+    public boolean replace(@NotNull IntelligentItem oldIntelligentItem, @NotNull IntelligentItem newIntelligentItem) {
+        return replace(oldIntelligentItem, newIntelligentItem, 0);
     }
 
     /**
@@ -312,26 +569,31 @@ public class InventoryContents {
     /**
      * Removes the item from the inventory and the associated consumer.
      *
-     * @param slot Which slot should be removed?
+     * @param slots Which slots should be removed?
      * @return true if the item was removed.
      * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
      */
-    public boolean removeItemWithConsumer(@Nonnegative int slot) throws IllegalArgumentException {
-        if (slot > 53)
-            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+    public boolean removeItemWithConsumer(int @NotNull ... slots) throws IllegalArgumentException {
+        int success = 0;
+        for (int slot : slots) {
 
-        if (slot > this.inventory.size(this))
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
+            if (slot > 53)
+                throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
-        get(slot).ifPresent(IntelligentItem::clearConsumer);
-        this.pagination.remove(slot);
+            if (slot > this.inventory.size(this))
+                throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
 
-        Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
-        if (!inventoryOptional.isPresent())
-            return false;
+            get(slot).ifPresent(IntelligentItem::clearConsumer);
+            this.pagination.remove(slot);
 
-        inventoryOptional.get().setItem(slot, null);
-        return true;
+            Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
+            if (!inventoryOptional.isPresent())
+                continue;
+
+            inventoryOptional.get().setItem(slot, null);
+            success++;
+        }
+        return success == slots.length;
     }
 
     /**
@@ -676,10 +938,12 @@ public class InventoryContents {
      * @param <T>   The type of the data
      * @param key   The key of the data
      * @param value The value of the data
+     * @deprecated Use {@link #setProperty(String, Object)} instead
      */
+    @Deprecated
     public <T> void setData(@NotNull String key,
                             @NotNull T value) {
-        this.data.put(key, value);
+        setProperty(key, value);
     }
 
     /**
@@ -688,12 +952,11 @@ public class InventoryContents {
      * @param <T> The type of the data
      * @param key The key of the data
      * @return The cached value, or null if not cached
+     * @deprecated Use {@link #getProperty(String)} instead
      */
-    @SuppressWarnings("unchecked")
+    @Deprecated
     public @Nullable <T> T getData(@NotNull String key) {
-        if (!this.data.containsKey(key)) return null;
-
-        return (T) this.data.get(key);
+        return getProperty(key);
     }
 
     /**
@@ -701,45 +964,43 @@ public class InventoryContents {
      *
      * @param key The key that will be removed together with the value.
      * @return true if the key was found and removed, false if not.
+     * @deprecated Use {@link #removeProperty(String)} instead
      */
+    @Deprecated
     public boolean removeData(@NotNull String key) {
-        if (!this.data.containsKey(key)) return false;
-
-        this.data.remove(key);
-        return true;
+        return removeProperty(key);
     }
 
     /**
      * Removes all data in the inventory.
+     *
+     * @deprecated Use {@link #clearProperties()} instead
      */
+    @Deprecated
     public void clearData() {
-        this.data.clear();
+        clearProperties();
     }
 
     /**
      * @param consumer The consumer
      *                 Removes all data in the inventory and returns all values in the consumer.
+     * @deprecated Use {@link #clearProperties(Consumer)} instead
      */
+    @Deprecated
     public void clearData(@NotNull Consumer<List<Object>> consumer) {
-        List<Object> objects = Arrays.asList(this.data.values().toArray());
-        consumer.accept(objects);
-
-        this.data.clear();
+        clearProperties(consumer);
     }
 
     /**
      * @param consumer The consumer
      *                 Removes all data in the inventory and returns all keys and values in the consumer.
+     * @deprecated Use {@link #clearProperties(BiConsumer)} instead
      */
+    @Deprecated
     public void clearData(@NotNull BiConsumer<List<String>,
             @NotNull List<Object>> consumer) {
-        List<String> keys = new ArrayList<>(this.data.keySet());
-        List<Object> values = Arrays.asList(this.data.values().toArray());
-
-        consumer.accept(keys, values);
-        this.data.clear();
+        clearProperties(consumer);
     }
-
 
     /**
      * Removes data with the associated key. The value is then passed in the consumer.
@@ -747,13 +1008,12 @@ public class InventoryContents {
      * @param <T>      The type of the data
      * @param key      The key that will be removed together with the value.
      * @param consumer The value that is removed.
+     * @deprecated Use {@link #removeProperty(String, Consumer)} instead
      */
-    @SuppressWarnings("unchecked")
+    @Deprecated
     public <T> void removeData(@NotNull String key,
                                @NotNull Consumer<T> consumer) {
-        if (!this.data.containsKey(key)) return;
-
-        consumer.accept((T) this.data.remove(key));
+        removeProperty(key, consumer);
     }
 
     /**
@@ -763,13 +1023,134 @@ public class InventoryContents {
      * @param key          The key of the data
      * @param defaultValue value when key is invalid
      * @return The cached value
+     * @deprecated Use {@link #getProperty(String, Object)} instead
      */
-    @SuppressWarnings("unchecked")
+    @Deprecated
     public @NotNull <T> T getData(@NotNull String key,
                                   @NotNull Object defaultValue) {
-        if (!this.data.containsKey(key)) return (T) defaultValue;
+        return getProperty(key, defaultValue);
+    }
 
-        return (T) this.data.get(key);
+
+    /**
+     * Return true if the key exists
+     *
+     * @param key The key of the property to check for.
+     * @return A boolean value.
+     */
+    public boolean hasPropertyKey(@NotNull String key) {
+        return this.properties.containsKey(key);
+    }
+
+    /**
+     * Return true if the value exists
+     *
+     * @param value The value to search for.
+     * @return A boolean value.
+     */
+    public boolean hasPropertyValue(@NotNull Object value) {
+        return this.properties.containsValue(value);
+    }
+
+    /**
+     * Method to cache property in the content
+     *
+     * @param <T>   The type of the data
+     * @param key   The key of the data
+     * @param value The value of the data
+     */
+    public <T> void setProperty(@NotNull String key,
+                                @NotNull T value) {
+        this.properties.put(key, value);
+    }
+
+    /**
+     * Method to get property in the content
+     *
+     * @param <T> The type of the data
+     * @param key The key of the data
+     * @return The cached value, or null if not cached
+     */
+    @SuppressWarnings("unchecked")
+    public @Nullable <T> T getProperty(@NotNull String key) {
+        if (!this.properties.containsKey(key)) return null;
+
+        return (T) this.properties.get(key);
+    }
+
+    /**
+     * Removes property with the associated key.
+     *
+     * @param key The key that will be removed together with the value.
+     * @return true if the key was found and removed, false if not.
+     */
+    public boolean removeProperty(@NotNull String key) {
+        if (!this.properties.containsKey(key)) return false;
+
+        this.properties.remove(key);
+        return true;
+    }
+
+    /**
+     * Removes all properties in the inventory.
+     */
+    public void clearProperties() {
+        this.properties.clear();
+    }
+
+    /**
+     * @param consumer The consumer
+     *                 Removes all properties in the inventory and returns all values in the consumer.
+     */
+    public void clearProperties(@NotNull Consumer<List<Object>> consumer) {
+        List<Object> objects = Arrays.asList(this.properties.values().toArray());
+        consumer.accept(objects);
+
+        this.properties.clear();
+    }
+
+    /**
+     * @param consumer The consumer
+     *                 Removes all properties in the inventory and returns all keys and values in the consumer.
+     */
+    public void clearProperties(@NotNull BiConsumer<List<String>,
+            @NotNull List<Object>> consumer) {
+        List<String> keys = new ArrayList<>(this.properties.keySet());
+        List<Object> values = Arrays.asList(this.properties.values().toArray());
+
+        consumer.accept(keys, values);
+        this.properties.clear();
+    }
+
+    /**
+     * Removes property with the associated key. The value is then passed in the consumer.
+     *
+     * @param <T>      The type of the data
+     * @param key      The key that will be removed together with the value.
+     * @param consumer The value that is removed.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> void removeProperty(@NotNull String key,
+                                   @NotNull Consumer<T> consumer) {
+        if (!this.properties.containsKey(key)) return;
+
+        consumer.accept((T) this.properties.remove(key));
+    }
+
+    /**
+     * Method to get property in the content
+     *
+     * @param <T>          The type of the data
+     * @param key          The key of the data
+     * @param defaultValue value when key is invalid
+     * @return The cached value
+     */
+    @SuppressWarnings("unchecked")
+    public @NotNull <T> T getProperty(@NotNull String key,
+                                      @NotNull Object defaultValue) {
+        if (!this.properties.containsKey(key)) return (T) defaultValue;
+
+        return (T) this.properties.get(key);
     }
 
     /**
@@ -1175,8 +1556,25 @@ public class InventoryContents {
      *
      * @return A random slot in the inventory.
      */
-    public int randomSlot() {
+    public @Nonnegative int randomSlot() {
         return ThreadLocalRandom.current().nextInt(0, this.inventory.size(this));
+    }
+
+    /**
+     * Return a random slot between the specified min and max.
+     *
+     * @return A random slot in the inventory.
+     * @throws IllegalArgumentException if min is greater than max or max is greater than inventory size
+     */
+    public @Nonnegative int randomSlot(@Nonnegative int min, @Nonnegative int max) throws IllegalArgumentException {
+        if (min > max)
+            throw new IllegalArgumentException("Min cannot be greater than max.");
+        if (max > this.inventory.size(this))
+            throw new IllegalArgumentException("Max cannot be greater than the inventory size.");
+
+        if (max == min) return min;
+
+        return ThreadLocalRandom.current().nextInt(min, max);
     }
 
     /**
@@ -2117,8 +2515,9 @@ public class InventoryContents {
 
     /**
      * @return A read-only list of all IntelligentItem's plus their associated data.
+     * @throws UnsupportedOperationException If list gets modified.
      */
-    public @NotNull List<IntelligentItemData> getAllData() {
+    public @NotNull List<IntelligentItemData> getAllData() throws UnsupportedOperationException {
         List<IntelligentItemData> data = new ArrayList<>(this.pagination.getInventoryData());
         return Collections.unmodifiableList(data);
     }
@@ -3052,13 +3451,17 @@ public class InventoryContents {
 
     /**
      * If the data is empty, return. Otherwise, for each data, set it to the transferTo inventory.
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param transferTo The InventoryContents object that you are transferring the data to.
      */
-    protected void transferData(@NotNull InventoryContents transferTo) {
-        if (this.data.isEmpty()) return;
+    @ApiStatus.Internal
+    public void transferData(@NotNull InventoryContents transferTo) {
+        if (this.properties.isEmpty()) return;
 
-        this.data.forEach(transferTo::setData);
+        this.properties.forEach(transferTo::setProperty);
     }
 
     /**
@@ -3103,12 +3506,15 @@ public class InventoryContents {
 
     /**
      * Fetches a intelligent ItemStack based on the slot.
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param slot The slot
      * @return The intelligent ItemStack or an empty Optional instance.
      * @throws IllegalArgumentException if slot greater than 53
      */
-    protected Optional<IntelligentItem> getPresent(@Nonnegative int slot) throws IllegalArgumentException {
+    public Optional<IntelligentItem> getPresent(@Nonnegative int slot) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 

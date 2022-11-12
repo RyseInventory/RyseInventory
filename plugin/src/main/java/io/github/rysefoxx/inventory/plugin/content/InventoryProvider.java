@@ -25,9 +25,8 @@
 
 package io.github.rysefoxx.inventory.plugin.content;
 
-import io.github.rysefoxx.inventory.plugin.pagination.InventoryContents;
+import io.github.rysefoxx.inventory.plugin.animator.SlideAnimation;
 import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
-import io.github.rysefoxx.inventory.plugin.pagination.SlideAnimation;
 import org.bukkit.entity.Player;
 
 /**

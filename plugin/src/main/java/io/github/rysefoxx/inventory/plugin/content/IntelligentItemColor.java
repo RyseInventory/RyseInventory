@@ -31,6 +31,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import org.bukkit.ChatColor;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -124,9 +125,13 @@ public class IntelligentItemColor {
     /**
      * If the color is already set, return it. If it's not set, try to get it from the color wrapper. If the color wrapper
      * is null, throw an exception
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @return The color of the text.
      */
+    @ApiStatus.Internal
     public @NotNull net.md_5.bungee.api.ChatColor getColor() {
         if (this.bungeeColor != null) return this.bungeeColor;
         if (this.bukkitColor != null) return this.bukkitColor.asBungee();
@@ -309,8 +314,8 @@ public class IntelligentItemColor {
          * @param number e.g 4 for DARK_RED
          * @return The Builder to perform further editing
          * @throws NullPointerException if an invalid character was passed.
-         * <p>
-         * Transfer a char from the ChatColor of org.bukkit
+         *                              <p>
+         *                              Transfer a char from the ChatColor of org.bukkit
          */
         public @NotNull Builder colorByChar(char number) throws NullPointerException {
             ChatColor color = ChatColor.getByChar(number);

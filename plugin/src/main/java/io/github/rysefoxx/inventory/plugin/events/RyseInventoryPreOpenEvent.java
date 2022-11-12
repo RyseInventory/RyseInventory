@@ -27,33 +27,35 @@ package io.github.rysefoxx.inventory.plugin.events;
 
 import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author Rysefoxx | Rysefoxx#6772
  * @since 7/4/2022
+ * @author Rysefoxx | Rysefoxx#6772
+ * <br>
+ * This class is called before the inventory is opened. With this you are able to e.g. change the inventory #setInventory or cancel it completely #setCancelled
  */
-public class RyseInventoryCloseEvent extends Event {
+public class RyseInventoryPreOpenEvent extends Event implements Cancellable {
 
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
     private final Player player;
-    private final RyseInventory inventory;
+    private RyseInventory inventory;
+
+    private boolean isCancelled;
 
     /**
-     * The event is called after a RyseInventory is closed.
-     *
-     * @param player    The player who closed the inventory.
-     * @param inventory The inventory that was closed.
-     * <p>
-     * The event is called only when the inventory is closed with the {@link RyseInventory#close(Player)} method.
+     * @param player    The player who opened the inventory.
+     * @param inventory The inventory
      */
-    public RyseInventoryCloseEvent(@NotNull Player player, @NotNull RyseInventory inventory) {
+    public RyseInventoryPreOpenEvent(@NotNull Player player, @NotNull RyseInventory inventory) {
         this.player = player;
         this.inventory = inventory;
+        this.isCancelled = false;
     }
 
     @Contract(pure = true)
@@ -62,14 +64,34 @@ public class RyseInventoryCloseEvent extends Event {
     }
 
     /**
-     * @return The inventory, which is closed to the player.
+     * If true, the inventory will not be opened.
      */
-    public RyseInventory getInventory() {
+    @Override
+    public boolean isCancelled() {
+        return this.isCancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.isCancelled = cancel;
+    }
+
+    /**
+     * @return The inventory, which is opened to the player.
+     */
+    public @NotNull RyseInventory getInventory() {
         return this.inventory;
     }
 
     /**
-     * @return The player for whom the inventory is closed.
+     * @param inventory The new RyseInventory, which will be opened to the player.
+     */
+    public void setInventory(@NotNull RyseInventory inventory) {
+        this.inventory = inventory;
+    }
+
+    /**
+     * @return The player for whom the inventory is opened.
      */
     public @NotNull Player getPlayer() {
         return this.player;

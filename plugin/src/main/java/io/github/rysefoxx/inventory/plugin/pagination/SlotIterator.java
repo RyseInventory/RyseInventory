@@ -23,17 +23,15 @@
  *
  */
 
-package io.github.rysefoxx.inventory.plugin;
+package io.github.rysefoxx.inventory.plugin.pagination;
 
-import io.github.rysefoxx.inventory.plugin.pagination.Pagination;
 import io.github.rysefoxx.inventory.plugin.pattern.SlotIteratorPattern;
 import io.github.rysefoxx.inventory.plugin.util.SlotUtils;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import javax.annotation.Nonnegative;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class SlotIterator {
@@ -102,10 +100,15 @@ public class SlotIterator {
     }
 
     /**
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      * @return all slots where no items should be placed.
+     * @throws UnsupportedOperationException When modifying the returned list.
      */
-    public @NotNull List<Integer> getBlackList() {
-        return this.blackList;
+    @Unmodifiable
+    @ApiStatus.Internal
+    public @NotNull List<Integer> getBlackList() throws UnsupportedOperationException {
+        return Collections.unmodifiableList(this.blackList);
     }
 
     /**
@@ -252,7 +255,7 @@ public class SlotIterator {
                     && this.slotIterator.endPosition != -1)
                 throw new IllegalArgumentException("The start slot must be smaller than the end slot");
 
-            if(this.slotIterator.slot == -1 && this.slotIterator.pattern == null)
+            if (this.slotIterator.slot == -1 && this.slotIterator.pattern == null)
                 throw new IllegalArgumentException("The start slot must be set");
 
             return this.slotIterator;

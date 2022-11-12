@@ -23,11 +23,13 @@
  *
  */
 
-package io.github.rysefoxx.inventory.plugin.pagination;
+package io.github.rysefoxx.inventory.plugin.animator;
 
 import com.google.common.base.Preconditions;
 import io.github.rysefoxx.inventory.plugin.content.IntelligentItem;
+import io.github.rysefoxx.inventory.plugin.content.InventoryContents;
 import io.github.rysefoxx.inventory.plugin.enums.TimeSetting;
+import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
 import io.github.rysefoxx.inventory.plugin.util.StringConstants;
 import io.github.rysefoxx.inventory.plugin.util.TimeUtils;
 import org.bukkit.Bukkit;
@@ -35,6 +37,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -162,10 +165,14 @@ public class IntelligentMaterialAnimator {
 
     /**
      * This function returns the task that is currently running.
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @return The task that is being run.
      */
-    protected @NotNull BukkitTask getTask() {
+    @ApiStatus.Internal
+    public @NotNull BukkitTask getTask() {
         return this.task;
     }
 

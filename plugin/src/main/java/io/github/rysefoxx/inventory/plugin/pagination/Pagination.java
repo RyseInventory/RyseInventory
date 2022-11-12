@@ -25,7 +25,6 @@
 
 package io.github.rysefoxx.inventory.plugin.pagination;
 
-import io.github.rysefoxx.inventory.plugin.SlotIterator;
 import io.github.rysefoxx.inventory.plugin.content.IntelligentItem;
 import io.github.rysefoxx.inventory.plugin.content.IntelligentItemData;
 import io.github.rysefoxx.inventory.plugin.enums.IntelligentType;
@@ -34,6 +33,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -242,12 +242,14 @@ public class Pagination {
 
     /**
      * Sets a new item at a slot.
-     *
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      * @param slot    The slot
      * @param newItem The Item
      * @throws IllegalArgumentException if slot greater than 53
      */
-    protected void setItem(@Nonnegative int slot, @NotNull IntelligentItem newItem) throws IllegalArgumentException {
+    public void setItem(@Nonnegative int slot, @NotNull IntelligentItem newItem) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
@@ -258,7 +260,9 @@ public class Pagination {
 
     /**
      * Sets a new item at a slot with defined a page.
-     *
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      * @param slot     The slot to set the item at.
      * @param page     The page to set the item to
      * @param newItem  The Item to set
@@ -267,7 +271,8 @@ public class Pagination {
      *                                  <p>
      *                                  First page is 0
      */
-    protected void setItem(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem newItem, boolean transfer) throws IllegalArgumentException {
+    @ApiStatus.Internal
+    public void setItem(@Nonnegative int slot, @Nonnegative int page, @NotNull IntelligentItem newItem, boolean transfer) throws IllegalArgumentException {
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
@@ -289,10 +294,13 @@ public class Pagination {
     /**
      * It removes all inventory data from the inventory data list that has the same page and slot as the page and slot that
      * was passed into the function
-     *
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      * @param slot The slot to remove the item from.
      */
-    protected void remove(@Nonnegative int slot) {
+    @ApiStatus.Internal
+    public void remove(@Nonnegative int slot) {
         this.inventoryData.removeIf(data -> data.getPage() == this.page && data.getModifiedSlot() == slot);
     }
 
@@ -308,21 +316,27 @@ public class Pagination {
 
     /**
      * Returns the item in the specified slot, or null if the slot is empty.
-     *
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      * @param slot The slot number of the item you want to get.
      * @return The item in the slot.
      */
-    protected @Nullable IntelligentItem get(@Nonnegative int slot) {
+    @ApiStatus.Internal
+    public @Nullable IntelligentItem get(@Nonnegative int slot) {
         return get(slot, this.page);
     }
 
     /**
      * Returns the item in the specified slot, or null if the slot is empty.
-     *
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      * @param slot The slot number of the item you want to get.
      * @return The item in the slot.
      */
-    protected @Nullable IntelligentItem getPresent(@Nonnegative int slot) {
+    @ApiStatus.Internal
+    public @Nullable IntelligentItem getPresent(@Nonnegative int slot) {
         return this.inventoryData.stream()
                 .filter(data -> data.getPage() == page && data.getModifiedSlot() == slot && data.isPresetOnAllPages())
                 .findFirst()
@@ -336,12 +350,16 @@ public class Pagination {
      * The first thing we do is filter the inventory data to only include data that matches the given page and slot. Then
      * we use `findFirst()` to get the first item in the stream, if there is one. If there is an item, we use `map()` to
      * get the item from the data. If there is no item, we use `orElse()` to return null
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param slot The slot number of the item you want to get.
      * @param page The page number of the inventory.
      * @return The item in the slot and page.
      */
-    protected @Nullable IntelligentItem get(@Nonnegative int slot, @Nonnegative int page) {
+    @ApiStatus.Internal
+    public @Nullable IntelligentItem get(@Nonnegative int slot, @Nonnegative int page) {
         return this.inventoryData.stream()
                 .filter(data -> data.getPage() == page && data.getModifiedSlot() == slot)
                 .findFirst()
@@ -351,10 +369,13 @@ public class Pagination {
 
     /**
      * Returns the inventory data of the player.
-     *
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      * @return A list of IntelligentItemData objects.
      */
-    protected @NotNull List<IntelligentItemData> getInventoryData() {
+    @ApiStatus.Internal
+    public @NotNull List<IntelligentItemData> getInventoryData() {
         return this.inventoryData;
     }
 

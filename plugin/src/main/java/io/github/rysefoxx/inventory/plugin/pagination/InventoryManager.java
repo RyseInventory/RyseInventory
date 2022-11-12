@@ -25,7 +25,9 @@
 
 package io.github.rysefoxx.inventory.plugin.pagination;
 
+import io.github.rysefoxx.inventory.plugin.animator.SlideAnimation;
 import io.github.rysefoxx.inventory.plugin.content.IntelligentItem;
+import io.github.rysefoxx.inventory.plugin.content.InventoryContents;
 import io.github.rysefoxx.inventory.plugin.enums.*;
 import io.github.rysefoxx.inventory.plugin.other.EventCreator;
 import lombok.AccessLevel;
@@ -53,6 +55,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -222,11 +225,15 @@ public class InventoryManager {
 
     /**
      * It puts the contents of the inventory into a HashMap
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @param uuid     The UUID of the player who's inventory you want to set.
      * @param contents The InventoryContents object that you want to set.
      */
-    protected void setContents(@NotNull UUID uuid, @NotNull InventoryContents contents) {
+    @ApiStatus.Internal
+    public void setContents(@NotNull UUID uuid, @NotNull InventoryContents contents) {
         this.content.put(uuid, contents);
     }
 
@@ -267,6 +274,7 @@ public class InventoryManager {
      */
     protected void stopUpdate(@NotNull UUID uuid) {
         if (!this.updaterTask.containsKey(uuid)) return;
+
         BukkitTask task = this.updaterTask.remove(uuid);
         task.cancel();
     }
@@ -280,6 +288,7 @@ public class InventoryManager {
     protected void invokeScheduler(@NotNull Player player,
                                    @NotNull RyseInventory inventory) {
         if (this.updaterTask.containsKey(player.getUniqueId())) return;
+        if (!inventory.isUpdateTask()) return;
 
         BukkitTask task = new BukkitRunnable() {
             @Override
@@ -468,6 +477,7 @@ public class InventoryManager {
             }
 
             if (clickedInventory == topInventory) {
+
                 if (!hasContents(player.getUniqueId()))
                     return;
                 if (slot < 0 || (mainInventory.getInventoryOpenerType() == InventoryOpenerType.CHEST && slot > mainInventory.size(contents))) {
@@ -497,7 +507,7 @@ public class InventoryManager {
                     if (consumer != null) {
                         consumer.accept(event);
 
-                        if(event.isCancelled())
+                        if (event.isCancelled())
                             return;
                     }
 

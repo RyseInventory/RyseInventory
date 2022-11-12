@@ -27,7 +27,6 @@ package io.github.rysefoxx.inventory.plugin.events;
 
 import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.Contract;
@@ -35,26 +34,24 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Rysefoxx | Rysefoxx#6772
+ * <br>
+ * This event is called after the inventory is opened. Accordingly, you can not prevent the event.
  * @since 7/4/2022
  */
-public class RyseInventoryOpenEvent extends Event implements Cancellable {
+public class RyseInventoryOpenEvent extends Event {
 
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
     private final Player player;
-    private RyseInventory inventory;
-
-    private boolean isCancelled;
+    private final RyseInventory inventory;
 
     /**
      * @param player    The player who opened the inventory.
-     * @param inventory The inventory that was opened.
-     *                  The event is called when a new RyseInventory is opened.
+     * @param inventory The inventory
      */
     public RyseInventoryOpenEvent(@NotNull Player player, @NotNull RyseInventory inventory) {
         this.player = player;
         this.inventory = inventory;
-        this.isCancelled = false;
     }
 
     @Contract(pure = true)
@@ -63,30 +60,10 @@ public class RyseInventoryOpenEvent extends Event implements Cancellable {
     }
 
     /**
-     * If true, the inventory will not be opened.
-     */
-    @Override
-    public boolean isCancelled() {
-        return this.isCancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.isCancelled = cancel;
-    }
-
-    /**
      * @return The inventory, which is opened to the player.
      */
-    public RyseInventory getInventory() {
+    public @NotNull RyseInventory getInventory() {
         return this.inventory;
-    }
-
-    /**
-     * @param inventory The new RyseInventory, which will be opened to the player.
-     */
-    public void setInventory(@NotNull RyseInventory inventory) {
-        this.inventory = inventory;
     }
 
     /**

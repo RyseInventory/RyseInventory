@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -46,7 +47,7 @@ import java.util.function.Consumer;
 public class IntelligentItem {
 
     private final ItemStack itemStack;
-    private IntelligentItemError error;
+    private final IntelligentItemError error;
 
     private Consumer<InventoryClickEvent> defaultConsumer;
 
@@ -146,23 +147,6 @@ public class IntelligentItem {
     }
 
     /**
-     * Deserializes a map to an IntelligentItem.
-     *
-     * @param map The map to deserialize.
-     * @return The deserialized IntelligentItem.
-     */
-    @SuppressWarnings("unchecked")
-    public static @Nullable IntelligentItem deserialize(@NotNull Map<String, Object> map) {
-        if (map.isEmpty()) return null;
-        IntelligentItem intelligentItem = new IntelligentItem((ItemStack) map.get("item"), (IntelligentItemError) map.get("error"));
-        intelligentItem.defaultConsumer = (Consumer<InventoryClickEvent>) map.get("consumer");
-        intelligentItem.canClick = (boolean) map.get("can-click");
-        intelligentItem.canSee = (boolean) map.get("can-see");
-        intelligentItem.id = map.get("id");
-        return intelligentItem;
-    }
-
-    /**
      * Removes the consumer from an IntelligentItem
      */
     public void clearConsumer() {
@@ -177,7 +161,7 @@ public class IntelligentItem {
      * @param manager The manager that will be used to update the inventory.
      * @return The IntelligentItem object.
      */
-    public IntelligentItem identifier(@NotNull Object id, @NotNull InventoryManager manager) {
+    public @NotNull IntelligentItem identifier(@NotNull Object id, @NotNull InventoryManager manager) {
         this.id = id;
         manager.register(this);
         return this;
@@ -238,7 +222,42 @@ public class IntelligentItem {
         map.put("error", this.error);
         map.put("can-click", this.canClick);
         map.put("can-see", this.canSee);
+        map.put("advanced", this.advanced);
         map.put("id", this.id);
         return map;
+    }
+
+    /**
+     * Deserializes a map to an IntelligentItem.
+     *
+     * @param map The map to deserialize.
+     * @return The deserialized IntelligentItem.
+     */
+    @SuppressWarnings("unchecked")
+    public static @Nullable IntelligentItem deserialize(@NotNull Map<String, Object> map) {
+        if (map.isEmpty()) return null;
+
+        IntelligentItem intelligentItem = new IntelligentItem((ItemStack) map.get("item"), (IntelligentItemError) map.get("error"));
+        intelligentItem.defaultConsumer = (Consumer<InventoryClickEvent>) map.get("consumer");
+        intelligentItem.canClick = (boolean) map.get("can-click");
+        intelligentItem.canSee = (boolean) map.get("can-see");
+        intelligentItem.id = map.get("id");
+        intelligentItem.advanced = (boolean) map.get("advanced");
+        return intelligentItem;
+    }
+
+    @Contract(value = "null -> false", pure = true)
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof IntelligentItem)) return false;
+        IntelligentItem that = (IntelligentItem) o;
+        return itemStack.isSimilar(that.itemStack)
+                && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(itemStack, error, defaultConsumer, canClick, canSee, advanced, id);
     }
 }

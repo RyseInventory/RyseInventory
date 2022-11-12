@@ -23,13 +23,15 @@
  *
  */
 
-package io.github.rysefoxx.inventory.plugin.pagination;
+package io.github.rysefoxx.inventory.plugin.animator;
 
 import com.google.common.base.Preconditions;
 import io.github.rysefoxx.inventory.plugin.content.IntelligentItem;
-import io.github.rysefoxx.inventory.plugin.content.IntelligentItemAnimatorType;
 import io.github.rysefoxx.inventory.plugin.content.IntelligentItemColor;
+import io.github.rysefoxx.inventory.plugin.content.InventoryContents;
+import io.github.rysefoxx.inventory.plugin.enums.IntelligentItemAnimatorType;
 import io.github.rysefoxx.inventory.plugin.enums.TimeSetting;
+import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
 import io.github.rysefoxx.inventory.plugin.util.StringConstants;
 import io.github.rysefoxx.inventory.plugin.util.TimeUtils;
 import org.bukkit.Bukkit;
@@ -38,6 +40,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -395,10 +398,14 @@ public class IntelligentItemLoreAnimator {
 
     /**
      * This function returns a list of tasks.
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @return A list of BukkitTasks
      */
-    protected @NotNull List<BukkitTask> getTasks() {
+    @ApiStatus.Internal
+    public @NotNull List<BukkitTask> getTasks() {
         return this.tasks;
     }
 

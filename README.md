@@ -46,7 +46,7 @@ repositories {
     maven { url "https://s01.oss.sonatype.org/content/groups/public/" }
 }
 dependencies {
-    implementation 'io.github.rysefoxx.inventory:RyseInventory-Plugin:1.5.3'
+    implementation 'io.github.rysefoxx.inventory:RyseInventory-Plugin:1.5.4'
 }
 ```
 
@@ -58,7 +58,7 @@ repositories {
     maven { url = uri("https://s01.oss.sonatype.org/content/groups/public/") }
 }
 dependencies {
-    implementation("io.github.rysefoxx.inventory:RyseInventory-Plugin:1.5.3")
+    implementation("io.github.rysefoxx.inventory:RyseInventory-Plugin:1.5.4")
 }
 ```
 
@@ -75,7 +75,7 @@ dependencies {
 <dependency>
   <groupId>io.github.rysefoxx.inventory</groupId>
   <artifactId>RyseInventory-Plugin</artifactId>
-  <version>1.5.3</version>
+  <version>1.5.4</version>
 </dependency>
 ```
 

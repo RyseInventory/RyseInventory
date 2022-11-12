@@ -23,21 +23,21 @@
  *
  */
 
-package io.github.rysefoxx.inventory.plugin.pagination;
+package io.github.rysefoxx.inventory.plugin.animator;
 
 import com.google.common.base.Preconditions;
 import io.github.rysefoxx.inventory.plugin.content.IntelligentItem;
+import io.github.rysefoxx.inventory.plugin.content.InventoryContents;
 import io.github.rysefoxx.inventory.plugin.enums.AnimatorDirection;
 import io.github.rysefoxx.inventory.plugin.enums.TimeSetting;
+import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
 import io.github.rysefoxx.inventory.plugin.util.SlotUtils;
 import io.github.rysefoxx.inventory.plugin.util.StringConstants;
 import io.github.rysefoxx.inventory.plugin.util.TimeUtils;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import javax.annotation.Nonnegative;
 import java.util.*;
@@ -206,17 +206,11 @@ public class SlideAnimation {
                         return;
                     }
 
-                    if (this.fromIndex == from.get(finalI)) {
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    } else {
-
-                        Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
+                    if (this.fromIndex != from.get(finalI))
                         contents.removeItemWithConsumer(this.previousIndex);
 
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    }
+                    contents.set(this.fromIndex, this.item);
+                    contents.update(this.fromIndex, this.item);
 
                     this.previousIndex = this.fromIndex;
                     if (this.isTopRight) {
@@ -268,18 +262,11 @@ public class SlideAnimation {
                         return;
                     }
 
-                    if (this.fromIndex == from.get(finalI)) {
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    } else {
-
-                        Optional<IntelligentItem> optionalPrevious = contents.get(this.previousIndex);
-
+                    if (this.fromIndex != from.get(finalI))
                         contents.removeItemWithConsumer(this.previousIndex);
 
-                        contents.set(this.fromIndex, this.item);
-                        contents.update(this.fromIndex, this.item);
-                    }
+                    contents.set(this.fromIndex, this.item);
+                    contents.update(this.fromIndex, this.item);
 
                     this.previousIndex = this.fromIndex;
                     if (this.leftToRight) {
@@ -400,20 +387,35 @@ public class SlideAnimation {
 
     /**
      * Returns true if the click event is blocked.
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @return The boolean value of the blockClickEvent variable.
      */
-    protected boolean isBlockClickEvent() {
+    @ApiStatus.Internal
+    public boolean isBlockClickEvent() {
         return this.blockClickEvent;
     }
 
     /**
      * It returns a list of tasks that are currently running
+     * <br> <br>
+     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
+     * <br> <br>
      *
      * @return A list of BukkitTasks
+     * @throws UnsupportedOperationException If list gets modified
      */
-    protected @NotNull List<BukkitTask> getTasks() {
-        return this.task;
+    @ApiStatus.Internal
+    @Unmodifiable
+    public @NotNull List<BukkitTask> getTasks() throws UnsupportedOperationException {
+        return Collections.unmodifiableList(this.task);
+    }
+
+    @ApiStatus.Internal
+    public void clearTasks() {
+        this.task.clear();
     }
 
     /**
@@ -559,8 +561,8 @@ public class SlideAnimation {
          * @param slots The slots to start at.
          * @return The Builder to perform further editing.
          * @throws IllegalArgumentException if slot is greater than 53
-         * <p>
-         * We recommend passing the list from small to large. e.g .from(Arrays.asList(1, 1, 4)) NOT .from(Arrays.asList(4,1,1))
+         *                                  <p>
+         *                                  We recommend passing the list from small to large. e.g .from(Arrays.asList(1, 1, 4)) NOT .from(Arrays.asList(4,1,1))
          */
         public @NotNull Builder from(@NotNull List<Integer> slots) throws IllegalArgumentException {
             slots.forEach(this::from);

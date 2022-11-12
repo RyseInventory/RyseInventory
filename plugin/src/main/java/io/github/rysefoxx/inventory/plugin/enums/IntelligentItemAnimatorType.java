@@ -23,7 +23,7 @@
  *
  */
 
-package io.github.rysefoxx.inventory.plugin.content;
+package io.github.rysefoxx.inventory.plugin.enums;
 
 /**
  * @author Rysefoxx(Rysefoxx # 6772)
@@ -48,9 +48,9 @@ public enum IntelligentItemAnimatorType {
      * <p>
      * First the whole text is animated e.g. in red then in aqua.
      * <p>
-     *  -> §4Hello World
+     * §4Hello World
      * <p>
-     *  -> §bHello World
+     * §bHello World
      */
     FULL_WORD,
     /**

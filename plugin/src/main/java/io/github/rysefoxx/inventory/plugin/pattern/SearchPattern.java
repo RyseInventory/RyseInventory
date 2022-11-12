@@ -26,13 +26,15 @@
 package io.github.rysefoxx.inventory.plugin.pattern;
 
 import io.github.rysefoxx.inventory.plugin.content.IntelligentItem;
-import io.github.rysefoxx.inventory.plugin.pagination.InventoryContents;
+import io.github.rysefoxx.inventory.plugin.content.InventoryContents;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.Nonnegative;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -121,9 +123,10 @@ public class SearchPattern {
 
     /**
      * @return The pattern specified in the {@link #define(String...)} method.
+     * @throws UnsupportedOperationException If list gets modified.
      */
-    public @NotNull List<String> getPattern() {
-        return this.lines;
+    @Unmodifiable
+    public @NotNull List<String> getPattern() throws UnsupportedOperationException {
+        return Collections.unmodifiableList(this.lines);
     }
-
 }

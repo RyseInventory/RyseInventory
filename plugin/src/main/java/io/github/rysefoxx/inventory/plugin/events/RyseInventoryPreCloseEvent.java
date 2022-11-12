@@ -27,6 +27,7 @@ package io.github.rysefoxx.inventory.plugin.events;
 
 import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.Contract;
@@ -36,29 +37,45 @@ import org.jetbrains.annotations.NotNull;
  * @author Rysefoxx | Rysefoxx#6772
  * @since 7/4/2022
  */
-public class RyseInventoryCloseEvent extends Event {
+public class RyseInventoryPreCloseEvent extends Event implements Cancellable {
 
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
     private final Player player;
     private final RyseInventory inventory;
 
+    private boolean isCancelled;
+
     /**
-     * The event is called after a RyseInventory is closed.
+     * The event is called before a RyseInventory is closed.
      *
      * @param player    The player who closed the inventory.
      * @param inventory The inventory that was closed.
      * <p>
      * The event is called only when the inventory is closed with the {@link RyseInventory#close(Player)} method.
      */
-    public RyseInventoryCloseEvent(@NotNull Player player, @NotNull RyseInventory inventory) {
+    public RyseInventoryPreCloseEvent(@NotNull Player player, @NotNull RyseInventory inventory) {
         this.player = player;
         this.inventory = inventory;
+        this.isCancelled = false;
     }
 
     @Contract(pure = true)
     public static HandlerList getHandlerList() {
         return HANDLERS_LIST;
+    }
+
+    /**
+     * If true, the inventory will not be closed.
+     */
+    @Override
+    public boolean isCancelled() {
+        return this.isCancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.isCancelled = cancel;
     }
 
     /**

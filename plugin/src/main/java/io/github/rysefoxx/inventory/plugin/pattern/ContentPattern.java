@@ -26,14 +26,16 @@
 package io.github.rysefoxx.inventory.plugin.pattern;
 
 import io.github.rysefoxx.inventory.plugin.content.IntelligentItem;
+import io.github.rysefoxx.inventory.plugin.content.InventoryContents;
 import io.github.rysefoxx.inventory.plugin.enums.IntelligentType;
-import io.github.rysefoxx.inventory.plugin.pagination.InventoryContents;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.Nonnegative;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -66,7 +68,7 @@ public class ContentPattern {
     /**
      * Defines the pattern to be searched for.
      *
-     * @param line The line of the pattern.
+     * @param line   The line of the pattern.
      * @param amount How often this pattern should be repeated.
      * @throws IllegalArgumentException If the line length is not 9 or the amount is higher than 6.
      */
@@ -74,7 +76,7 @@ public class ContentPattern {
         if (line.length() != 9)
             throw new IllegalArgumentException("Passed pattern must contain 9 characters");
 
-        if(amount > 6)
+        if (amount > 6)
             throw new IllegalArgumentException("Passed amount must be lower than 6");
 
         for (int i = 0; i < amount; i++)
@@ -133,8 +135,10 @@ public class ContentPattern {
 
     /**
      * @return The pattern specified in the {@link #define(String...)} method.
+     * @throws UnsupportedOperationException If list gets modified.
      */
-    public @NotNull List<String> getPattern() {
-        return this.lines;
+    @Unmodifiable
+    public @NotNull List<String> getPattern() throws UnsupportedOperationException {
+        return Collections.unmodifiableList(this.lines);
     }
 }
