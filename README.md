@@ -5,7 +5,7 @@ Inventory System inspired by [SmartInventory](https://github.com/MinusKube/Smart
 This API is used to create and manage inventories in Minecraft more easily. Across many methods, the inventory can be
 managed easily. Besides, you don't have to worry about the pages, because they are managed automatically. Moreover, many
 things can be done with the inventory. More about this under the
-point [Features](https://github.com/Rysefoxx/RyseInventory#features)
+point [Features](https://github.com/Rysefoxx/RyseInventory#features
 
 # Features
 
