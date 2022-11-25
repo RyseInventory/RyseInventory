@@ -34,6 +34,10 @@ point [Features](https://github.com/Rysefoxx/RyseInventory#features)
 
 - Register the `InventoryManager` in the onEnable. After that execute `#invoke()`.
 
+# Template
+
+- You may use [this Paper Plugin Template](https://github.com/eazypaulCode/plugin-template) to create a Paper Userdev-plugin which has RyseInventory preinstalled.
+
 # Dependency
 
 _(Make sure you shade the API.)_
@@ -94,6 +98,8 @@ dependencies {
 * [Click here](https://github.com/Rysefoxx/RyseInventory/tree/master/examples)
 
 # ToDo
+
+- Create a Gitbook Wiki
 
 # License
 
