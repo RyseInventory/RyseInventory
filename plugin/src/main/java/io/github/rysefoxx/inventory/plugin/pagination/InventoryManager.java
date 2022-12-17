@@ -193,7 +193,7 @@ public class InventoryManager {
      * Returns true if the given UUID has an inventory.
      *
      * @param uuid The UUID of the player to check for.
-     * @return A boolean value.
+     * @return true when the player has an inventory.
      */
     @Contract(pure = true)
     private boolean hasInventory(@NotNull UUID uuid) {
@@ -477,7 +477,6 @@ public class InventoryManager {
             }
 
             if (clickedInventory == topInventory) {
-
                 if (!hasContents(player.getUniqueId()))
                     return;
                 if (slot < 0 || (mainInventory.getInventoryOpenerType() == InventoryOpenerType.CHEST && slot > mainInventory.size(contents))) {
@@ -529,8 +528,10 @@ public class InventoryManager {
                         return;
                     }
 
-                    if (list.contains(DisabledInventoryClick.TOP) || list.contains(DisabledInventoryClick.BOTH))
-                        event.setCancelled(true);
+                    if (list.contains(DisabledInventoryClick.TOP) || list.contains(DisabledInventoryClick.BOTH)) {
+                        event.setCancelled(false);
+                        return;
+                    }
 
                     if (!item.isCanClick()) {
                         item.getError().cantClick(player, item);

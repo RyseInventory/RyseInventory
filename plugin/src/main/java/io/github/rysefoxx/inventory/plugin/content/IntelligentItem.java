@@ -82,7 +82,6 @@ public class IntelligentItem {
         return new IntelligentItem(itemStack, eventConsumer, error);
     }
 
-
     /**
      * @param itemStack     The item that will be displayed in the inventory.
      * @param eventConsumer The consumer that will be called when the item is clicked.

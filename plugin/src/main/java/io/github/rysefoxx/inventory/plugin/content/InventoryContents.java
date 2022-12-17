@@ -82,6 +82,24 @@ public class InventoryContents {
         this.pagination = new Pagination(inventory);
     }
 
+    public boolean move(@Nonnegative int from, @Nonnegative int to) throws IllegalArgumentException {
+        if (from > 53 || to > 53)
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if (from > this.inventory.size(this) || to > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
+
+        AtomicBoolean success = new AtomicBoolean(false);
+        get(from).ifPresent(itemStack -> {
+            boolean removed = removeItemWithConsumer(from);
+            boolean updated = updateOrSet(to, itemStack);
+
+            if(removed && updated)
+                success.set(true);
+        });
+        return success.get();
+    }
+
     /**
      * Find the first item in the current page that matches the given material, and return the slot and item.
      *
@@ -467,6 +485,12 @@ public class InventoryContents {
             return update(slot, intelligentItem);
 
         set(slot, intelligentItem);
+
+        Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
+        if (!inventoryOptional.isPresent())
+            return false;
+
+        inventoryOptional.get().setItem(slot, intelligentItem.getItemStack());
         return true;
     }
 
@@ -930,105 +954,6 @@ public class InventoryContents {
         fillBorders(type == IntelligentType.EMPTY
                 ? IntelligentItem.empty(itemStack)
                 : IntelligentItem.ignored(itemStack));
-    }
-
-    /**
-     * Method to cache data in the content
-     *
-     * @param <T>   The type of the data
-     * @param key   The key of the data
-     * @param value The value of the data
-     * @deprecated Use {@link #setProperty(String, Object)} instead
-     */
-    @Deprecated
-    public <T> void setData(@NotNull String key,
-                            @NotNull T value) {
-        setProperty(key, value);
-    }
-
-    /**
-     * Method to get data in the content
-     *
-     * @param <T> The type of the data
-     * @param key The key of the data
-     * @return The cached value, or null if not cached
-     * @deprecated Use {@link #getProperty(String)} instead
-     */
-    @Deprecated
-    public @Nullable <T> T getData(@NotNull String key) {
-        return getProperty(key);
-    }
-
-    /**
-     * Removes data with the associated key.
-     *
-     * @param key The key that will be removed together with the value.
-     * @return true if the key was found and removed, false if not.
-     * @deprecated Use {@link #removeProperty(String)} instead
-     */
-    @Deprecated
-    public boolean removeData(@NotNull String key) {
-        return removeProperty(key);
-    }
-
-    /**
-     * Removes all data in the inventory.
-     *
-     * @deprecated Use {@link #clearProperties()} instead
-     */
-    @Deprecated
-    public void clearData() {
-        clearProperties();
-    }
-
-    /**
-     * @param consumer The consumer
-     *                 Removes all data in the inventory and returns all values in the consumer.
-     * @deprecated Use {@link #clearProperties(Consumer)} instead
-     */
-    @Deprecated
-    public void clearData(@NotNull Consumer<List<Object>> consumer) {
-        clearProperties(consumer);
-    }
-
-    /**
-     * @param consumer The consumer
-     *                 Removes all data in the inventory and returns all keys and values in the consumer.
-     * @deprecated Use {@link #clearProperties(BiConsumer)} instead
-     */
-    @Deprecated
-    public void clearData(@NotNull BiConsumer<List<String>,
-            @NotNull List<Object>> consumer) {
-        clearProperties(consumer);
-    }
-
-    /**
-     * Removes data with the associated key. The value is then passed in the consumer.
-     *
-     * @param <T>      The type of the data
-     * @param key      The key that will be removed together with the value.
-     * @param consumer The value that is removed.
-     * @deprecated Use {@link #removeProperty(String, Consumer)} instead
-     */
-    @Deprecated
-    public <T> void removeData(@NotNull String key,
-                               @NotNull Consumer<T> consumer) {
-        removeProperty(key, consumer);
-    }
-
-    /**
-     * Method to get data in the content
-     *
-     * @param <T>          The type of the data
-     * @param key          The key of the data
-     * @param defaultValue value when key is invalid
-     * @return The cached value
-     * @deprecated Use {@link #getProperty(String, Object)} instead
-     */
-    @Deprecated
-    public @NotNull <T> T getData(@NotNull String key,
-                                  @NotNull Object defaultValue) {
-        return getProperty(key, defaultValue);
     }
 
 
@@ -2572,6 +2497,11 @@ public class InventoryContents {
             return Optional.of(get(slot).get());
 
         add(itemToAdd);
+        Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
+        if (!inventoryOptional.isPresent())
+            return Optional.of(itemToAdd);
+
+        inventoryOptional.get().setItem(slot, itemToAdd.getItemStack());
         return Optional.of(itemToAdd);
     }
 
@@ -2602,6 +2532,11 @@ public class InventoryContents {
             return Optional.of(get(slot).get());
 
         set(slot, itemToSet);
+        Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
+        if (!inventoryOptional.isPresent())
+            return Optional.of(itemToSet);
+
+        inventoryOptional.get().setItem(slot, itemToSet.getItemStack());
         return Optional.of(itemToSet);
     }
 
@@ -2911,6 +2846,30 @@ public class InventoryContents {
         return updated.get() == this.inventory.getOpenedPlayers().size();
     }
 
+    /**
+     * Updates the material of the item in the specified slot.
+     *
+     * @param slot     The slot to update
+     * @param material The material to set the item to.
+     * @return true if the material was updated, false if the material was not updated.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean updateMaterial(@Nonnegative int slot,
+                                  @NotNull Material material) throws IllegalArgumentException {
+        if (slot > 53)
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        if (slot > this.inventory.size(this))
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
+
+        Optional<IntelligentItem> itemOptional = get(slot);
+        if (!itemOptional.isPresent()) return false;
+
+        IntelligentItem item = itemOptional.get();
+        ItemStack itemStack = item.getItemStack();
+        itemStack.setType(material);
+        return update(slot, itemStack);
+    }
 
     /**
      * Updates the ItemStack in the same place with a new ItemStack.

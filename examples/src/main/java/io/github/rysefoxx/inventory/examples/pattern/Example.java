@@ -1,4 +1,4 @@
-/*
+package io.github.rysefoxx.inventory.examples.pattern;/*
  * MIT License
  *
  * Copyright (c) 2022. Rysefoxx
@@ -23,15 +23,14 @@
  *
  */
 
-package io.github.rysefoxx.examples.pattern;
 
-import io.github.rysefoxx.content.IntelligentItem;
-import io.github.rysefoxx.content.InventoryProvider;
-import io.github.rysefoxx.pagination.InventoryContents;
-import io.github.rysefoxx.pagination.InventoryManager;
-import io.github.rysefoxx.pagination.RyseInventory;
-import io.github.rysefoxx.pattern.ContentPattern;
-import io.github.rysefoxx.pattern.SearchPattern;
+import io.github.rysefoxx.inventory.plugin.content.IntelligentItem;
+import io.github.rysefoxx.inventory.plugin.content.InventoryContents;
+import io.github.rysefoxx.inventory.plugin.content.InventoryProvider;
+import io.github.rysefoxx.inventory.plugin.pagination.InventoryManager;
+import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
+import io.github.rysefoxx.inventory.plugin.pattern.ContentPattern;
+import io.github.rysefoxx.inventory.plugin.pattern.SearchPattern;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -46,19 +45,18 @@ import java.util.List;
  */
 public class Example extends JavaPlugin {
 
-    private InventoryManager inventoryManager;
+    private final InventoryManager inventoryManager = new InventoryManager(this);
 
     @Override
     public void onEnable() {
-        this.inventoryManager = new InventoryManager(this);
         this.inventoryManager.invoke();
     }
 
     private void contentPattern() {
         RyseInventory.builder()
-                .manager(this.inventoryManager)
                 .title("This is a ContentPattern inventory")
                 .rows(6)
+                .disableUpdateTask()
                 .provider(new InventoryProvider() {
                     @Override
                     public void init(Player player, InventoryContents contents) {
@@ -80,9 +78,9 @@ public class Example extends JavaPlugin {
 
     private void searchPattern() {
         RyseInventory.builder()
-                .manager(this.inventoryManager)
                 .title("This is a SearchPattern inventory")
                 .rows(6)
+                .disableUpdateTask()
                 .provider(new InventoryProvider() {
                     @Override
                     public void init(Player player, InventoryContents contents) {

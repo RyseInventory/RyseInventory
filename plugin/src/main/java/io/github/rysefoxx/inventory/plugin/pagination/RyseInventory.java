@@ -643,7 +643,9 @@ public class RyseInventory {
      * @return null if there is no custom event matching the event class
      */
     public @Nullable EventCreator<? extends Event> getEvent(@NotNull Class<? extends Event> event) {
-        return this.events.stream().filter(eventOne -> event == eventOne.getClazz()).findFirst().orElse(null);
+        return this.events.stream().filter(eventOne -> event == eventOne.getClazz())
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -1805,19 +1807,6 @@ public class RyseInventory {
 
             for (int slot : slots)
                 this.ryseInventory.ignoredSlotsWithEvents.put(slot, null);
-            return this;
-        }
-
-        /**
-         * Adds a manager to the inventory.
-         *
-         * @param manager InventoryManager
-         * @return The Inventory Builder to set additional options.
-         * @deprecated You no longer need to pass the InventoryManager in the Builder. It is enough to create a field in your main class and invoke the InventoryManager.
-         */
-        @Deprecated
-        public @NotNull Builder manager(@NotNull InventoryManager manager) {
-            this.ryseInventory.manager = manager;
             return this;
         }
 

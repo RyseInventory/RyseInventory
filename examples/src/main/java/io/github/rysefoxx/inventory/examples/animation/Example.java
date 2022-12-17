@@ -1,4 +1,4 @@
-/*
+package io.github.rysefoxx.inventory.examples.animation;/*
  * MIT License
  *
  * Copyright (c) 2022. Rysefoxx
@@ -23,14 +23,17 @@
  *
  */
 
-package io.github.rysefoxx.examples.animation;
 
-import io.github.rysefoxx.content.IntelligentItem;
-import io.github.rysefoxx.content.IntelligentItemAnimatorType;
-import io.github.rysefoxx.content.IntelligentItemColor;
-import io.github.rysefoxx.content.InventoryProvider;
-import io.github.rysefoxx.enums.AnimatorDirection;
-import io.github.rysefoxx.enums.TimeSetting;
+import io.github.rysefoxx.inventory.plugin.animator.*;
+import io.github.rysefoxx.inventory.plugin.content.IntelligentItem;
+import io.github.rysefoxx.inventory.plugin.content.IntelligentItemColor;
+import io.github.rysefoxx.inventory.plugin.content.InventoryContents;
+import io.github.rysefoxx.inventory.plugin.content.InventoryProvider;
+import io.github.rysefoxx.inventory.plugin.enums.AnimatorDirection;
+import io.github.rysefoxx.inventory.plugin.enums.IntelligentItemAnimatorType;
+import io.github.rysefoxx.inventory.plugin.enums.TimeSetting;
+import io.github.rysefoxx.inventory.plugin.pagination.InventoryManager;
+import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -45,17 +48,15 @@ import java.util.Arrays;
  */
 public class Example extends JavaPlugin {
 
-    private InventoryManager inventoryManager;
+    private final InventoryManager inventoryManager = new InventoryManager(this);
 
     @Override
     public void onEnable() {
-        this.inventoryManager = new InventoryManager(this);
         this.inventoryManager.invoke();
     }
 
     private void titleAnimation() {
         RyseInventory.builder()
-                .manager(this.inventoryManager)
                 .title("Title Animation")
                 .rows(6)
                 .provider(new InventoryProvider() {
@@ -81,9 +82,9 @@ public class Example extends JavaPlugin {
 
     private void materialAnimation() {
         RyseInventory.builder()
-                .manager(this.inventoryManager)
                 .title("Material Animation")
                 .rows(6)
+                .disableUpdateTask()
                 .provider(new InventoryProvider() {
                     @Override
                     public void init(Player player, InventoryContents contents) {
@@ -111,9 +112,9 @@ public class Example extends JavaPlugin {
 
     private void itemNameAnimation() {
         RyseInventory.builder()
-                .manager(this.inventoryManager)
                 .title("Item-Name Animation")
                 .rows(6)
+                .disableUpdateTask()
                 .provider(new InventoryProvider() {
                     @Override
                     public void init(Player player, InventoryContents contents) {
@@ -142,7 +143,6 @@ public class Example extends JavaPlugin {
 
     private void loreAnimaton() {
         RyseInventory.builder()
-                .manager(this.inventoryManager)
                 .title("Lore Animation")
                 .rows(6)
                 .provider(new InventoryProvider() {
@@ -174,9 +174,9 @@ public class Example extends JavaPlugin {
 
     private void slideAnimation() {
         RyseInventory.builder()
-                .manager(this.inventoryManager)
                 .title("Slide Animation")
                 .rows(6)
+                .disableUpdateTask()
                 .animation(SlideAnimation.builder(this)
                         .from(3)
                         .to(30)

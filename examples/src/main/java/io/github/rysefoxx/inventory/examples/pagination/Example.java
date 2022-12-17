@@ -1,4 +1,4 @@
-/*
+package io.github.rysefoxx.inventory.examples.pagination;/*
  * MIT License
  *
  * Copyright (c) 2022. Rysefoxx
@@ -23,15 +23,14 @@
  *
  */
 
-package io.github.rysefoxx.examples.pagination;
 
-import io.github.rysefoxx.SlotIterator;
-import io.github.rysefoxx.content.IntelligentItem;
-import io.github.rysefoxx.content.InventoryProvider;
-import io.github.rysefoxx.pagination.InventoryContents;
-import io.github.rysefoxx.pagination.InventoryManager;
-import io.github.rysefoxx.pagination.Pagination;
-import io.github.rysefoxx.pagination.RyseInventory;
+import io.github.rysefoxx.inventory.plugin.content.IntelligentItem;
+import io.github.rysefoxx.inventory.plugin.content.InventoryContents;
+import io.github.rysefoxx.inventory.plugin.content.InventoryProvider;
+import io.github.rysefoxx.inventory.plugin.pagination.InventoryManager;
+import io.github.rysefoxx.inventory.plugin.pagination.Pagination;
+import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
+import io.github.rysefoxx.inventory.plugin.pagination.SlotIterator;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -45,19 +44,18 @@ import java.util.Arrays;
  */
 public class Example extends JavaPlugin {
 
-    private InventoryManager inventoryManager;
+    private final InventoryManager inventoryManager = new InventoryManager(this);
 
     @Override
     public void onEnable() {
-        this.inventoryManager = new InventoryManager(this);
         this.inventoryManager.invoke();
     }
 
     private void paginationInventory() {
         RyseInventory.builder()
-                .manager(this.inventoryManager)
                 .title("This is a paginated inventory")
                 .rows(6)
+                .disableUpdateTask()
                 .provider(new InventoryProvider() {
                     @Override
                     public void init(Player player, InventoryContents contents) {
