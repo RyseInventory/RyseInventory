@@ -28,6 +28,7 @@ point [Features](https://github.com/Rysefoxx/RyseInventory#features)
   it. [What do you mean?](https://github.com/Rysefoxx/RyseInventory/wiki/IntelligentItem)
 - You can set some items to be visible only on certain pages.
 - Page system
+- ...Much more :)
 
 # Install
 
