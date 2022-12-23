@@ -87,7 +87,7 @@ dependencies {
 
 # You need help?
 
-* Everything important is described in the wiki. [Click here](https://github.com/Rysefoxx/RyseInventory/wiki)
+* Everything important is described in the wiki. [Click here](https://wiki.ryseinventory.de)
 
 # Examples
 
