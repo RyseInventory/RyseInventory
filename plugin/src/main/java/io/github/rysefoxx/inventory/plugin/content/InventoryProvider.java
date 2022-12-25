@@ -26,6 +26,7 @@
 package io.github.rysefoxx.inventory.plugin.content;
 
 import io.github.rysefoxx.inventory.plugin.animator.SlideAnimation;
+import io.github.rysefoxx.inventory.plugin.pagination.RyseAnvil;
 import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
 import org.bukkit.entity.Player;
 
@@ -68,4 +69,10 @@ public interface InventoryProvider {
     default void init(Player player, InventoryContents contents, SlideAnimation animation) {
     }
 
+    /**
+     * @param anvil The anvil
+     */
+    default void anvil(Player player, RyseAnvil anvil) {
+
+    }
 }

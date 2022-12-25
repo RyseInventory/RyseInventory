@@ -82,24 +82,6 @@ public class InventoryContents {
         this.pagination = new Pagination(inventory);
     }
 
-    public boolean move(@Nonnegative int from, @Nonnegative int to) throws IllegalArgumentException {
-        if (from > 53 || to > 53)
-            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
-
-        if (from > this.inventory.size(this) || to > this.inventory.size(this))
-            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", this.inventory.size(this)));
-
-        AtomicBoolean success = new AtomicBoolean(false);
-        get(from).ifPresent(itemStack -> {
-            boolean removed = removeItemWithConsumer(from);
-            boolean updated = updateOrSet(to, itemStack);
-
-            if(removed && updated)
-                success.set(true);
-        });
-        return success.get();
-    }
-
     /**
      * Find the first item in the current page that matches the given material, and return the slot and item.
      *
@@ -2139,6 +2121,14 @@ public class InventoryContents {
         fillPage(page, IntelligentItem.empty(item));
     }
 
+    /**
+     * Fills a single page completely.
+     * @param page The page to be filled.
+     * @param itemStack The item to be placed.
+     * @param type The type of the item
+     *             <p>
+     *             First page is 0, second page is 1, etc.
+     */
     public void fillPage(@Nonnegative int page,
                          @NotNull ItemStack itemStack,
                          @NotNull IntelligentType type) {

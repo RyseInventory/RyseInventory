@@ -47,7 +47,8 @@ public enum InventoryOpenerType {
     ENCHANTMENT_TABLE(InventoryType.ENCHANTING),
     FURNACE(InventoryType.FURNACE),
     HOPPER(InventoryType.HOPPER),
-    ENDER_CHEST(InventoryType.ENDER_CHEST);
+    ENDER_CHEST(InventoryType.ENDER_CHEST),
+    ANVIL(InventoryType.ANVIL);
 
     private final InventoryType type;
 

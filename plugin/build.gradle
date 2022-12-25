@@ -18,10 +18,11 @@ dependencies {
     implementation(project(":v1_17"))
     implementation(project(":v1_16"))
     implementation(project(":api"))
+    implementation("io.github.rysefoxx.anvilgui:anvilgui:1.6.4-SNAPSHOT")
 
     compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
     compileOnly("org.apache.commons:commons-lang3:3.12.0")
-    compileOnly("org.jetbrains:annotations:23.0.0")
+    compileOnly('org.jetbrains:annotations:23.1.0')
     compileOnly("com.google.code.findbugs:jsr305:3.0.2")
     compileOnly("javax.xml.parsers:jaxp-api:1.4.5")
 
@@ -31,6 +32,7 @@ dependencies {
 
 shadowJar {
     archiveClassifier.set("")
+    relocate 'net.wesjd.anvilgui', 'io.github.rysefoxx.inventory.anvilgui'
     exclude 'io/github/rysefoxx/inventory/plugin/ItemBuilder.class'
 }
 

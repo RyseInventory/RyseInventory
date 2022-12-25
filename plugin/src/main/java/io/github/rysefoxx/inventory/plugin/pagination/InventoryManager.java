@@ -75,6 +75,7 @@ public class InventoryManager {
     private boolean invoked = false;
 
     private final Set<IntelligentItem> items = new HashSet<>();
+    private final List<RyseInventory> cachedInventories = new ArrayList<>();
     private final HashMap<UUID, RyseInventory> inventories = new HashMap<>();
     private final HashMap<UUID, InventoryContents> content = new HashMap<>();
     private final HashMap<UUID, BukkitTask> updaterTask = new HashMap<>();
@@ -167,7 +168,18 @@ public class InventoryManager {
      * Only works if the inventory has also been assigned an identifier.
      */
     public @NotNull Optional<RyseInventory> getInventory(@NotNull Object identifier) {
-        return this.inventories.values().stream().filter(inventory -> Objects.equals(inventory.getIdentifier(), identifier)).findFirst();
+        Optional<RyseInventory> optional = this.inventories.values()
+                .stream()
+                .filter(inventory -> Objects.equals(inventory.getIdentifier(), identifier))
+                .findFirst();
+
+        if (optional.isPresent())
+            return optional;
+
+        return this.cachedInventories
+                .stream()
+                .filter(inventory -> Objects.equals(inventory.getIdentifier(), identifier))
+                .findFirst();
     }
 
     /**
@@ -309,6 +321,15 @@ public class InventoryManager {
     }
 
     /**
+     * Saves the inventory to the cache.
+     *
+     * @param ryseInventory The inventory to save.
+     */
+    protected void addToCache(RyseInventory ryseInventory) {
+        this.cachedInventories.add(ryseInventory);
+    }
+
+    /**
      * It's a class that listens for events and cancels them if the player is viewing a RyseInventory
      */
     public class InventoryListener implements Listener {
@@ -424,9 +445,6 @@ public class InventoryManager {
             if (customEvent != null)
                 customEvent.accept(event);
 
-            if (event.isCancelled())
-                event.setCancelled(true);
-
             List<DisabledInventoryClick> list = mainInventory.getIgnoreClickEvent();
 
             InventoryAction action = event.getAction();
@@ -437,7 +455,12 @@ public class InventoryManager {
             ClickType clickType = event.getClick();
             InventoryContents contents = content.get(player.getUniqueId());
 
-            if (clickedInventory == bottomInventory && (!list.contains(DisabledInventoryClick.BOTTOM) && !list.contains(DisabledInventoryClick.BOTH))) {
+            if (clickedInventory == bottomInventory) {
+                if (!list.contains(DisabledInventoryClick.BOTTOM) && !list.contains(DisabledInventoryClick.BOTH)) {
+                    event.setCancelled(true);
+                    return;
+                }
+
                 if (mainInventory.getCloseReasons().contains(CloseReason.CLICK_BOTTOM_INVENTORY)) {
                     mainInventory.close(player);
                     return;
@@ -465,12 +488,7 @@ public class InventoryManager {
                     return;
                 }
 
-                if (action == InventoryAction.COLLECT_TO_CURSOR) {
-                    event.setCancelled(true);
-                    return;
-                }
-
-                if (action == InventoryAction.NOTHING && clickType != ClickType.MIDDLE)
+                if (action == InventoryAction.NOTHING)
                     event.setCancelled(true);
 
                 return;

@@ -46,6 +46,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -73,6 +74,8 @@ public class RyseInventory {
     private @Nullable Inventory inventory;
     private SlideAnimation slideAnimator;
     @Getter(AccessLevel.PROTECTED)
+    private RyseAnvil ryseAnvil;
+    @Getter(AccessLevel.PROTECTED)
     private transient Plugin plugin;
 
     @Getter
@@ -91,6 +94,7 @@ public class RyseInventory {
     private boolean backward;
     private boolean ignoreManualItems;
     private boolean clearAndSafe;
+    private boolean permanentCache;
     private boolean closeAble = true;
     private boolean transferData = true;
 
@@ -117,7 +121,6 @@ public class RyseInventory {
     private List<Page> pages = new ArrayList<>();
     protected final List<Player> delayed = new ArrayList<>();
 
-    private final HashMap<UUID, Inventory> privateInventory = new HashMap<>();
     private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
     private HashMap<Integer, Consumer<InventoryClickEvent>> ignoredSlotsWithEvents = new HashMap<>();
 
@@ -162,7 +165,6 @@ public class RyseInventory {
         this.materialAnimator.addAll(inventory.materialAnimator);
         this.titleAnimator.addAll(inventory.titleAnimator);
         this.loreAnimator.addAll(inventory.loreAnimator);
-        this.privateInventory.putAll(inventory.privateInventory);
         this.playerInventory.putAll(inventory.playerInventory);
         this.pages.addAll(inventory.pages);
 
@@ -633,7 +635,7 @@ public class RyseInventory {
         loadDelay(page, pagination, player);
         closeInventoryWhenEnabled(player);
 
-        finalizeInventoryAndOpen(player);
+        finalizeInventoryAndOpen(player, contents);
     }
 
     /**
@@ -903,9 +905,10 @@ public class RyseInventory {
      */
     @ApiStatus.Internal
     public @NotNull Optional<Inventory> inventoryBasedOnOption(@NotNull UUID uuid) {
-        if (!this.privateInventory.containsKey(uuid)) return Optional.empty();
+        if (this.ryseAnvil != null && this.ryseAnvil.getAnvilGUI() != null)
+            return Optional.of(this.ryseAnvil.getAnvilGUI().getInventory());
 
-        return Optional.of(this.privateInventory.get(uuid));
+        return Optional.ofNullable(this.inventory);
     }
 
     /**
@@ -963,6 +966,17 @@ public class RyseInventory {
             item.getError().cantSee(player, item);
             return;
         }
+
+        if (this.ryseAnvil != null) {
+            if (this.ryseAnvil.getAnvilGUI() == null)
+                return;
+            if (slot >= this.ryseAnvil.getAnvilGUI().getInventory().getSize())
+                return;
+
+            this.ryseAnvil.getAnvilGUI().getInventory().setItem(slot, item.getItemStack());
+            return;
+        }
+
         this.inventory.setItem(slot, item.getItemStack());
     }
 
@@ -1046,19 +1060,19 @@ public class RyseInventory {
      * @return An Inventory
      */
     private @NotNull Inventory setupInventory(@Nonnegative int pageNumber) {
+        int finalSize = this.size;
+
+        if (finalSize == -1 && !this.pages.isEmpty()) {
+            Page finalPage = this.pages.stream()
+                    .filter(page -> page.page() == pageNumber)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("You seem to be using the #rows(Page) method, unfortunately no data could be found for page " + pageNumber));
+
+            finalSize = finalPage.rows() * 9;
+        }
+
         if (this.inventoryOpenerType == InventoryOpenerType.CHEST) {
-            int finalSize = this.size;
-
-            if (finalSize == -1 && !this.pages.isEmpty()) {
-                Page finalPage = this.pages.stream()
-                        .filter(page -> page.page() == pageNumber)
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalStateException("You seem to be using the #rows(Page) method, unfortunately no data could be found for page " + pageNumber));
-
-                finalSize = finalPage.rows() * 9;
-            }
-
-            return Bukkit.createInventory(null, finalSize, this.loadTitle == -1 ? this.title : this.titleHolder);
+            return Bukkit.createInventory(null, finalSize, buildTitle());
         }
         return inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), buildTitle());
     }
@@ -1125,7 +1139,6 @@ public class RyseInventory {
         this.manager.setContents(player.getUniqueId(), contents);
 
         this.inventory = inventory;
-        this.privateInventory.put(player.getUniqueId(), inventory);
     }
 
     /**
@@ -1137,6 +1150,11 @@ public class RyseInventory {
      */
     private void initProvider(@NotNull Player player,
                               @NotNull InventoryContents contents) {
+        if (this.inventoryOpenerType == InventoryOpenerType.ANVIL) {
+            this.ryseAnvil = new RyseAnvil(player, buildTitle(), contents);
+            this.provider.anvil(player, this.ryseAnvil);
+            return;
+        }
         if (this.slideAnimator == null) {
             this.provider.init(player, contents);
             return;
@@ -1183,14 +1201,14 @@ public class RyseInventory {
      *
      * @param player The player who will open the inventory.
      */
-    private void finalizeInventoryAndOpen(@NotNull Player player) {
+    private void finalizeInventoryAndOpen(@NotNull Player player, @NotNull InventoryContents contents) {
         Bukkit.getScheduler().runTask(this.plugin, () -> {
             if (this.openDelay == -1 || this.delayed.contains(player)) {
-                openInventory(player);
+                openInventory(player, contents);
             } else {
                 if (!this.delayed.contains(player)) {
                     Bukkit.getScheduler().runTaskLater(this.plugin, () ->
-                            openInventory(player), this.openDelay);
+                            openInventory(player, contents), this.openDelay);
                     this.delayed.add(player);
                 }
             }
@@ -1212,8 +1230,14 @@ public class RyseInventory {
      *
      * @param player The player who will open the inventory.
      */
-    private void openInventory(@NotNull Player player) {
-        player.openInventory(inventory);
+    private void openInventory(@NotNull Player player, @NotNull InventoryContents contents) {
+        if (Objects.requireNonNull(inventory).getType() == InventoryType.ANVIL) {
+            this.ryseAnvil.open(this.plugin, this.loadDelay != -1,
+                    this.ignoredSlotsWithEvents.keySet().stream().mapToInt(i -> i).toArray());
+        } else {
+            player.openInventory(inventory);
+        }
+
         this.manager.invokeScheduler(player, this);
         this.manager.setInventory(player.getUniqueId(), this);
 
@@ -1346,11 +1370,11 @@ public class RyseInventory {
      */
     protected void clearData(@NotNull Player player) {
         if (this.playerInventory.containsKey(player.getUniqueId())) {
-            player.getInventory().setContents(this.playerInventory.remove(player.getUniqueId()));
+            ItemStack[] data = this.playerInventory.remove(player.getUniqueId());
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> player.getInventory().setContents(data), 2);
         }
 
         this.delayed.remove(player);
-        this.privateInventory.remove(player.getUniqueId());
         this.manager.removeInventoryFromPlayer(player.getUniqueId());
     }
 
@@ -1726,6 +1750,18 @@ public class RyseInventory {
          */
         public @NotNull Builder disableUpdateTask() {
             this.ryseInventory.updateTask = false;
+            return this;
+        }
+
+        /**
+         * Save the inventory permanently in a list. As a result, you can always get this inventory
+         * through the {@link InventoryManager#getInventory(Object)} method.
+         * Of course, the inventory must be given an ID by the {@link #identifier(Object)} method
+         *
+         * @return A Builder object.
+         */
+        public Builder permanentCache() {
+            this.ryseInventory.permanentCache = true;
             return this;
         }
 
@@ -2200,6 +2236,8 @@ public class RyseInventory {
             if (this.ryseInventory.provider == null)
                 throw new IllegalStateException("No provider could be found. Make sure you pass a provider to the builder.");
 
+            validate();
+
             this.ryseInventory.plugin = plugin;
 
             if (this.ryseInventory.size != -1 && !this.ryseInventory.pages.isEmpty()) {
@@ -2208,7 +2246,21 @@ public class RyseInventory {
                         "It will still work, but it is recommended to fix this bug.");
             }
 
+            if (this.ryseInventory.permanentCache)
+                this.ryseInventory.manager.addToCache(this.ryseInventory);
+
             return this.ryseInventory;
+        }
+
+        private void validate() {
+            if (this.ryseInventory.inventoryOpenerType != InventoryOpenerType.ANVIL)
+                return;
+
+            if (this.ryseInventory.slideAnimator != null)
+                throw new UnsupportedOperationException("The animation is not supported for the anvil inventory.");
+
+            if (this.ryseInventory.fixedPageSize != -1)
+                throw new UnsupportedOperationException("The fixed page size is not supported for the anvil inventory.");
         }
 
         /**
