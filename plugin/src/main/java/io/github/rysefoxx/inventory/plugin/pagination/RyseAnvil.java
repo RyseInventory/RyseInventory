@@ -13,6 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -29,6 +31,8 @@ public class RyseAnvil {
     private IntelligentItem itemRight;
     private IntelligentItem itemOutput;
     private Function<AnvilGUI.Completion, List<AnvilGUI.ResponseAction>> completeFunction;
+    private Consumer<Player> closeConsumer;
+    private BiConsumer<Player, ItemStack> clickConsumer;
 
     @Getter(AccessLevel.PROTECTED)
     @Nullable
@@ -110,6 +114,24 @@ public class RyseAnvil {
     }
 
     /**
+     * Called when you close the Anvil.
+     *
+     * @param closeConsumer The consumer that will be called when you close the Anvil.
+     */
+    public void onClose(@NotNull Consumer<Player> closeConsumer) {
+        this.closeConsumer = closeConsumer;
+    }
+
+    /**
+     * Called when you click the left or right item.
+     *
+     * @param clickConsumer The consumer that will be called when you click the left or right item.
+     */
+    public void onClick(@NotNull BiConsumer<Player, ItemStack> clickConsumer) {
+        this.clickConsumer = clickConsumer;
+    }
+
+    /**
      * Opens the Anvil for the player.
      *
      * @param plugin The plugin that will be used to open the Anvil.
@@ -125,6 +147,8 @@ public class RyseAnvil {
             if (this.itemOutput != null) builder.itemOutput(this.itemOutput.getItemStack());
         }
         if (this.completeFunction != null) builder.onComplete(this.completeFunction);
+        if (this.closeConsumer != null) builder.onClose(this.closeConsumer);
+        if (this.clickConsumer != null) builder.onClick(this.clickConsumer);
 
         builder.interactableSlots(ignoredSlots);
 
