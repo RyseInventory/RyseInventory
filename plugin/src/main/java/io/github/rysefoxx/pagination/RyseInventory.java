@@ -2123,15 +2123,19 @@ public class RyseInventory {
          * Builds the RyseInventory
          *
          * @param plugin Instance to your main class.
+         * @param defaultManager The default inventory if the player does not have a custom inventory.
          * @return the RyseInventory
          * @throws IllegalStateException if manager is null or if the provider is null
          */
-        public @NotNull RyseInventory build(@NotNull Plugin plugin) throws IllegalStateException {
+        public @NotNull RyseInventory build(@NotNull Plugin plugin, InventoryManager defaultManager) throws IllegalStateException {
             readOutInventoryManager(plugin);
 
             if (this.ryseInventory.manager == null)
-                throw new IllegalStateException("No manager could be found. Please create an InventoryManager field in your main class.");
-
+                if (defaultManager != null){
+                    this.ryseInventory.manager = defaultManager;
+                } else {
+                    throw new IllegalStateException("No manager could be found. Please create an InventoryManager field in your main class.");
+                }
             if (!this.ryseInventory.closeAble && !this.ryseInventory.closeReasons.isEmpty())
                 throw new IllegalStateException("The #close() method could not be executed because you have forbidden closing the inventory by #preventClose.");
 
@@ -2150,19 +2154,30 @@ public class RyseInventory {
         }
 
         /**
+         * Builds the RyseInventory
+         *
+         * @param plugin Instance to your main class.
+         * @return the RyseInventory
+         * @throws IllegalStateException if manager is null or if the provider is null
+         */
+        public @NotNull RyseInventory build(@NotNull Plugin plugin) throws IllegalStateException {
+            return build(plugin, null);
+        }
+
+        /**
          * It finds the InventoryManager field in the plugin class and sets it to the RyseInventory.manager field
          *
          * @param plugin The plugin instance.
          */
         private void readOutInventoryManager(@NotNull Plugin plugin) {
-            for (Field declaredField : plugin.getClass().getDeclaredFields()) {
-                declaredField.setAccessible(true);
+            for (Field field : plugin.getClass().getFields()) {
+                field.setAccessible(true);
 
-                if (!declaredField.getType().isAssignableFrom(InventoryManager.class))
+                if (!field.getType().isAssignableFrom(InventoryManager.class))
                     continue;
 
                 try {
-                    InventoryManager inventoryManager = (InventoryManager) declaredField.get(plugin);
+                    InventoryManager inventoryManager = (InventoryManager) field.get(plugin);
                     if (!inventoryManager.isInvoked())
                         throw new IllegalStateException("The InventoryManager is not invoked. Please invoke it in the onEnable method.");
 
