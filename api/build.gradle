@@ -1,3 +1,3 @@
-group = "io.github.rysefoxx"
+group = "io.github.rysefoxx.inventory.api"
 version = "API"
 description = "API for RyseInventory"

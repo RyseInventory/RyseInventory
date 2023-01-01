@@ -28,11 +28,11 @@ point [Features](https://github.com/Rysefoxx/RyseInventory#features)
   it. [What do you mean?](https://github.com/Rysefoxx/RyseInventory/wiki/IntelligentItem)
 - You can set some items to be visible only on certain pages.
 - Page system
+- ...Much more :)
 
 # Install
 
-- Register the `InventoryManager` in the onEnable. After that execute `#invoke()`. In the inventory pass
-  at `#manager(InventoryManager)` the manager from your main class.
+- Register the `InventoryManager` in the onEnable. After that execute `#invoke()`.
 
 # Dependency
 
@@ -47,19 +47,19 @@ repositories {
     maven { url "https://s01.oss.sonatype.org/content/groups/public/" }
 }
 dependencies {
-    implementation 'io.github.rysefoxx:RyseInventory-Plugin:1.5.1'
+    implementation 'io.github.rysefoxx.inventory:RyseInventory-Plugin:1.5.6.2'
 }
 ```
 
 ### Gradle (Kotlin)
 
 ```
-repositories 
+repositories {
     mavenCentral()
     maven { url = uri("https://s01.oss.sonatype.org/content/groups/public/") }
 }
 dependencies {
-    implementation("io.github.rysefoxx:RyseInventory-Plugin:1.5.1")
+    implementation("io.github.rysefoxx.inventory:RyseInventory-Plugin:1.5.6.2")
 }
 ```
 
@@ -74,9 +74,9 @@ dependencies {
 </repositories>
 
 <dependency>
-  <groupId>io.github.rysefoxx</groupId>
+  <groupId>io.github.rysefoxx.inventory</groupId>
   <artifactId>RyseInventory-Plugin</artifactId>
-  <version>1.5.1</version>
+  <version>1.5.6.2</version>
 </dependency>
 ```
 
@@ -87,7 +87,7 @@ dependencies {
 
 # You need help?
 
-* Everything important is described in the wiki. [Click here](https://github.com/Rysefoxx/RyseInventory/wiki)
+* Everything important is described in the wiki. [Click here](https://wiki.ryseinventory.de)
 
 # Examples
 
