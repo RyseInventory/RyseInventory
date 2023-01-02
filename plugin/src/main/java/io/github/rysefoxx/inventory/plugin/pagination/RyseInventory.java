@@ -48,6 +48,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
@@ -589,6 +590,15 @@ public class RyseInventory {
     }
 
     private void initInventory(@NotNull Player player, @Nonnegative int page, @Nullable String[] keys, @Nullable Object[] values) {
+
+        if (!manager.canOpen(player.getUniqueId())) {
+            int finalPage = page;
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> initInventory(player, finalPage, keys, values), 2);
+            return;
+        }
+
+        this.manager.setLastOpen(player.getUniqueId());
+
         RyseInventoryPreOpenEvent event = new RyseInventoryPreOpenEvent(player, this);
         Bukkit.getPluginManager().callEvent(event);
 
@@ -2284,7 +2294,7 @@ public class RyseInventory {
          * @param plugin The plugin instance.
          */
         private void readOutInventoryManager(@NotNull Plugin plugin) {
-            for (Field field : plugin.getClass().getFields()) {
+            for (Field field : ryseInventory.getAllFields(new ArrayList<>(), plugin.getClass())) {
                 field.setAccessible(true);
 
                 if (!field.getType().isAssignableFrom(InventoryManager.class))
@@ -2302,5 +2312,15 @@ public class RyseInventory {
                 break;
             }
         }
+    }
+
+    private List<Field> getAllFields(List<Field> fields, Class<?> type) {
+        fields.addAll(Arrays.asList(type.getDeclaredFields()));
+
+        if (type.getSuperclass() != null) {
+            getAllFields(fields, type.getSuperclass());
+        }
+
+        return fields;
     }
 }
