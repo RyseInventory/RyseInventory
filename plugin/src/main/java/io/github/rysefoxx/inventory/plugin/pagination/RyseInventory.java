@@ -48,6 +48,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
@@ -589,6 +590,15 @@ public class RyseInventory {
     }
 
     private void initInventory(@NotNull Player player, @Nonnegative int page, @Nullable String[] keys, @Nullable Object[] values) {
+
+        if (!manager.canOpen(player.getUniqueId())) {
+            int finalPage = page;
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> initInventory(player, finalPage, keys, values), 2);
+            return;
+        }
+
+        this.manager.setLastOpen(player.getUniqueId());
+
         RyseInventoryPreOpenEvent event = new RyseInventoryPreOpenEvent(player, this);
         Bukkit.getPluginManager().callEvent(event);
 
@@ -2221,15 +2231,19 @@ public class RyseInventory {
          * Builds the RyseInventory
          *
          * @param plugin Instance to your main class.
+         * @param defaultManager The default inventory if the player does not have a custom inventory.
          * @return the RyseInventory
          * @throws IllegalStateException if manager is null or if the provider is null
          */
-        public @NotNull RyseInventory build(@NotNull Plugin plugin) throws IllegalStateException {
+        public @NotNull RyseInventory build(@NotNull Plugin plugin, InventoryManager defaultManager) throws IllegalStateException {
             readOutInventoryManager(plugin);
 
             if (this.ryseInventory.manager == null)
-                throw new IllegalStateException("No manager could be found. Please create an InventoryManager field in your main class.");
-
+                if (defaultManager != null){
+                    this.ryseInventory.manager = defaultManager;
+                } else {
+                    throw new IllegalStateException("No manager could be found. Please create an InventoryManager field in your main class.");
+                }
             if (!this.ryseInventory.closeAble && !this.ryseInventory.closeReasons.isEmpty())
                 throw new IllegalStateException("The #close() method could not be executed because you have forbidden closing the inventory by #preventClose.");
 
@@ -2264,19 +2278,30 @@ public class RyseInventory {
         }
 
         /**
+         * Builds the RyseInventory
+         *
+         * @param plugin Instance to your main class.
+         * @return the RyseInventory
+         * @throws IllegalStateException if manager is null or if the provider is null
+         */
+        public @NotNull RyseInventory build(@NotNull Plugin plugin) throws IllegalStateException {
+            return build(plugin, null);
+        }
+
+        /**
          * It finds the InventoryManager field in the plugin class and sets it to the RyseInventory.manager field
          *
          * @param plugin The plugin instance.
          */
         private void readOutInventoryManager(@NotNull Plugin plugin) {
-            for (Field declaredField : plugin.getClass().getDeclaredFields()) {
-                declaredField.setAccessible(true);
+            for (Field field : ryseInventory.getAllFields(new ArrayList<>(), plugin.getClass())) {
+                field.setAccessible(true);
 
-                if (!declaredField.getType().isAssignableFrom(InventoryManager.class))
+                if (!field.getType().isAssignableFrom(InventoryManager.class))
                     continue;
 
                 try {
-                    InventoryManager inventoryManager = (InventoryManager) declaredField.get(plugin);
+                    InventoryManager inventoryManager = (InventoryManager) field.get(plugin);
                     if (!inventoryManager.isInvoked())
                         throw new IllegalStateException("The InventoryManager is not invoked. Please invoke it in the onEnable method.");
 
@@ -2287,5 +2312,15 @@ public class RyseInventory {
                 break;
             }
         }
+    }
+
+    private List<Field> getAllFields(List<Field> fields, Class<?> type) {
+        fields.addAll(Arrays.asList(type.getDeclaredFields()));
+
+        if (type.getSuperclass() != null) {
+            getAllFields(fields, type.getSuperclass());
+        }
+
+        return fields;
     }
 }
