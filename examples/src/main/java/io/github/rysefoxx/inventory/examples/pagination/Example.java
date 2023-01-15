@@ -63,7 +63,7 @@ public class Example extends JavaPlugin {
                         pagination.setItemsPerPage(10);
                         pagination.iterator(SlotIterator.builder().startPosition(2, 2).type(SlotIterator.SlotIteratorType.HORIZONTAL).blackList(Arrays.asList(25, 26, 27, 28)).build());
 
-                        int previousPage = pagination.newInstance(pagination).previous().page();
+                        int previousPage = pagination.page() - 1;
                         contents.set(5, 3, IntelligentItem.of(new ItemBuilder(Material.ARROW).
                                 amount(pagination.isFirst()
                                         ? 1
@@ -87,7 +87,7 @@ public class Example extends JavaPlugin {
                             }));
                         }
 
-                        int page = pagination.newInstance(pagination).next().page();
+                        int page = pagination.page() + 1;
                         contents.set(5, 5, IntelligentItem.of(new ItemBuilder(Material.ARROW)
                                 .amount((pagination.isLast() ? 1 : page))
                                 .displayName(!pagination.isLast()
