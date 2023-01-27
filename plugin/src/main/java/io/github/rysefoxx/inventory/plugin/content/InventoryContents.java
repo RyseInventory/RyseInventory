@@ -2333,6 +2333,18 @@ public class InventoryContents {
                     @NotNull IntelligentItem item) {
         slots.forEach(slot -> set(slot, item));
     }
+    
+    /**
+     * Sets a fixed intelligent ItemStack in the inventory.
+     *
+     * @param item  The ItemStack to be displayed in the inventory
+     * @param slots Where should the item be placed everywhere?
+     */
+    public void set(@NotNull IntelligentItem item, int... slots) {
+        for (int slot : slots) {
+            set(slot, item);
+        }
+    }
 
     /**
      * Sets a fixed intelligent ItemStack in the inventory.
