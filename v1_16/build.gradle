@@ -1,13 +1,13 @@
-group = "io.github.rysefoxx.inventory.v1_16"
-description = "RyseInventory-v1_16"
+group = 'io.github.rysefoxx.inventory.v1_16'
+description = 'RyseInventory-v1_16'
 
 repositories {
     maven {
-        url = uri("https://papermc.io/repo/repository/maven-public/")
+        url = 'https://papermc.io/repo/repository/maven-public/'
     }
 }
 
 dependencies {
-    implementation(project(":api"))
-    compileOnly("com.destroystokyo.paper:paper-api:1.16.4-R0.1-SNAPSHOT")
+    implementation project(':api')
+    compileOnly 'com.destroystokyo.paper:paper-api:1.16.4-R0.1-SNAPSHOT'
 }

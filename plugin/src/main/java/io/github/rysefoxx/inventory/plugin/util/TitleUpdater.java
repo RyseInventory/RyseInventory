@@ -22,21 +22,17 @@ public final class TitleUpdater {
 
     // Classes.
     private final static Class<?> CRAFT_PLAYER;
-    private final static Class<?> CHAT_MESSAGE;
     private final static Class<?> PACKET_PLAY_OUT_OPEN_WINDOW;
     private final static Class<?> I_CHAT_BASE_COMPONENT;
     private final static Class<?> CONTAINER;
     private final static Class<?> CONTAINERS;
     private final static Class<?> ENTITY_PLAYER;
-    private final static Class<?> I_CHAT_MUTABLE_COMPONENT;
 
     // Methods.
     private final static MethodHandle getHandle;
     private final static MethodHandle getBukkitView;
-    private final static MethodHandle literal;
 
     // Constructors.
-    private final static MethodHandle chatMessage;
     private final static MethodHandle packetPlayOutOpenWindow;
 
     // Fields.
@@ -51,27 +47,23 @@ public final class TitleUpdater {
 
         // Initialize classes.
         CRAFT_PLAYER = ReflectionUtils.getCraftClass("entity.CraftPlayer");
-        CHAT_MESSAGE = supports19 ? null : ReflectionUtils.getNMSClass("network.chat", "ChatMessage");
         PACKET_PLAY_OUT_OPEN_WINDOW = ReflectionUtils.getNMSClass("network.protocol.game", "PacketPlayOutOpenWindow");
         I_CHAT_BASE_COMPONENT = ReflectionUtils.getNMSClass("network.chat", "IChatBaseComponent");
         // Check if we use containers, otherwise, can throw errors on older versions.
         CONTAINERS = useContainers() ? ReflectionUtils.getNMSClass("world.inventory", "Containers") : null;
         ENTITY_PLAYER = ReflectionUtils.getNMSClass("server.level", "EntityPlayer");
         CONTAINER = ReflectionUtils.getNMSClass("world.inventory", "Container");
-        I_CHAT_MUTABLE_COMPONENT = supports19 ? ReflectionUtils.getNMSClass("network.chat", "IChatMutableComponent") : null;
 
         // Initialize methods.
         getHandle = getMethod(CRAFT_PLAYER, "getHandle", MethodType.methodType(ENTITY_PLAYER));
         getBukkitView = getMethod(CONTAINER, "getBukkitView", MethodType.methodType(InventoryView.class));
-        literal = supports19 ? getMethod(I_CHAT_BASE_COMPONENT, "b", MethodType.methodType(I_CHAT_MUTABLE_COMPONENT, String.class), true) : null;
 
         // Initialize constructors.
-        chatMessage = supports19 ? null : getConstructor(CHAT_MESSAGE, String.class);
         packetPlayOutOpenWindow =
                 (useContainers()) ?
-                        getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW, int.class, CONTAINERS, I_CHAT_BASE_COMPONENT) :
+                        getConstructor(int.class, CONTAINERS, I_CHAT_BASE_COMPONENT) :
                         // Older versions use String instead of Containers, and require an int for the inventory size.
-                        getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW, int.class, String.class, I_CHAT_BASE_COMPONENT, int.class);
+                        getConstructor(int.class, String.class, I_CHAT_BASE_COMPONENT, int.class);
 
         // Initialize fields.
         activeContainer = getField(ENTITY_PLAYER, CONTAINER, "activeContainer", "bV", "bW", "bU", "containerMenu");
@@ -84,7 +76,6 @@ public final class TitleUpdater {
      * @param player   whose inventory will be updated.
      * @param newTitle the new title for the inventory.
      */
-
     public static void updateInventory(Player player, String newTitle) {
         Preconditions.checkArgument(player != null, "Cannot update inventory to null player.");
 
@@ -189,9 +180,9 @@ public final class TitleUpdater {
         }
     }
 
-    private static MethodHandle getConstructor(Class<?> refc, Class<?>... types) {
+    private static MethodHandle getConstructor(Class<?>... types) {
         try {
-            Constructor<?> constructor = refc.getDeclaredConstructor(types);
+            Constructor<?> constructor = TitleUpdater.PACKET_PLAY_OUT_OPEN_WINDOW.getDeclaredConstructor(types);
             constructor.setAccessible(true);
             return LOOKUP.unreflectConstructor(constructor);
         } catch (ReflectiveOperationException exception) {

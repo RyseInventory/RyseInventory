@@ -8,31 +8,32 @@ description = "RyseInventory"
 
 repositories {
     maven {
-        url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+        url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
     }
 }
 
 dependencies {
-    implementation(project(":v1_19"))
-    implementation(project(":v1_18"))
-    implementation(project(":v1_17"))
-    implementation(project(":v1_16"))
-    implementation(project(":api"))
-    implementation("io.github.rysefoxx.anvilgui:anvilgui:1.6.5.2")
+    implementation project(":v1_19")
+    implementation project(":v1_18")
+    implementation project(":v1_17")
+    implementation project(":v1_16")
+    implementation project(":api")
+    implementation "io.github.rysefoxx.anvilgui:anvilgui:1.6.5.4"
 
-    compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
-    compileOnly("org.apache.commons:commons-lang3:3.12.0")
-    compileOnly('org.jetbrains:annotations:23.1.0')
-    compileOnly("com.google.code.findbugs:jsr305:3.0.2")
+    compileOnly "net.kyori:adventure-platform-bukkit:4.2.0"
+    compileOnly "org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT"
+    compileOnly "org.apache.commons:commons-lang3:3.12.0"
+    compileOnly "org.jetbrains:annotations:23.1.0"
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 
-    annotationProcessor("org.projectlombok:lombok:1.18.24")
-    compileOnly("org.projectlombok:lombok:1.18.24")
+    annotationProcessor "org.projectlombok:lombok:1.18.24"
+    compileOnly "org.projectlombok:lombok:1.18.24"
 }
 
 shadowJar {
     archiveClassifier.set("")
-    relocate 'net.wesjd.anvilgui', 'io.github.rysefoxx.inventory.anvilgui'
-    exclude 'io/github/rysefoxx/inventory/plugin/ItemBuilder.class'
+    relocate "net.wesjd.anvilgui", "io.github.rysefoxx.inventory.anvilgui"
+    exclude "io/github/rysefoxx/inventory/plugin/ItemBuilder.class"
 }
 
 signing {

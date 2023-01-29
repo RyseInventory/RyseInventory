@@ -84,17 +84,19 @@ public class InventoryManager {
 
 
     /*
-    * Used to prevent multi open on menus, this is a 100ms delay between opening menus.
-    * @return true if the player can open the menu, false if not.
-    * */
-    public boolean canOpen(UUID uuid){
+     * Used to prevent multi open on menus, this is a 100ms delay between opening menus.
+     * @param uuid The uuid of the player.
+     * @return true if the player can open the menu, false if not.
+     * */
+    public boolean canOpen(UUID uuid) {
         return !lastOpen.containsKey(uuid) || System.currentTimeMillis() - lastOpen.get(uuid) > 100;
     }
 
     /*
-    * Used to set the last open time of the player.
-    * */
-    public void setLastOpen(UUID uuid){
+     * Used to set the last open time of the player.
+     * @param uuid The uuid of the player.
+     * */
+    public void setLastOpen(UUID uuid) {
         lastOpen.put(uuid, System.currentTimeMillis());
     }
 

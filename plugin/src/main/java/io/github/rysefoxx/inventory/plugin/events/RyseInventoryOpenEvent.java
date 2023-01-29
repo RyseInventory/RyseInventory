@@ -27,8 +27,8 @@ package io.github.rysefoxx.inventory.plugin.events;
 
 import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,11 +38,10 @@ import org.jetbrains.annotations.NotNull;
  * This event is called after the inventory is opened. Accordingly, you can not prevent the event.
  * @since 7/4/2022
  */
-public class RyseInventoryOpenEvent extends Event {
+public class RyseInventoryOpenEvent extends PlayerEvent {
 
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
-    private final Player player;
     private final RyseInventory inventory;
 
     /**
@@ -50,7 +49,7 @@ public class RyseInventoryOpenEvent extends Event {
      * @param inventory The inventory
      */
     public RyseInventoryOpenEvent(@NotNull Player player, @NotNull RyseInventory inventory) {
-        this.player = player;
+        super(player);
         this.inventory = inventory;
     }
 
@@ -64,13 +63,6 @@ public class RyseInventoryOpenEvent extends Event {
      */
     public @NotNull RyseInventory getInventory() {
         return this.inventory;
-    }
-
-    /**
-     * @return The player for whom the inventory is opened.
-     */
-    public @NotNull Player getPlayer() {
-        return this.player;
     }
 
     @Override

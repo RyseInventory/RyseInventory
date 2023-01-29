@@ -3,32 +3,34 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0"
+        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0'
     }
 }
 
 plugins {
-    id "java-library"
-    id "com.github.johnrengelman.shadow" version "7.1.2"
-    id "signing"
-    id "maven-publish"
+    id 'java-library'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'signing'
+    id 'maven-publish'
 }
-apply plugin: "io.codearte.nexus-staging"
+apply plugin: 'io.codearte.nexus-staging'
 
-group = "io.github.rysefoxx"
-description = "RyseInventory"
+group = 'io.github.rysefoxx'
+description = 'RyseInventory'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 allprojects {
-    tasks.withType(JavaCompile) {
-        options.encoding = "UTF-8"
+    tasks.withType(JavaCompile).tap {
+        configureEach {
+            options.encoding = 'UTF-8'
+        }
     }
-    version = "1.5.6.2"
+    version = '1.5.7'
 }
 
 subprojects {
-    apply plugin: "java-library"
-    apply plugin: "com.github.johnrengelman.shadow"
+    apply plugin: 'java-library'
+    apply plugin: 'com.github.johnrengelman.shadow'
 
     repositories {
         mavenLocal()
@@ -50,5 +52,5 @@ shadowJar {
 nexusStaging {
     username = NEXUS_USERNAME
     password = NEXUS_PASSWORD
-    serverUrl = "https://s01.oss.sonatype.org/service/local/"
+    serverUrl = 'https://s01.oss.sonatype.org/service/local/'
 }

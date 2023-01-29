@@ -27,8 +27,8 @@ package io.github.rysefoxx.inventory.plugin.events;
 
 import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,11 +36,10 @@ import org.jetbrains.annotations.NotNull;
  * @author Rysefoxx | Rysefoxx#6772
  * @since 7/4/2022
  */
-public class RyseInventoryCloseEvent extends Event {
+public class RyseInventoryCloseEvent extends PlayerEvent {
 
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
-    private final Player player;
     private final RyseInventory inventory;
 
     /**
@@ -48,10 +47,11 @@ public class RyseInventoryCloseEvent extends Event {
      *
      * @param player    The player who closed the inventory.
      * @param inventory The inventory that was closed.
-     * <p>
-     * The event is called only when the inventory is closed with the {@link RyseInventory#close(Player)} method.
+     *                  <p>
+     *                  The event is called only when the inventory is closed with the {@link RyseInventory#close(Player)} method.
      */
     public RyseInventoryCloseEvent(@NotNull Player player, @NotNull RyseInventory inventory) {
+        super(player);
         this.player = player;
         this.inventory = inventory;
     }
@@ -66,13 +66,6 @@ public class RyseInventoryCloseEvent extends Event {
      */
     public RyseInventory getInventory() {
         return this.inventory;
-    }
-
-    /**
-     * @return The player for whom the inventory is closed.
-     */
-    public @NotNull Player getPlayer() {
-        return this.player;
     }
 
     @Override

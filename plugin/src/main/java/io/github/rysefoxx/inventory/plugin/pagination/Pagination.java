@@ -38,8 +38,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -63,7 +63,7 @@ public class Pagination {
     private boolean calledItemsPerPage;
 
     @Setter(AccessLevel.PROTECTED)
-    private List<IntelligentItemData> inventoryData = new ArrayList<>();
+    private List<IntelligentItemData> inventoryData = new CopyOnWriteArrayList<>();
 
     /**
      * @param inventory The inventory where the pagination is used.
@@ -245,6 +245,7 @@ public class Pagination {
      * <br> <br>
      * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
      * <br> <br>
+     *
      * @param slot    The slot
      * @param newItem The Item
      * @throws IllegalArgumentException if slot greater than 53
@@ -263,6 +264,7 @@ public class Pagination {
      * <br> <br>
      * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
      * <br> <br>
+     *
      * @param slot     The slot to set the item at.
      * @param page     The page to set the item to
      * @param newItem  The Item to set
@@ -297,6 +299,7 @@ public class Pagination {
      * <br> <br>
      * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
      * <br> <br>
+     *
      * @param slot The slot to remove the item from.
      */
     @ApiStatus.Internal
@@ -319,6 +322,7 @@ public class Pagination {
      * <br> <br>
      * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
      * <br> <br>
+     *
      * @param slot The slot number of the item you want to get.
      * @return The item in the slot.
      */
@@ -332,6 +336,7 @@ public class Pagination {
      * <br> <br>
      * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
      * <br> <br>
+     *
      * @param slot The slot number of the item you want to get.
      * @return The item in the slot.
      */
@@ -372,6 +377,7 @@ public class Pagination {
      * <br> <br>
      * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
      * <br> <br>
+     *
      * @return A list of IntelligentItemData objects.
      */
     @ApiStatus.Internal

@@ -1,13 +1,13 @@
-group = "io.github.rysefoxx.inventory.v1_19"
-description = "RyseInventory-v1_19"
+group = 'io.github.rysefoxx.inventory.v1_19'
+description = 'RyseInventory-v1_19'
 
 repositories {
     maven {
-        url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
     }
 }
 
 dependencies {
-    implementation(project(":api"))
-    compileOnly("org.spigotmc:spigot:1.19-R0.1-SNAPSHOT")
+    implementation project(':api')
+    compileOnly 'org.spigotmc:spigot:1.19-R0.1-SNAPSHOT'
 }

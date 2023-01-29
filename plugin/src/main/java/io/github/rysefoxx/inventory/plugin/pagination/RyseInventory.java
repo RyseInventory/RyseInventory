@@ -42,13 +42,16 @@ import io.github.rysefoxx.inventory.plugin.util.TitleUpdater;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
@@ -59,6 +62,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnegative;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -67,6 +71,11 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RyseInventory {
+
+    private static final LegacyComponentSerializer SERIALIZER = LegacyComponentSerializer.builder()
+            .hexColors()
+            .useUnusualXRepeatedCharacterHexFormat()
+            .build();
 
     private InventoryManager manager;
     @Getter
@@ -82,7 +91,7 @@ public class RyseInventory {
     @Getter
     private int fixedPageSize = -1;
 
-    private String title;
+    private Component title;
     private Object identifier;
     private int size = -1;
     private int delay = 0;
@@ -102,9 +111,9 @@ public class RyseInventory {
     @Getter(AccessLevel.PROTECTED)
     private boolean updateTask = true;
 
-
     @NotNull
-    private String titleHolder = "§e§oLoading§8...§r";
+    private Component titleHolder = Component.text("Loading", NamedTextColor.YELLOW).decorate(TextDecoration.ITALIC)
+            .append(Component.text("...", NamedTextColor.DARK_GRAY));
 
     @NotNull
     private InventoryOpenerType inventoryOpenerType = InventoryOpenerType.CHEST;
@@ -112,14 +121,14 @@ public class RyseInventory {
     private List<InventoryOptions> options = new ArrayList<>();
     private List<DisabledInventoryClick> ignoreClickEvent = new ArrayList<>();
     private List<CloseReason> closeReasons = new ArrayList<>();
-    private List<EventCreator<? extends Event>> events = new ArrayList<>();
-    private List<IntelligentItemNameAnimator> itemAnimator = new ArrayList<>();
-    private List<IntelligentMaterialAnimator> materialAnimator = new ArrayList<>();
-    private List<IntelligentTitleAnimator> titleAnimator = new ArrayList<>();
-    private List<IntelligentItemLoreAnimator> loreAnimator = new ArrayList<>();
+    private List<EventCreator<? extends Event>> events = new CopyOnWriteArrayList<>();
+    private List<IntelligentItemNameAnimator> itemAnimator = new CopyOnWriteArrayList<>();
+    private List<IntelligentMaterialAnimator> materialAnimator = new CopyOnWriteArrayList<>();
+    private List<IntelligentTitleAnimator> titleAnimator = new CopyOnWriteArrayList<>();
+    private List<IntelligentItemLoreAnimator> loreAnimator = new CopyOnWriteArrayList<>();
     private List<Action> enabledActions = new ArrayList<>();
     private List<DisabledEvents> disabledEvents = new ArrayList<>();
-    private List<Page> pages = new ArrayList<>();
+    private List<Page> pages = new CopyOnWriteArrayList<>();
     protected final List<Player> delayed = new ArrayList<>();
 
     private final HashMap<UUID, ItemStack[]> playerInventory = new HashMap<>();
@@ -133,6 +142,8 @@ public class RyseInventory {
     private RyseInventory(@NotNull RyseInventory inventory) {
         this.manager = inventory.manager;
         this.provider = inventory.provider;
+        this.ryseAnvil = inventory.ryseAnvil;
+        this.permanentCache = inventory.permanentCache;
         this.title = inventory.title;
         this.inventory = inventory.inventory;
         this.clearAndSafe = inventory.clearAndSafe;
@@ -186,7 +197,7 @@ public class RyseInventory {
         inventory.manager = manager;
 
         inventory.clearAndSafe = (boolean) data.get("clear-and-safe");
-        inventory.title = (String) data.get("title");
+        inventory.title = (Component) data.get("title");
         inventory.size = (int) data.get("size");
         inventory.delay = (int) data.get("delay");
         inventory.openDelay = (int) data.get("open-delay");
@@ -197,7 +208,7 @@ public class RyseInventory {
         inventory.closeAble = (boolean) data.get("close-able");
         inventory.transferData = (boolean) data.get("transfer-data");
         inventory.backward = (boolean) data.get("backward");
-        inventory.titleHolder = (String) data.get("title-holder");
+        inventory.titleHolder = (Component) data.get("title-holder");
         inventory.inventoryOpenerType = InventoryOpenerType.valueOf((String) data.get("inventory-opener-type"));
         inventory.options = (List<InventoryOptions>) data.get("options");
         inventory.events = (List<EventCreator<? extends Event>>) data.get("events");
@@ -216,6 +227,8 @@ public class RyseInventory {
         inventory.fixedPageSize = (int) data.get("fixed-page-size");
         inventory.ignoreManualItems = (boolean) data.get("ignore-manual-items");
         inventory.pages = (List<Page>) data.get("pages");
+        inventory.permanentCache = (boolean) data.get("permanent-cache");
+        inventory.ryseAnvil = (RyseAnvil) data.get("ryse-anvil");
 
         return inventory;
     }
@@ -228,6 +241,8 @@ public class RyseInventory {
      */
     public @NotNull Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
+        map.put("permanent-cache", this.permanentCache);
+        map.put("ryse-anvil", this.ryseAnvil);
         map.put("title", this.title);
         map.put("size", this.size);
         map.put("delay", this.delay);
@@ -286,52 +301,56 @@ public class RyseInventory {
      * This method allows you to retrieve the animation using the animation identifier.
      *
      * @param identifier The ID to identify
-     * @return null if no animation with the ID could be found.
+     * @return empty if no animation with the ID could be found.
      * <p>
      * Only works if the animation has also been assigned an identifier.
      */
     public @NotNull Optional<IntelligentItemLoreAnimator> getLoreAnimation(@NotNull Object identifier) {
         return this.loreAnimator.stream()
-                .filter(animator -> Objects.equals(animator.getIdentifier(), identifier)).findFirst();
+                .filter(animator -> Objects.equals(animator.getIdentifier(), identifier))
+                .findFirst();
     }
 
     /**
      * This method allows you to retrieve the animation using the animation identifier.
      *
      * @param identifier The ID to identify
-     * @return null if no animation with the ID could be found.
+     * @return empty if no animation with the ID could be found.
      * <p>
      * Only works if the animation has also been assigned an identifier.
      */
     public @NotNull Optional<IntelligentItemNameAnimator> getNameAnimation(@NotNull Object identifier) {
         return this.itemAnimator.stream()
-                .filter(animator -> Objects.equals(animator.getIdentifier(), identifier)).findFirst();
+                .filter(animator -> Objects.equals(animator.getIdentifier(), identifier))
+                .findFirst();
     }
 
     /**
      * This method allows you to retrieve the animation using the animation identifier.
      *
      * @param identifier The ID to identify
-     * @return null if no animation with the ID could be found.
+     * @return empty if no animation with the ID could be found.
      * <p>
      * Only works if the animation has also been assigned an identifier.
      */
     public @NotNull Optional<IntelligentTitleAnimator> getTitleAnimation(@NotNull Object identifier) {
         return this.titleAnimator.stream()
-                .filter(animator -> Objects.equals(animator.getIdentifier(), identifier)).findFirst();
+                .filter(animator -> Objects.equals(animator.getIdentifier(), identifier))
+                .findFirst();
     }
 
     /**
      * This method allows you to retrieve the animation using the animation identifier.
      *
      * @param identifier The ID to identify
-     * @return null if no animation with the ID could be found.
+     * @return empty if no animation with the ID could be found.
      * <p>
      * Only works if the animation has also been assigned an identifier.
      */
     public @NotNull Optional<IntelligentMaterialAnimator> getMaterialAnimator(@NotNull Object identifier) {
         return this.materialAnimator.stream()
-                .filter(animator -> Objects.equals(animator.getIdentifier(), identifier)).findFirst();
+                .filter(animator -> Objects.equals(animator.getIdentifier(), identifier))
+                .findFirst();
     }
 
     /**
@@ -590,7 +609,6 @@ public class RyseInventory {
     }
 
     private void initInventory(@NotNull Player player, @Nonnegative int page, @Nullable String[] keys, @Nullable Object[] values) {
-
         if (!manager.canOpen(player.getUniqueId())) {
             int finalPage = page;
             Bukkit.getScheduler().runTaskLater(this.plugin, () -> initInventory(player, finalPage, keys, values), 2);
@@ -668,6 +686,17 @@ public class RyseInventory {
      * @author <a href="https://www.spigotmc.org/threads/change-inventory-title-reflection-1-8-1-18.489966/">Original code (Slightly Modified)</a>
      */
     public void updateTitle(@NotNull Player player, @NotNull String newTitle) {
+        updateTitle(player, Component.text(newTitle));
+    }
+
+    /**
+     * With this method you can update the inventory title.
+     *
+     * @param player   The Player
+     * @param newTitle The new title
+     * @author <a href="https://www.spigotmc.org/threads/change-inventory-title-reflection-1-8-1-18.489966/">Original code (Slightly Modified)</a>
+     */
+    public void updateTitle(@NotNull Player player, @NotNull Component newTitle) {
         RyseInventoryTitleChangeEvent event = new RyseInventoryTitleChangeEvent(player, this.title, newTitle);
         Bukkit.getPluginManager().callEvent(event);
 
@@ -688,6 +717,13 @@ public class RyseInventory {
      * @return inventory title
      */
     public @NotNull String getTitle() {
+        return SERIALIZER.serialize(this.title);
+    }
+
+    /**
+     * @return inventory title
+     */
+    public @NotNull Component title() {
         return this.title;
     }
 
@@ -1081,10 +1117,14 @@ public class RyseInventory {
             finalSize = finalPage.rows() * 9;
         }
 
+
+        String title = buildTitle();
+
         if (this.inventoryOpenerType == InventoryOpenerType.CHEST) {
-            return Bukkit.createInventory(null, finalSize, buildTitle());
+            return Bukkit.createInventory(null, finalSize, title);
         }
-        return inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), buildTitle());
+
+        return inventory = Bukkit.createInventory(null, this.inventoryOpenerType.getType(), title);
     }
 
     /**
@@ -1094,8 +1134,10 @@ public class RyseInventory {
      */
     @Contract(pure = true)
     private @NotNull String buildTitle() {
-        if (this.loadTitle == -1) return this.title;
-        return this.titleHolder;
+        if (this.loadTitle == -1)
+            return SERIALIZER.serialize(this.title);
+
+        return SERIALIZER.serialize(this.titleHolder);
     }
 
     /**
@@ -2154,6 +2196,18 @@ public class RyseInventory {
          * The title can also be changed later when the inventory is open.
          */
         public @NotNull Builder title(@NotNull String title) {
+            return title(Component.text(title));
+        }
+
+        /**
+         * Assigns a fixed title to the inventory
+         *
+         * @param title The title
+         * @return The Inventory Builder to set additional options.
+         * <p>
+         * The title can also be changed later when the inventory is open.
+         */
+        public @NotNull Builder title(@NotNull Component title) {
             this.ryseInventory.title = title;
             return this;
         }
@@ -2178,6 +2232,18 @@ public class RyseInventory {
          * This title is used when the {@link Builder#loadTitle(int, TimeSetting)} method is used.
          */
         public @NotNull Builder titleHolder(@NotNull String title) {
+            return titleHolder(Component.text(title));
+        }
+
+        /**
+         * Adds a temporary title to the inventory.
+         *
+         * @param title The temp title
+         * @return The Inventory Builder to set additional options.
+         * <p>
+         * This title is used when the {@link Builder#loadTitle(int, TimeSetting)} method is used.
+         */
+        public @NotNull Builder titleHolder(@NotNull Component title) {
             this.ryseInventory.titleHolder = title;
             return this;
         }
@@ -2230,20 +2296,22 @@ public class RyseInventory {
         /**
          * Builds the RyseInventory
          *
-         * @param plugin Instance to your main class.
-         * @param defaultManager The default inventory if the player does not have a custom inventory.
+         * @param plugin         Instance to your main class.
+         * @param defaultManager The default manager if the player does not have a custom manager.
          * @return the RyseInventory
          * @throws IllegalStateException if manager is null or if the provider is null
          */
-        public @NotNull RyseInventory build(@NotNull Plugin plugin, InventoryManager defaultManager) throws IllegalStateException {
+        public @NotNull RyseInventory build(@NotNull Plugin plugin, @Nullable InventoryManager defaultManager) throws IllegalStateException {
             readOutInventoryManager(plugin);
 
-            if (this.ryseInventory.manager == null)
-                if (defaultManager != null){
+            if (this.ryseInventory.manager == null) {
+                if (defaultManager != null) {
                     this.ryseInventory.manager = defaultManager;
                 } else {
                     throw new IllegalStateException("No manager could be found. Please create an InventoryManager field in your main class.");
                 }
+            }
+
             if (!this.ryseInventory.closeAble && !this.ryseInventory.closeReasons.isEmpty())
                 throw new IllegalStateException("The #close() method could not be executed because you have forbidden closing the inventory by #preventClose.");
 
@@ -2266,6 +2334,9 @@ public class RyseInventory {
             return this.ryseInventory;
         }
 
+        /**
+         * If it is an Anvil look if extensions are used that are not supported.
+         */
         private void validate() {
             if (this.ryseInventory.inventoryOpenerType != InventoryOpenerType.ANVIL)
                 return;

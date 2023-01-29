@@ -28,8 +28,8 @@ package io.github.rysefoxx.inventory.plugin.events;
 import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,11 +37,10 @@ import org.jetbrains.annotations.NotNull;
  * @author Rysefoxx | Rysefoxx#6772
  * @since 7/4/2022
  */
-public class RyseInventoryPreCloseEvent extends Event implements Cancellable {
+public class RyseInventoryPreCloseEvent extends PlayerEvent implements Cancellable {
 
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
-    private final Player player;
     private final RyseInventory inventory;
 
     private boolean isCancelled;
@@ -55,7 +54,7 @@ public class RyseInventoryPreCloseEvent extends Event implements Cancellable {
      * The event is called only when the inventory is closed with the {@link RyseInventory#close(Player)} method.
      */
     public RyseInventoryPreCloseEvent(@NotNull Player player, @NotNull RyseInventory inventory) {
-        this.player = player;
+        super(player);
         this.inventory = inventory;
         this.isCancelled = false;
     }
@@ -83,13 +82,6 @@ public class RyseInventoryPreCloseEvent extends Event implements Cancellable {
      */
     public RyseInventory getInventory() {
         return this.inventory;
-    }
-
-    /**
-     * @return The player for whom the inventory is closed.
-     */
-    public @NotNull Player getPlayer() {
-        return this.player;
     }
 
     @Override

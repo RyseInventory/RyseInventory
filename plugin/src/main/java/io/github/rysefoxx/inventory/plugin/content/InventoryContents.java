@@ -38,6 +38,7 @@ import io.github.rysefoxx.inventory.plugin.util.PlaceHolderConstants;
 import io.github.rysefoxx.inventory.plugin.util.SlotUtils;
 import io.github.rysefoxx.inventory.plugin.util.StringConstants;
 import io.github.rysefoxx.inventory.plugin.util.Utils;
+import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
@@ -828,6 +829,15 @@ public class InventoryContents {
      * @param newTitle The new title
      */
     public void updateTitle(@NotNull String newTitle) {
+        updateTitle(Component.text(newTitle));
+    }
+
+    /**
+     * With this method you can update the inventory title.
+     *
+     * @param newTitle The new title
+     */
+    public void updateTitle(@NotNull Component newTitle) {
         this.inventory.updateTitle(this.player, newTitle);
     }
 
@@ -2123,11 +2133,12 @@ public class InventoryContents {
 
     /**
      * Fills a single page completely.
-     * @param page The page to be filled.
+     *
+     * @param page      The page to be filled.
      * @param itemStack The item to be placed.
-     * @param type The type of the item
-     *             <p>
-     *             First page is 0, second page is 1, etc.
+     * @param type      The type of the item
+     *                  <p>
+     *                  First page is 0, second page is 1, etc.
      */
     public void fillPage(@Nonnegative int page,
                          @NotNull ItemStack itemStack,
@@ -2333,7 +2344,7 @@ public class InventoryContents {
                     @NotNull IntelligentItem item) {
         slots.forEach(slot -> set(slot, item));
     }
-    
+
     /**
      * Sets a fixed intelligent ItemStack in the inventory.
      *

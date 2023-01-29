@@ -28,8 +28,8 @@ package io.github.rysefoxx.inventory.plugin.events;
 import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,11 +39,10 @@ import org.jetbrains.annotations.NotNull;
  * <br>
  * This class is called before the inventory is opened. With this you are able to e.g. change the inventory #setInventory or cancel it completely #setCancelled
  */
-public class RyseInventoryPreOpenEvent extends Event implements Cancellable {
+public class RyseInventoryPreOpenEvent extends PlayerEvent implements Cancellable {
 
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
-    private final Player player;
     private RyseInventory inventory;
 
     private boolean isCancelled;
@@ -53,7 +52,7 @@ public class RyseInventoryPreOpenEvent extends Event implements Cancellable {
      * @param inventory The inventory
      */
     public RyseInventoryPreOpenEvent(@NotNull Player player, @NotNull RyseInventory inventory) {
-        this.player = player;
+        super(player);
         this.inventory = inventory;
         this.isCancelled = false;
     }
@@ -88,13 +87,6 @@ public class RyseInventoryPreOpenEvent extends Event implements Cancellable {
      */
     public void setInventory(@NotNull RyseInventory inventory) {
         this.inventory = inventory;
-    }
-
-    /**
-     * @return The player for whom the inventory is opened.
-     */
-    public @NotNull Player getPlayer() {
-        return this.player;
     }
 
     @Override
