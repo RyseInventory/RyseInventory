@@ -7,6 +7,9 @@ managed easily. Besides, you don't have to worry about the pages, because they a
 things can be done with the inventory. More about this under the
 point [Features](https://github.com/Rysefoxx/RyseInventory#features)
 
+# Discord
+Currently programming a bot for the upcoming RyseInventory Discord bot. You can get more information [here](https://github.com/RyseInventory/RyseInventorySupport)
+
 # Features
 
 - Update 1.1.8 now has an integrated animation system.
