@@ -27,7 +27,10 @@ package io.github.rysefoxx.inventory.plugin.pagination;
 
 import io.github.rysefoxx.inventory.plugin.pattern.SlotIteratorPattern;
 import io.github.rysefoxx.inventory.plugin.util.SlotUtils;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.Nonnegative;
 import java.util.ArrayList;
@@ -100,15 +103,16 @@ public class SlotIterator {
     }
 
     /**
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      * @return all slots where no items should be placed.
      * @throws UnsupportedOperationException When modifying the returned list.
      */
     @Unmodifiable
-    @ApiStatus.Internal
     public @NotNull List<Integer> getBlackList() throws UnsupportedOperationException {
         return Collections.unmodifiableList(this.blackList);
+    }
+
+    protected @NotNull List<Integer> getBlackListInternal() {
+        return this.blackList;
     }
 
     /**

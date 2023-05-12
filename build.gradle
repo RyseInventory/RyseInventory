@@ -25,7 +25,7 @@ allprojects {
             options.encoding = 'UTF-8'
         }
     }
-    version = '1.5.7'
+    version = '1.6.0'
 }
 
 subprojects {

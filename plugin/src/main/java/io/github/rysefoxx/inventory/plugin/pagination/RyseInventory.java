@@ -46,6 +46,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -77,6 +78,10 @@ public class RyseInventory {
             .useUnusualXRepeatedCharacterHexFormat()
             .build();
 
+    private RyseInventory originalInventory;
+
+    private PaginationData paginationCache;
+
     private InventoryManager manager;
     @Getter
     private InventoryProvider provider;
@@ -84,7 +89,8 @@ public class RyseInventory {
     private @Nullable Inventory inventory;
     private SlideAnimation slideAnimator;
     @Getter(AccessLevel.PROTECTED)
-    private RyseAnvil ryseAnvil;
+    private AnvilGUI.Builder anvilGUIBuilder;
+    private AnvilGUI anvilGUI;
     @Getter(AccessLevel.PROTECTED)
     private transient Plugin plugin;
 
@@ -105,6 +111,7 @@ public class RyseInventory {
     private boolean ignoreManualItems;
     private boolean clearAndSafe;
     private boolean permanentCache;
+    private boolean keepOriginal;
     private boolean closeAble = true;
     private boolean transferData = true;
 
@@ -142,7 +149,7 @@ public class RyseInventory {
     private RyseInventory(@NotNull RyseInventory inventory) {
         this.manager = inventory.manager;
         this.provider = inventory.provider;
-        this.ryseAnvil = inventory.ryseAnvil;
+        this.anvilGUIBuilder = inventory.anvilGUIBuilder;
         this.permanentCache = inventory.permanentCache;
         this.title = inventory.title;
         this.inventory = inventory.inventory;
@@ -179,6 +186,8 @@ public class RyseInventory {
         this.loreAnimator.addAll(inventory.loreAnimator);
         this.playerInventory.putAll(inventory.playerInventory);
         this.pages.addAll(inventory.pages);
+        this.keepOriginal = inventory.keepOriginal;
+        this.originalInventory = inventory;
 
     }
 
@@ -197,7 +206,7 @@ public class RyseInventory {
         inventory.manager = manager;
 
         inventory.clearAndSafe = (boolean) data.get("clear-and-safe");
-        inventory.title = (Component) data.get("title");
+        inventory.title = SERIALIZER.deserialize((String) data.get("title"));
         inventory.size = (int) data.get("size");
         inventory.delay = (int) data.get("delay");
         inventory.openDelay = (int) data.get("open-delay");
@@ -208,7 +217,7 @@ public class RyseInventory {
         inventory.closeAble = (boolean) data.get("close-able");
         inventory.transferData = (boolean) data.get("transfer-data");
         inventory.backward = (boolean) data.get("backward");
-        inventory.titleHolder = (Component) data.get("title-holder");
+        inventory.titleHolder = SERIALIZER.deserialize((String) data.get("title-holder"));
         inventory.inventoryOpenerType = InventoryOpenerType.valueOf((String) data.get("inventory-opener-type"));
         inventory.options = (List<InventoryOptions>) data.get("options");
         inventory.events = (List<EventCreator<? extends Event>>) data.get("events");
@@ -228,7 +237,10 @@ public class RyseInventory {
         inventory.ignoreManualItems = (boolean) data.get("ignore-manual-items");
         inventory.pages = (List<Page>) data.get("pages");
         inventory.permanentCache = (boolean) data.get("permanent-cache");
-        inventory.ryseAnvil = (RyseAnvil) data.get("ryse-anvil");
+        if (data.containsKey("original-inventory")) {
+            inventory.originalInventory = deserialize((Map<String, Object>) data.get("original-inventory"), manager);
+        }
+        inventory.keepOriginal = (boolean) data.get("keep-original");
 
         return inventory;
     }
@@ -241,9 +253,12 @@ public class RyseInventory {
      */
     public @NotNull Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
+        if (this.originalInventory != null) {
+            map.put("original-inventory", this.originalInventory.serialize());
+        }
+        map.put("keep-original", this.keepOriginal);
         map.put("permanent-cache", this.permanentCache);
-        map.put("ryse-anvil", this.ryseAnvil);
-        map.put("title", this.title);
+        map.put("title", SERIALIZER.serialize(this.title));
         map.put("size", this.size);
         map.put("delay", this.delay);
         map.put("plugin", this.plugin.getName());
@@ -255,7 +270,7 @@ public class RyseInventory {
         map.put("close-able", this.closeAble);
         map.put("transfer-data", this.transferData);
         map.put("backward", this.backward);
-        map.put("title-holder", this.titleHolder);
+        map.put("title-holder", SERIALIZER.serialize(this.titleHolder));
         map.put("inventory-opener-type", this.inventoryOpenerType.toString());
         map.put("options", this.options);
         map.put("events", this.events);
@@ -384,8 +399,8 @@ public class RyseInventory {
 
         if (preCloseEvent.isCancelled()) return;
 
+        this.paginationCache = null;
         removeActiveAnimations();
-
         clearData(player);
         player.closeInventory();
 
@@ -591,7 +606,6 @@ public class RyseInventory {
     public void open(@NotNull Player player, String @NotNull [] keys, Object @NotNull [] values) throws IllegalArgumentException {
         Preconditions.checkArgument(keys.length == values.length, StringConstants.INVALID_OBJECT);
 
-
         Bukkit.getScheduler().runTask(this.plugin, () -> initInventory(player, 1, keys, values));
     }
 
@@ -606,6 +620,20 @@ public class RyseInventory {
         Object[] values = data.values().toArray();
 
         Bukkit.getScheduler().runTask(this.plugin, () -> initInventory(player, 1, keys, values));
+    }
+
+    /**
+     * Allows the inventory to be closed even after it has been opened.
+     */
+    public void allowClose() {
+        this.closeAble = true;
+    }
+
+    /**
+     * Allows the inventory not to be closed even after it has been opened.
+     */
+    public void preventClose() {
+        this.closeAble = false;
     }
 
     private void initInventory(@NotNull Player player, @Nonnegative int page, @Nullable String[] keys, @Nullable Object[] values) {
@@ -635,14 +663,15 @@ public class RyseInventory {
 
         page--;
 
-        Inventory setupInventory = setupInventory(page);
-        InventoryContents contents = new InventoryContents(player, this);
+        this.inventory = setupInventory(page);
+
+        InventoryContents contents = new InventoryContents(player, this, this.plugin);
         Optional<InventoryContents> optional = this.manager.getContents(player.getUniqueId());
 
         contents.pagination().setPage(page);
 
         transferData(optional.orElse(null), contents, keys, values);
-        setupData(player, setupInventory, contents);
+        setupData(player, contents);
         initProvider(player, contents);
 
         if (optional.isPresent() && optional.get().equals(contents)) return;
@@ -664,6 +693,36 @@ public class RyseInventory {
         closeInventoryWhenEnabled(player);
 
         finalizeInventoryAndOpen(player, contents);
+    }
+
+    /**
+     * Opens the original inventory to the player.
+     *
+     * @param player The player to whom the original inventory should be opened.
+     * @throws IllegalStateException if the original inventory is not saved.
+     */
+    public void restoreOriginal(@NotNull Player player) throws IllegalStateException {
+        if (!this.keepOriginal) {
+            throw new IllegalStateException("To save the original inventory, use the #keepOriginal method in the Builder!");
+        }
+
+        this.originalInventory.open(player);
+    }
+
+    /**
+     * Öffnet das originale Inventar für alle Spieler die aktuell dieses Inventar offen haben
+     *
+     * @throws IllegalStateException if the original inventory is not saved.
+     */
+    public void restoreOriginal() throws IllegalStateException {
+        if (!this.keepOriginal) {
+            throw new IllegalStateException("To save the original inventory, use the #keepOriginal method in the Builder!");
+        }
+
+        getOpenedPlayers().stream()
+                .map(Bukkit::getPlayer)
+                .filter(Objects::nonNull)
+                .forEach(player -> this.originalInventory.open(player));
     }
 
     /**
@@ -839,9 +898,6 @@ public class RyseInventory {
     }
 
     /**
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
-     *
      * @return The slideAnimator object.
      */
     @ApiStatus.Internal
@@ -877,9 +933,6 @@ public class RyseInventory {
 
     /**
      * Returns the InventoryManager instance that this Inventory is associated with.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @return The InventoryManager object.
      */
@@ -890,9 +943,6 @@ public class RyseInventory {
 
     /**
      * Sets the fixed page size for the query
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param fixedPageSize How many pages the player can open even though no items are set there.
      */
@@ -942,17 +992,14 @@ public class RyseInventory {
 
     /**
      * If the privateInventory map contains the UUID, return the inventory associated with it
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param uuid The UUID of the player you want to get the inventory of.
      * @return An optional of the inventory.
      */
     @ApiStatus.Internal
     public @NotNull Optional<Inventory> inventoryBasedOnOption(@NotNull UUID uuid) {
-        if (this.ryseAnvil != null && this.ryseAnvil.getAnvilGUI() != null)
-            return Optional.of(this.ryseAnvil.getAnvilGUI().getInventory());
+        if (this.anvilGUI != null)
+            return Optional.of(this.anvilGUI.getInventory());
 
         return Optional.ofNullable(this.inventory);
     }
@@ -975,9 +1022,6 @@ public class RyseInventory {
 
     /**
      * Loads the items of the given page into the inventory of the given player.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param pagination The Pagination object that you created.
      * @param player     The player who's viewing the inventory
@@ -1013,17 +1057,8 @@ public class RyseInventory {
             return;
         }
 
-        if (this.ryseAnvil != null) {
-            if (this.ryseAnvil.getAnvilGUI() == null)
-                return;
-            if (slot >= this.ryseAnvil.getAnvilGUI().getInventory().getSize())
-                return;
-
-            this.ryseAnvil.getAnvilGUI().getInventory().setItem(slot, item.getItemStack());
-            return;
-        }
-
-        this.inventory.setItem(slot, item.getItemStack());
+        if (this.inventory != null)
+            this.inventory.setItem(slot, item.getItemStack());
     }
 
     /**
@@ -1117,9 +1152,7 @@ public class RyseInventory {
             finalSize = finalPage.rows() * 9;
         }
 
-
         String title = buildTitle();
-
         if (this.inventoryOpenerType == InventoryOpenerType.CHEST) {
             return Bukkit.createInventory(null, finalSize, title);
         }
@@ -1181,16 +1214,12 @@ public class RyseInventory {
     /**
      * It sets the contents of the inventory to the contents of the inventory that the player is viewing
      *
-     * @param player    The player who is viewing the inventory.
-     * @param inventory The inventory that the player is viewing.
-     * @param contents  The InventoryContents object that contains the inventory's contents.
+     * @param player   The player who is viewing the inventory.
+     * @param contents The InventoryContents object that contains the inventory's contents.
      */
     private void setupData(@NotNull Player player,
-                           @NotNull Inventory inventory,
                            @NotNull InventoryContents contents) {
         this.manager.setContents(player.getUniqueId(), contents);
-
-        this.inventory = inventory;
     }
 
     /**
@@ -1203,8 +1232,8 @@ public class RyseInventory {
     private void initProvider(@NotNull Player player,
                               @NotNull InventoryContents contents) {
         if (this.inventoryOpenerType == InventoryOpenerType.ANVIL) {
-            this.ryseAnvil = new RyseAnvil(player, buildTitle(), contents);
-            this.provider.anvil(player, this.ryseAnvil);
+            this.anvilGUIBuilder = new AnvilGUI.Builder().title(buildTitle());
+            this.provider.anvil(player, this.anvilGUIBuilder);
             return;
         }
         if (this.slideAnimator == null) {
@@ -1254,6 +1283,9 @@ public class RyseInventory {
      * @param player The player who will open the inventory.
      */
     private void finalizeInventoryAndOpen(@NotNull Player player, @NotNull InventoryContents contents) {
+        if (this.keepOriginal)
+            this.originalInventory = this;
+
         Bukkit.getScheduler().runTask(this.plugin, () -> {
             if (this.openDelay == -1 || this.delayed.contains(player)) {
                 openInventory(player, contents);
@@ -1284,8 +1316,7 @@ public class RyseInventory {
      */
     private void openInventory(@NotNull Player player, @NotNull InventoryContents contents) {
         if (Objects.requireNonNull(inventory).getType() == InventoryType.ANVIL) {
-            this.ryseAnvil.open(this.plugin, this.loadDelay != -1,
-                    this.ignoredSlotsWithEvents.keySet().stream().mapToInt(i -> i).toArray());
+            this.anvilGUI = this.anvilGUIBuilder.open(player);
         } else {
             player.openInventory(inventory);
         }
@@ -1345,74 +1376,15 @@ public class RyseInventory {
                                     @Nonnegative int startSlot,
                                     @Nonnegative int page,
                                     @NotNull InventoryContents contents) {
+        int pageSize = size(contents, page);
+
         if (type == SlotIterator.SlotIteratorType.HORIZONTAL)
             return new int[]{++slot};
 
-        if (type == SlotIterator.SlotIteratorType.VERTICAL) {
-            if (slot + 9 >= size(contents, page)) {
-                return new int[]{++startSlot, 1};
-            }
+        if (slot + 9 >= pageSize)
+            return new int[]{++startSlot, 1};
 
-            return new int[]{9 + slot};
-        }
-        return new int[]{slot};
-    }
-
-    /**
-     * If the slot is occupied, or if the slot is blacklisted, or if the slot is outside of the current page, then
-     * increment the slot and try again.
-     *
-     * @param contents       The InventoryContents object
-     * @param type           The type of iterator you want to use.
-     * @param page           The page that the slot is on.
-     * @param calculatedSlot The slot that is currently being calculated.
-     * @param startSlot      The slot that the algorithm will start at.
-     * @return An array of integers.
-     */
-    @Contract("_, _, _, _, _ -> new")
-    private int @NotNull [] nextSlotAlgorithm(@NotNull InventoryContents contents,
-                                              @NotNull SlotIterator.SlotIteratorType type,
-                                              @Nonnegative int page,
-                                              @Nonnegative int calculatedSlot,
-                                              @Nonnegative int startSlot) {
-        SlotIterator iterator = Objects.requireNonNull(contents.iterator());
-
-        int toAdd = 0;
-
-        int resetItemsSet = 0;
-        int resetStartSlot = 0;
-
-
-        while (calculatedSlot < 54 && contents.getPresent(calculatedSlot).isPresent()
-                || iterator.getBlackList().contains(calculatedSlot)
-                || (page <= lastPage(contents) && calculatedSlot >= size(contents, page))) {
-
-            if (calculatedSlot >= 53
-                    || calculatedSlot >= size(contents, page)
-                    && calculatedSlot % 9 == 8) {
-                resetItemsSet = 1;
-                resetStartSlot = 1;
-                calculatedSlot = iterator.getSlot();
-
-                page++;
-            }
-
-            if (type == SlotIterator.SlotIteratorType.HORIZONTAL) {
-                calculatedSlot++;
-                continue;
-            }
-
-            if ((calculatedSlot + 9) >= size(contents, page)) {
-                toAdd++;
-                calculatedSlot = startSlot + toAdd;
-
-                if (calculatedSlot % 9 == 8)
-                    page++;
-            } else {
-                calculatedSlot += 9;
-            }
-        }
-        return new int[]{page, calculatedSlot, resetItemsSet, resetStartSlot, (startSlot + toAdd)};
+        return new int[]{9 + slot};
     }
 
     /**
@@ -1432,9 +1404,6 @@ public class RyseInventory {
 
     /**
      * Adds an item animator to the list of item animators.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param animator The animator to add.
      */
@@ -1445,9 +1414,6 @@ public class RyseInventory {
 
     /**
      * Adds an IntelligentMaterialAnimator to the list of IntelligentMaterialAnimators.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param animator The IntelligentMaterialAnimator to add.
      */
@@ -1459,9 +1425,6 @@ public class RyseInventory {
     /**
      * It removes an IntelligentMaterialAnimator from the list of animators, and if the animator is currently running, it
      * cancels the task
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param animator The IntelligentMaterialAnimator to remove.
      */
@@ -1475,9 +1438,6 @@ public class RyseInventory {
 
     /**
      * It removes an item animator from the list of item animators
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param animator The IntelligentItemNameAnimator to remove.
      */
@@ -1491,9 +1451,6 @@ public class RyseInventory {
 
     /**
      * Adds an IntelligentTitleAnimator to the list of IntelligentTitleAnimators.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param animator The animator to add.
      */
@@ -1504,9 +1461,6 @@ public class RyseInventory {
 
     /**
      * It removes a title animator from the list of title animators
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param animator The IntelligentTitleAnimator to remove.
      */
@@ -1520,9 +1474,6 @@ public class RyseInventory {
 
     /**
      * Adds an IntelligentItemLoreAnimator to the list of lore animators
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param animator The animator to add.
      */
@@ -1533,9 +1484,6 @@ public class RyseInventory {
 
     /**
      * It removes the animator from the list of animators, and cancels all of the tasks that the animator has
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param animator The animator to remove.
      */
@@ -1565,9 +1513,6 @@ public class RyseInventory {
 
     /**
      * It takes a list of items, and places them in a paginated inventory
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param contents The InventoryContents object that contains all the information about the inventory.
      */
@@ -1593,7 +1538,7 @@ public class RyseInventory {
             return;
         }
 
-        applyStandardPagination(contents, pagination, iterator, type, data, itemsSet, page, startSlot);
+        applyStandardPagination(contents, pagination, iterator, data, startSlot);
 
         contents.pagination().setInventoryData(data);
     }
@@ -1604,78 +1549,70 @@ public class RyseInventory {
      * @param contents   The InventoryContents object that is passed to the Pagination object.
      * @param pagination The pagination object that is being used.
      * @param iterator   The slot iterator that is being used.
-     * @param type       The type of slot iterator.
      * @param data       The list of items to be paginated.
-     * @param itemsSet   The amount of items that have been set on the current page.
-     * @param page       The current page
      * @param startSlot  The slot to start at.
      */
     private void applyStandardPagination(@NotNull InventoryContents contents,
                                          @NotNull Pagination pagination,
                                          @NotNull SlotIterator iterator,
-                                         @NotNull SlotIterator.SlotIteratorType type,
                                          @NotNull List<IntelligentItemData> data,
-                                         @Nonnegative int itemsSet,
-                                         @Nonnegative int page,
                                          int startSlot) {
 
-        int slot = startSlot;
+        PaginationData paginationData = this.paginationCache == null
+                ? findAllEmptySlots(contents, iterator, data.size())
+                : this.paginationCache.newInstance();
+
+        if (this.paginationCache == null)
+            this.paginationCache = paginationData.newInstance();
 
         for (int i = 0; i < data.size(); i++) {
             IntelligentItemData itemData = data.get(i);
             if (itemData.getModifiedSlot() != -1) continue;
 
-            if ((itemsSet >= pagination.getItemsPerPage() && iterator.getEndPosition() == -1)
-                    || slot >= iterator.getEndPosition() && iterator.getEndPosition() != -1) {
-                itemsSet = 0;
-                slot = iterator.getSlot();
-                startSlot = slot;
-                page++;
-            }
+            int slot = paginationData.getFirstSlot();
+            int page = paginationData.getFirstPage();
 
-            if (!iterator.isOverride()) {
-                int[] dataArray = nextSlotAlgorithm(contents, type, page, slot, startSlot);
-                page = dataArray[0];
-                slot = dataArray[1];
-
-                int resetItemsSet = dataArray[2];
-                if (resetItemsSet == 1)
-                    itemsSet = 0;
-
-                int resetStartSlot = dataArray[3];
-                if (resetStartSlot == 1) {
-                    startSlot = iterator.getSlot();
-                } else {
-                    startSlot = dataArray[4];
-                }
-
-                if (type == SlotIterator.SlotIteratorType.VERTICAL
-                        && startSlot >= iterator.getSlot() + 9) {
-                    startSlot = iterator.getSlot();
-                    page++;
-                    itemsSet = 0;
-                }
-            }
+            if (slot == -1 || page == -1)
+                continue;
 
             pagination.remove(slot, page);
 
             itemData.setPage(page);
             itemData.setModifiedSlot(slot);
-
-            if (i >= data.size()) {
-                data.add(itemData);
-            } else {
-                data.set(i, itemData);
-            }
-            itemsSet++;
-
-            int[] nextSlotData = updateForNextSlot(type, slot, startSlot, page, contents);
-
-            slot = nextSlotData[0];
-
-            if (nextSlotData.length == 2)
-                startSlot += nextSlotData[1];
         }
+    }
+
+    private @NotNull PaginationData findAllEmptySlots(@NotNull InventoryContents contents,
+                                                      @NotNull SlotIterator iterator,
+                                                      @Nonnegative int requiredSlots) {
+        PaginationData data = new PaginationData();
+
+        int itemsPerPage = contents.pagination().getItemsPerPage();
+
+        int slot = iterator.getSlot();
+        int page = 0;
+        int slotsFound = 0;
+
+        while (requiredSlots > 0) {
+            if ((!iterator.isOverride() && contents.getWithinPage(slot, page).isPresent()) || iterator.getBlackListInternal().contains(slot)) {
+                slot++;
+                continue;
+            }
+
+            if ((slotsFound >= itemsPerPage && iterator.getEndPosition() == -1) || (slot > iterator.getEndPosition() && iterator.getEndPosition() != -1)) {
+                slotsFound = 0;
+                page++;
+                slot = iterator.getSlot();
+            }
+
+            data.add(slot, page);
+
+            requiredSlots--;
+            slotsFound++;
+            slot++;
+        }
+
+        return data;
     }
 
     /**
@@ -1708,9 +1645,8 @@ public class RyseInventory {
         do {
             for (int j = 0; j < lines.size(); j++) {
                 String line = lines.get(j);
-                for (int i = 0; i < line.toCharArray().length; i++) {
-                    char lineChar = line.toCharArray()[i];
-
+                char[] charArray = line.toCharArray();
+                for (char lineChar : charArray) {
                     if ((itemsSet >= pagination.getItemsPerPage() && iterator.getEndPosition() == -1)
                             || slot > pagination.inventory().size(contents) - 1
                             || (slot >= iterator.getEndPosition() && iterator.getEndPosition() != -1)) {
@@ -1793,6 +1729,11 @@ public class RyseInventory {
 
         public @NotNull Builder newInstance() {
             return new Builder(this);
+        }
+
+        public @NotNull Builder keepOriginal() {
+            this.ryseInventory.keepOriginal = true;
+            return this;
         }
 
         /**

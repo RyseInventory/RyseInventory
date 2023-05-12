@@ -28,7 +28,7 @@ package io.github.rysefoxx.inventory.plugin.util;
 import io.github.rysefoxx.inventory.plugin.enums.TimeSetting;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
 
@@ -40,7 +40,10 @@ import javax.annotation.Nonnegative;
 public class TimeUtils {
 
     @Contract(pure = true)
-    public @Nonnegative int buildTime(@Nonnegative int time, @NotNull TimeSetting setting) {
+    public int buildTime(@Nonnegative int time, @Nullable TimeSetting setting) {
+        if(setting == null)
+            return -1;
+
         return setting ==
                 TimeSetting.MILLISECONDS
                 ? time

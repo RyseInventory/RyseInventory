@@ -38,8 +38,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnegative;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -63,7 +63,7 @@ public class Pagination {
     private boolean calledItemsPerPage;
 
     @Setter(AccessLevel.PROTECTED)
-    private List<IntelligentItemData> inventoryData = new CopyOnWriteArrayList<>();
+    private List<IntelligentItemData> inventoryData = new ArrayList<>();
 
     /**
      * @param inventory The inventory where the pagination is used.
@@ -242,9 +242,6 @@ public class Pagination {
 
     /**
      * Sets a new item at a slot.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param slot    The slot
      * @param newItem The Item
@@ -261,9 +258,6 @@ public class Pagination {
 
     /**
      * Sets a new item at a slot with defined a page.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param slot     The slot to set the item at.
      * @param page     The page to set the item to
@@ -296,9 +290,6 @@ public class Pagination {
     /**
      * It removes all inventory data from the inventory data list that has the same page and slot as the page and slot that
      * was passed into the function
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param slot The slot to remove the item from.
      */
@@ -319,9 +310,6 @@ public class Pagination {
 
     /**
      * Returns the item in the specified slot, or null if the slot is empty.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param slot The slot number of the item you want to get.
      * @return The item in the slot.
@@ -333,9 +321,6 @@ public class Pagination {
 
     /**
      * Returns the item in the specified slot, or null if the slot is empty.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param slot The slot number of the item you want to get.
      * @return The item in the slot.
@@ -355,9 +340,6 @@ public class Pagination {
      * The first thing we do is filter the inventory data to only include data that matches the given page and slot. Then
      * we use `findFirst()` to get the first item in the stream, if there is one. If there is an item, we use `map()` to
      * get the item from the data. If there is no item, we use `orElse()` to return null
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param slot The slot number of the item you want to get.
      * @param page The page number of the inventory.
@@ -374,9 +356,6 @@ public class Pagination {
 
     /**
      * Returns the inventory data of the player.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @return A list of IntelligentItemData objects.
      */

@@ -125,9 +125,6 @@ public class IntelligentItemColor {
     /**
      * If the color is already set, return it. If it's not set, try to get it from the color wrapper. If the color wrapper
      * is null, throw an exception
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @return The color of the text.
      */

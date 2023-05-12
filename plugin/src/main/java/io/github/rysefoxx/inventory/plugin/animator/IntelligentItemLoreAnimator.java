@@ -398,9 +398,6 @@ public class IntelligentItemLoreAnimator {
 
     /**
      * This function returns a list of tasks.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @return A list of BukkitTasks
      */

@@ -29,6 +29,7 @@ import io.github.rysefoxx.inventory.plugin.animator.SlideAnimation;
 import io.github.rysefoxx.inventory.plugin.content.IntelligentItem;
 import io.github.rysefoxx.inventory.plugin.content.InventoryContents;
 import io.github.rysefoxx.inventory.plugin.enums.*;
+import io.github.rysefoxx.inventory.plugin.events.*;
 import io.github.rysefoxx.inventory.plugin.other.EventCreator;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -256,9 +257,6 @@ public class InventoryManager {
 
     /**
      * It puts the contents of the inventory into a HashMap
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param uuid     The UUID of the player who's inventory you want to set.
      * @param contents The InventoryContents object that you want to set.
@@ -642,6 +640,80 @@ public class InventoryManager {
             RyseInventory mainInventory = inventories.get(player.getUniqueId());
 
             EventCreator<PlayerQuitEvent> customEvent = (EventCreator<PlayerQuitEvent>) mainInventory.getEvent(PlayerQuitEvent.class);
+            if (customEvent == null) return;
+
+            customEvent.accept(event);
+        }
+
+        @EventHandler(priority = EventPriority.LOWEST)
+        @SuppressWarnings("unchecked")
+        public void onRyseInventoryClose(@NotNull RyseInventoryCloseEvent event) {
+            Player player = event.getPlayer();
+            if (!hasInventory(player.getUniqueId()))
+                return;
+
+            RyseInventory mainInventory = inventories.get(player.getUniqueId());
+
+            EventCreator<RyseInventoryCloseEvent> customEvent = (EventCreator<RyseInventoryCloseEvent>) mainInventory.getEvent(RyseInventoryCloseEvent.class);
+            if (customEvent == null) return;
+
+            customEvent.accept(event);
+        }
+
+        @EventHandler(priority = EventPriority.LOWEST)
+        @SuppressWarnings("unchecked")
+        public void onRyseInventoryOpen(@NotNull RyseInventoryOpenEvent event) {
+            Player player = event.getPlayer();
+            if (!hasInventory(player.getUniqueId()))
+                return;
+
+            RyseInventory mainInventory = inventories.get(player.getUniqueId());
+
+            EventCreator<RyseInventoryOpenEvent> customEvent = (EventCreator<RyseInventoryOpenEvent>) mainInventory.getEvent(RyseInventoryOpenEvent.class);
+            if (customEvent == null) return;
+
+            customEvent.accept(event);
+        }
+
+        @EventHandler(priority = EventPriority.LOWEST)
+        @SuppressWarnings("unchecked")
+        public void onRyseInventoryPreClose(@NotNull RyseInventoryPreCloseEvent event) {
+            Player player = event.getPlayer();
+            if (!hasInventory(player.getUniqueId()))
+                return;
+
+            RyseInventory mainInventory = inventories.get(player.getUniqueId());
+
+            EventCreator<RyseInventoryPreCloseEvent> customEvent = (EventCreator<RyseInventoryPreCloseEvent>) mainInventory.getEvent(RyseInventoryPreCloseEvent.class);
+            if (customEvent == null) return;
+
+            customEvent.accept(event);
+        }
+
+        @EventHandler(priority = EventPriority.LOWEST)
+        @SuppressWarnings("unchecked")
+        public void onRyseInventoryPreOpen(@NotNull RyseInventoryPreOpenEvent event) {
+            Player player = event.getPlayer();
+            if (!hasInventory(player.getUniqueId()))
+                return;
+
+            RyseInventory mainInventory = inventories.get(player.getUniqueId());
+
+            EventCreator<RyseInventoryPreOpenEvent> customEvent = (EventCreator<RyseInventoryPreOpenEvent>) mainInventory.getEvent(RyseInventoryPreOpenEvent.class);
+            if (customEvent == null) return;
+
+            customEvent.accept(event);
+        }
+
+        @EventHandler(priority = EventPriority.LOWEST)
+        @SuppressWarnings("unchecked")
+        public void onRyseInventoryTitleChange(@NotNull RyseInventoryTitleChangeEvent event) {
+            Player player = event.getPlayer();
+            if (!hasInventory(player.getUniqueId()))
+                return;
+
+            RyseInventory mainInventory = inventories.get(player.getUniqueId());
+            EventCreator<RyseInventoryTitleChangeEvent> customEvent = (EventCreator<RyseInventoryTitleChangeEvent>) mainInventory.getEvent(RyseInventoryTitleChangeEvent.class);
             if (customEvent == null) return;
 
             customEvent.accept(event);

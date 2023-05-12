@@ -10,6 +10,8 @@ point [Features](https://github.com/Rysefoxx/RyseInventory#features)
 # Discord
 Currently programming a bot for the upcoming RyseInventory Discord bot. You can get more information [here](https://github.com/RyseInventory/RyseInventorySupport)
 
+Feel free to join my Discord to stay up to date. [Click here](https://discord.gg/GAnXF7BzKg)
+
 # Features
 
 - Update 1.1.8 now has an integrated animation system.
@@ -50,7 +52,7 @@ repositories {
     maven { url "https://s01.oss.sonatype.org/content/groups/public/" }
 }
 dependencies {
-    implementation 'io.github.rysefoxx.inventory:RyseInventory-Plugin:1.5.7'
+    implementation 'io.github.rysefoxx.inventory:RyseInventory-Plugin:1.6.0'
 }
 ```
 
@@ -62,7 +64,7 @@ repositories {
     maven { url = uri("https://s01.oss.sonatype.org/content/groups/public/") }
 }
 dependencies {
-    implementation("io.github.rysefoxx.inventory:RyseInventory-Plugin:1.5.7")
+    implementation("io.github.rysefoxx.inventory:RyseInventory-Plugin:1.6.0")
 }
 ```
 
@@ -79,7 +81,7 @@ dependencies {
 <dependency>
   <groupId>io.github.rysefoxx.inventory</groupId>
   <artifactId>RyseInventory-Plugin</artifactId>
-  <version>1.5.7</version>
+  <version>1.6.0</version>
 </dependency>
 ```
 

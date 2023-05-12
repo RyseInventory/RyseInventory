@@ -26,18 +26,20 @@
 package io.github.rysefoxx.inventory.plugin.content;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import io.github.rysefoxx.inventory.plugin.enums.Alignment;
 import io.github.rysefoxx.inventory.plugin.enums.IntelligentType;
 import io.github.rysefoxx.inventory.plugin.enums.InventoryOpenerType;
+import io.github.rysefoxx.inventory.plugin.enums.TimeSetting;
+import io.github.rysefoxx.inventory.plugin.other.CornerType;
 import io.github.rysefoxx.inventory.plugin.pagination.Pagination;
 import io.github.rysefoxx.inventory.plugin.pagination.RyseInventory;
 import io.github.rysefoxx.inventory.plugin.pagination.SlotIterator;
 import io.github.rysefoxx.inventory.plugin.pattern.ContentPattern;
 import io.github.rysefoxx.inventory.plugin.pattern.SearchPattern;
-import io.github.rysefoxx.inventory.plugin.util.PlaceHolderConstants;
-import io.github.rysefoxx.inventory.plugin.util.SlotUtils;
-import io.github.rysefoxx.inventory.plugin.util.StringConstants;
-import io.github.rysefoxx.inventory.plugin.util.Utils;
+import io.github.rysefoxx.inventory.plugin.util.*;
+import lombok.AccessLevel;
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -48,9 +50,11 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.Nonnegative;
 import java.util.*;
@@ -71,16 +75,28 @@ public class InventoryContents {
     private final Player player;
     private final Pagination pagination;
     private final RyseInventory inventory;
+    @Getter(AccessLevel.PROTECTED)
+    private final Plugin plugin;
 
     private final HashMap<String, Object> properties = new HashMap<>();
     private final SearchPattern searchPattern = new SearchPattern(this);
     private final ContentPattern contentPattern = new ContentPattern(this);
 
     public InventoryContents(@NotNull Player player,
-                             @NotNull RyseInventory inventory) {
+                             @NotNull RyseInventory inventory,
+                             @NotNull Plugin plugin) {
         this.player = player;
         this.inventory = inventory;
+        this.plugin = plugin;
         this.pagination = new Pagination(inventory);
+    }
+
+    /**
+     * @return A read only map of the properties.
+     */
+    @Unmodifiable
+    public ImmutableMap<String, Object> readOnlyProperties() {
+        return ImmutableMap.copyOf(this.properties);
     }
 
     /**
@@ -116,9 +132,9 @@ public class InventoryContents {
     }
 
     /**
-     * Find the first item in the current page that matches the given intelligentitem, and return the slot and item.
+     * Find the first item in the current page that matches the given Intelligentitem, and return the slot and item.
      *
-     * @param intelligentItem The intelligentitem of the item you want to find.
+     * @param intelligentItem The Intelligentitem of the item you want to find.
      * @return A pair of the slot and the item. Or null if no item was found.
      */
     public @Nullable Pair<Integer, IntelligentItem> firstEqual(@NotNull IntelligentItem intelligentItem) {
@@ -401,6 +417,33 @@ public class InventoryContents {
     /**
      * Update multiple items at once, with a new ItemStack.
      *
+     * @param slots       The slots
+     * @param itemStack   The new IntelligentItems what should be displayed.
+     * @param time        Defines after which period the item should be updated.
+     * @param timeSetting Defines the time unit.
+     * @return true if all items were updated, false if not.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean update(@NotNull List<Integer> slots,
+                          @NotNull IntelligentItem itemStack,
+                          @Nonnegative int time,
+                          @Nullable TimeSetting timeSetting) throws IllegalArgumentException {
+        int finalTime = TimeUtils.buildTime(time, timeSetting);
+
+        if (finalTime != -1) {
+            AtomicBoolean success = new AtomicBoolean(false);
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+                success.set(updateItem(slots, itemStack));
+            }, finalTime);
+            return success.get();
+        }
+
+        return updateItem(slots, itemStack);
+    }
+
+    /**
+     * Update multiple items at once, with a new ItemStack.
+     *
      * @param slots     The slots
      * @param itemStack The new IntelligentItems what should be displayed.
      * @return true if all items were updated, false if not.
@@ -408,24 +451,48 @@ public class InventoryContents {
      */
     public boolean update(@NotNull List<Integer> slots,
                           @NotNull IntelligentItem itemStack) throws IllegalArgumentException {
-        AtomicInteger updated = new AtomicInteger();
-        slots.forEach(integer -> {
-            if (update(integer, itemStack)) updated.getAndIncrement();
-        });
-        return updated.get() >= slots.size();
+        return update(slots, itemStack, 0, null);
+    }
+
+
+    /**
+     * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
+     *
+     * @param slot            The slot
+     * @param intelligentItem The new IntelligentItem what should be displayed.
+     * @param time            Defines after which period the item should be updated.
+     * @param timeSetting     Defines the time unit.
+     * @return true if the ItemStack was updated, false if set.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean updateOrSet(@Nonnegative int slot,
+                               @NotNull IntelligentItem intelligentItem,
+                               @Nonnegative int time,
+                               @Nullable TimeSetting timeSetting) throws IllegalArgumentException {
+        int finalTime = TimeUtils.buildTime(time, timeSetting);
+
+        if (finalTime != -1) {
+            AtomicBoolean success = new AtomicBoolean(false);
+            Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+                success.set(updateOrSetItem(slot, intelligentItem));
+            }, finalTime);
+            return success.get();
+        }
+
+        return updateOrSetItem(slot, intelligentItem);
     }
 
     /**
      * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
      *
-     * @param slot      The slot
-     * @param itemStack The new ItemStack what should be displayed.
+     * @param slot            The slot
+     * @param intelligentItem The new IntelligentItem what should be displayed.
+     * @return true if the ItemStack was updated, false if set.
      * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
      */
-    public void updateOrSet(@NotNull Collection<Integer> slot,
-                            @NotNull ItemStack itemStack) throws IllegalArgumentException {
-        for (Integer integer : slot)
-            updateOrSet(integer, itemStack);
+    public boolean updateOrSet(@Nonnegative int slot,
+                               @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
+        return updateOrSet(slot, intelligentItem, 0, null);
     }
 
     /**
@@ -433,12 +500,82 @@ public class InventoryContents {
      *
      * @param slots           The slots
      * @param intelligentItem The new IntelligentItem what should be displayed.
+     * @param time            Defines after which period the item should be updated.
+     * @param timeSetting     Defines the time unit.
+     * @return true if all items were updated, false if not.
      * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
      */
-    public void updateOrSet(@NotNull Collection<Integer> slots,
-                            @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
+    public boolean updateOrSet(@NotNull Collection<Integer> slots,
+                               @NotNull IntelligentItem intelligentItem,
+                               @Nonnegative int time,
+                               @Nullable TimeSetting timeSetting) throws IllegalArgumentException {
+        AtomicInteger success = new AtomicInteger(0);
         for (int slot : slots)
-            updateOrSet(slot, intelligentItem);
+            if (updateOrSet(slot, intelligentItem, time, timeSetting))
+                success.getAndIncrement();
+
+        return success.get() == slots.size();
+    }
+
+    /**
+     * Updates the ItemStack in the same place with a new IntelligentItem or sets if not found.
+     *
+     * @param slots           The slots
+     * @param intelligentItem The new IntelligentItem what should be displayed.
+     * @return true if all items were updated, false if not.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean updateOrSet(@NotNull Collection<Integer> slots,
+                               @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
+        return updateOrSet(slots, intelligentItem, 0, null);
+    }
+
+
+    /**
+     * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
+     *
+     * @param slots       The slot
+     * @param itemStack   The new ItemStack what should be displayed.
+     * @param time        Defines after which period the item should be updated.
+     * @param timeSetting Defines the time unit.
+     * @return true if all items were updated, false if not.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean updateOrSet(@NotNull Collection<Integer> slots,
+                               @NotNull ItemStack itemStack,
+                               @Nonnegative int time,
+                               @Nullable TimeSetting timeSetting) throws IllegalArgumentException {
+        return updateOrSet(slots, IntelligentItem.empty(itemStack), time, timeSetting);
+    }
+
+    /**
+     * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
+     *
+     * @param slots     The slot
+     * @param itemStack The new ItemStack what should be displayed.
+     * @return true if all items were updated, false if not.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean updateOrSet(@NotNull Collection<Integer> slots,
+                               @NotNull ItemStack itemStack) throws IllegalArgumentException {
+        return updateOrSet(slots, IntelligentItem.empty(itemStack), 0, null);
+    }
+
+    /**
+     * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
+     *
+     * @param slot        The slot
+     * @param itemStack   The new ItemStack what should be displayed.
+     * @param time        Defines after which period the item should be updated.
+     * @param timeSetting Defines the time unit.
+     * @return true if the ItemStack was updated, false if set.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public boolean updateOrSet(@Nonnegative int slot,
+                               @NotNull ItemStack itemStack,
+                               @Nonnegative int time,
+                               @Nullable TimeSetting timeSetting) throws IllegalArgumentException {
+        return updateOrSet(slot, IntelligentItem.empty(itemStack));
     }
 
     /**
@@ -452,29 +589,6 @@ public class InventoryContents {
     public boolean updateOrSet(@Nonnegative int slot,
                                @NotNull ItemStack itemStack) throws IllegalArgumentException {
         return updateOrSet(slot, IntelligentItem.empty(itemStack));
-    }
-
-    /**
-     * Updates the ItemStack in the same place with a new ItemStack or sets if not found.
-     *
-     * @param slot            The slot
-     * @param intelligentItem The new IntelligentItem what should be displayed.
-     * @return true if the ItemStack was updated, false if set.
-     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
-     */
-    public boolean updateOrSet(@Nonnegative int slot,
-                               @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
-        if (get(slot).isPresent())
-            return update(slot, intelligentItem);
-
-        set(slot, intelligentItem);
-
-        Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
-        if (!inventoryOptional.isPresent())
-            return false;
-
-        inventoryOptional.get().setItem(slot, intelligentItem.getItemStack());
-        return true;
     }
 
     /**
@@ -1133,6 +1247,27 @@ public class InventoryContents {
     }
 
     /**
+     * Finds the corners of the inventory.
+     *
+     * @param type The corner that is searched.
+     * @return The slot number of the corner.
+     */
+    public int findCorner(@NotNull CornerType type) {
+        switch (type) {
+            case TOP_LEFT:
+                return 0;
+            case TOP_RIGHT:
+                return 8;
+            case BOTTM_LEFT:
+                return this.inventory.size(this) - 9;
+            case BOTTOM_RIGHT:
+                return this.inventory.size(this) - 1;
+            default:
+                return -1;
+        }
+    }
+
+    /**
      * @param slot The slot to check
      * @return true if the slot is in the middle of the inventory, false if not.
      * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
@@ -1591,7 +1726,7 @@ public class InventoryContents {
     public void reload() {
         clear(this.pagination.page() - 1);
 
-        InventoryContents contents = new InventoryContents(this.player, this.inventory);
+        InventoryContents contents = new InventoryContents(this.player, this.inventory, this.plugin);
         this.inventory.getManager().setContents(this.player.getUniqueId(), contents);
 
         if (this.inventory.getSlideAnimator() == null)
@@ -1970,6 +2105,7 @@ public class InventoryContents {
         }
     }
 
+
     /**
      * Starting at the slot, all the way down the item is placed in the same column.
      *
@@ -2224,6 +2360,52 @@ public class InventoryContents {
         fillEmpty(type == IntelligentType.EMPTY
                 ? IntelligentItem.empty(itemStack)
                 : IntelligentItem.ignored(itemStack));
+    }
+
+    /**
+     * Fills the inventory diagonally based on the slot.
+     * @param startSlot The slot where the diagonal should start.
+     * @param item The item to be placed.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public void fillDiagonal(@Nonnegative int startSlot,
+                             @NotNull IntelligentItem item) throws IllegalArgumentException {
+        if (startSlot > 53)
+            throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
+
+        int inventorySize = this.inventory.size(this);
+        if (startSlot > inventorySize)
+            throw new IllegalArgumentException(Utils.replace(PlaceHolderConstants.INVALID_SLOT, "%temp%", inventorySize));
+
+        for (int i = startSlot; i < inventorySize; i += 10) {
+            set(i, item);
+        }
+    }
+
+    /**
+     * Fills the inventory diagonally based on the slot.
+     * @param startSlot The slot where the diagonal should start.
+     * @param item The item to be placed.
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public void fillDiagonal(@Nonnegative int startSlot,
+                             @NotNull ItemStack item) throws IllegalArgumentException {
+        fillDiagonal(startSlot, IntelligentItem.empty(item));
+    }
+
+    /**
+     * Fills the inventory diagonally based on the slot.
+     * @param startSlot The slot where the diagonal should start.
+     * @param item The item to be placed.
+     * @param type The type of the item
+     * @throws IllegalArgumentException if slot greater than 53 or slot greater than inventory size
+     */
+    public void fillDiagonal(@Nonnegative int startSlot,
+                             @NotNull ItemStack item,
+                             @NotNull IntelligentType type) throws IllegalArgumentException {
+        fillDiagonal(startSlot, type == IntelligentType.EMPTY
+                ? IntelligentItem.empty(item)
+                : IntelligentItem.ignored(item));
     }
 
     /**
@@ -3092,7 +3274,6 @@ public class InventoryContents {
      */
     public boolean update(@Nonnegative int slot,
                           @NotNull IntelligentItem intelligentItem) throws IllegalArgumentException {
-
         if (slot > 53)
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
@@ -3423,9 +3604,6 @@ public class InventoryContents {
 
     /**
      * If the data is empty, return. Otherwise, for each data, set it to the transferTo inventory.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param transferTo The InventoryContents object that you are transferring the data to.
      */
@@ -3478,9 +3656,6 @@ public class InventoryContents {
 
     /**
      * Fetches a intelligent ItemStack based on the slot.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @param slot The slot
      * @return The intelligent ItemStack or an empty Optional instance.
@@ -3491,5 +3666,29 @@ public class InventoryContents {
             throw new IllegalArgumentException(StringConstants.INVALID_SLOT);
 
         return Optional.ofNullable(this.pagination.getPresent(slot));
+    }
+
+    private boolean updateItem(@NotNull List<Integer> slots,
+                               @NotNull IntelligentItem itemStack) {
+        AtomicInteger updated = new AtomicInteger();
+        slots.forEach(integer -> {
+            if (update(integer, itemStack)) updated.getAndIncrement();
+        });
+        return updated.get() >= slots.size();
+    }
+
+    private boolean updateOrSetItem(@Nonnegative int slot,
+                                    @NotNull IntelligentItem intelligentItem) {
+        if (get(slot).isPresent())
+            return update(slot, intelligentItem);
+
+        set(slot, intelligentItem);
+
+        Optional<Inventory> inventoryOptional = this.inventory.inventoryBasedOnOption(this.player.getUniqueId());
+        if (!inventoryOptional.isPresent())
+            return false;
+
+        inventoryOptional.get().setItem(slot, intelligentItem.getItemStack());
+        return true;
     }
 }

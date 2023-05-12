@@ -387,9 +387,6 @@ public class IntelligentItemNameAnimator {
 
     /**
      * This function returns the task that is currently running.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @return The task that is being run.
      */

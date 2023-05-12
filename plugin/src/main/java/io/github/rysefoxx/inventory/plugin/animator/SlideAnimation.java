@@ -387,9 +387,6 @@ public class SlideAnimation {
 
     /**
      * Returns true if the click event is blocked.
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @return The boolean value of the blockClickEvent variable.
      */
@@ -400,9 +397,6 @@ public class SlideAnimation {
 
     /**
      * It returns a list of tasks that are currently running
-     * <br> <br>
-     * <font color="red">This is an internal method! <b>ANYTHING</b> about this method can change. It is not recommended to use this method.</font>
-     * <br> <br>
      *
      * @return A list of BukkitTasks
      * @throws UnsupportedOperationException If list gets modified

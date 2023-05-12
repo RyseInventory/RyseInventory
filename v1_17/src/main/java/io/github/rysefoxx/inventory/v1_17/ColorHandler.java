@@ -35,6 +35,7 @@ import net.md_5.bungee.api.ChatColor;
  */
 public class ColorHandler implements IntelligentItemColorWrapper<ChatColor> {
     private String toHex(int value) {
+
         StringBuilder hex = new StringBuilder(Integer.toHexString(value));
         while (hex.length() < 2) {
             hex.append("0");

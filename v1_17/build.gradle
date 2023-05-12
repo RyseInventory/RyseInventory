@@ -2,12 +2,13 @@ group = 'io.github.rysefoxx.inventory.v1_17'
 description = 'RyseInventory-v1_17'
 
 repositories {
+
     maven {
-        url = 'https://papermc.io/repo/repository/maven-public/'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
     }
 }
 
 dependencies {
     implementation project(':api')
-    compileOnly 'io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT'
 }
