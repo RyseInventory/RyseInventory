@@ -1594,6 +1594,12 @@ public class RyseInventory {
         int slotsFound = 0;
 
         while (requiredSlots > 0) {
+            if(slot >= size(contents)) {
+                slotsFound = 0;
+                page++;
+                slot = iterator.getSlot();
+            }
+
             if ((!iterator.isOverride() && contents.getWithinPage(slot, page).isPresent()) || iterator.getBlackListInternal().contains(slot)) {
                 slot++;
                 continue;
