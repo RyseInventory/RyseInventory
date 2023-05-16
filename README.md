@@ -12,6 +12,9 @@ Currently programming a bot for the upcoming RyseInventory Discord bot. You can 
 
 Feel free to join my Discord to stay up to date. [Click here](https://discord.gg/GAnXF7BzKg)
 
+# Adventure
+If no paper is used, the adventure libraries must be added!
+
 # Features
 
 - Update 1.1.8 now has an integrated animation system.
@@ -52,7 +55,7 @@ repositories {
     maven { url "https://s01.oss.sonatype.org/content/groups/public/" }
 }
 dependencies {
-    implementation 'io.github.rysefoxx.inventory:RyseInventory-Plugin:1.6.0'
+    implementation 'io.github.rysefoxx.inventory:RyseInventory-Plugin:1.6.1'
 }
 ```
 
@@ -64,7 +67,7 @@ repositories {
     maven { url = uri("https://s01.oss.sonatype.org/content/groups/public/") }
 }
 dependencies {
-    implementation("io.github.rysefoxx.inventory:RyseInventory-Plugin:1.6.0")
+    implementation("io.github.rysefoxx.inventory:RyseInventory-Plugin:1.6.1")
 }
 ```
 
@@ -81,7 +84,7 @@ dependencies {
 <dependency>
   <groupId>io.github.rysefoxx.inventory</groupId>
   <artifactId>RyseInventory-Plugin</artifactId>
-  <version>1.6.0</version>
+  <version>1.6.1</version>
 </dependency>
 ```
 
