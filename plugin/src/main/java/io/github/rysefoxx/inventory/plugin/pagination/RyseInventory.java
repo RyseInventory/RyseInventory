@@ -1032,6 +1032,7 @@ public class RyseInventory {
                      @NotNull Player player,
                      @Nonnegative int page) {
         pagination.getDataByPage(page)
+                .stream().filter(item -> item.getModifiedSlot() != -1)
                 .forEach(item -> placeItem(player, item.getModifiedSlot(), item.getItem()));
     }
 
@@ -1167,7 +1168,7 @@ public class RyseInventory {
      */
     @Contract(pure = true)
     private @NotNull String buildTitle() {
-        if (this.loadTitle == -1)
+        if (this.loadTitle == -1 && this.title != null)
             return SERIALIZER.serialize(this.title);
 
         return SERIALIZER.serialize(this.titleHolder);
@@ -1232,7 +1233,9 @@ public class RyseInventory {
     private void initProvider(@NotNull Player player,
                               @NotNull InventoryContents contents) {
         if (this.inventoryOpenerType == InventoryOpenerType.ANVIL) {
-            this.anvilGUIBuilder = new AnvilGUI.Builder().title(buildTitle());
+            this.anvilGUIBuilder = new AnvilGUI.Builder()
+                    .plugin(this.plugin)
+                    .title(buildTitle());
             this.provider.anvil(player, this.anvilGUIBuilder);
             return;
         }
@@ -1534,12 +1537,11 @@ public class RyseInventory {
         List<IntelligentItemData> data = contents.pagination().getInventoryData();
 
         if (pattern != null) {
-            applyPattern(pagination, iterator, pattern, data, contents, itemsSet, page, startSlot);
+            applyPattern(pagination, iterator, pattern, data.stream().filter(d -> d.getModifiedSlot() == -1).collect(Collectors.toList()), contents, itemsSet, page, startSlot);
             return;
         }
 
-        applyStandardPagination(contents, pagination, iterator, data, startSlot);
-
+        applyStandardPagination(contents, pagination, iterator, data.stream().filter(d -> d.getModifiedSlot() == -1).collect(Collectors.toList()), type);
         contents.pagination().setInventoryData(data);
     }
 
@@ -1550,16 +1552,15 @@ public class RyseInventory {
      * @param pagination The pagination object that is being used.
      * @param iterator   The slot iterator that is being used.
      * @param data       The list of items to be paginated.
-     * @param startSlot  The slot to start at.
      */
     private void applyStandardPagination(@NotNull InventoryContents contents,
                                          @NotNull Pagination pagination,
                                          @NotNull SlotIterator iterator,
                                          @NotNull List<IntelligentItemData> data,
-                                         int startSlot) {
+                                         @NotNull SlotIterator.SlotIteratorType type) {
 
         PaginationData paginationData = this.paginationCache == null
-                ? findAllEmptySlots(contents, iterator, data.size())
+                ? findAllEmptySlots(contents, iterator, data.size(), type)
                 : this.paginationCache.newInstance();
 
         if (this.paginationCache == null)
@@ -1584,7 +1585,8 @@ public class RyseInventory {
 
     private @NotNull PaginationData findAllEmptySlots(@NotNull InventoryContents contents,
                                                       @NotNull SlotIterator iterator,
-                                                      @Nonnegative int requiredSlots) {
+                                                      @Nonnegative int requiredSlots,
+                                                      @NotNull SlotIterator.SlotIteratorType type) {
         PaginationData data = new PaginationData();
 
         int itemsPerPage = contents.pagination().getItemsPerPage();
@@ -1593,15 +1595,38 @@ public class RyseInventory {
         int page = 0;
         int slotsFound = 0;
 
+        int toAddVertical = 0;
+
         while (requiredSlots > 0) {
-            if(slot >= size(contents)) {
-                slotsFound = 0;
-                page++;
-                slot = iterator.getSlot();
+            if (type == SlotIterator.SlotIteratorType.VERTICAL) {
+                int column = slot % 9;
+
+                if (slot >= size(contents)) {
+                    if (column < 8 && (iterator.getSlot() + (toAddVertical+1)) % 9 < 8) {
+                        toAddVertical++;
+                        slot = iterator.getSlot() + toAddVertical;
+                    } else {
+                        toAddVertical = 0;
+                        slotsFound = 0;
+                        page++;
+                        slot = iterator.getSlot();
+                    }
+                }
+            } else {
+                if (slot >= size(contents)) {
+                    slotsFound = 0;
+                    page++;
+                    slot = iterator.getSlot();
+                }
             }
 
+
             if ((!iterator.isOverride() && contents.getWithinPage(slot, page).isPresent()) || iterator.getBlackListInternal().contains(slot)) {
-                slot++;
+                if (type == SlotIterator.SlotIteratorType.HORIZONTAL)
+                    slot++;
+                else
+                    slot += 9;
+
                 continue;
             }
 
@@ -1615,7 +1640,10 @@ public class RyseInventory {
 
             requiredSlots--;
             slotsFound++;
-            slot++;
+            if (type == SlotIterator.SlotIteratorType.HORIZONTAL)
+                slot++;
+            else
+                slot += 9;
         }
 
         return data;
