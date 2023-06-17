@@ -1602,7 +1602,7 @@ public class RyseInventory {
                 int column = slot % 9;
 
                 if (slot >= size(contents)) {
-                    if (column < 8 && (iterator.getSlot() + (toAddVertical+1)) % 9 < 8) {
+                    if (column < 8 && (iterator.getSlot() + (toAddVertical + 1)) % 9 < 8) {
                         toAddVertical++;
                         slot = iterator.getSlot() + toAddVertical;
                     } else {
@@ -1620,17 +1620,21 @@ public class RyseInventory {
                 }
             }
 
-
             if ((!iterator.isOverride() && contents.getWithinPage(slot, page).isPresent()) || iterator.getBlackListInternal().contains(slot)) {
                 if (type == SlotIterator.SlotIteratorType.HORIZONTAL)
                     slot++;
                 else
                     slot += 9;
-
                 continue;
             }
 
             if ((slotsFound >= itemsPerPage && iterator.getEndPosition() == -1) || (slot > iterator.getEndPosition() && iterator.getEndPosition() != -1)) {
+                if (slot > iterator.getEndPosition() && iterator.getEndPosition() != -1 && type == SlotIterator.SlotIteratorType.VERTICAL && slot % 9 != iterator.getEndPosition() % 9) {
+                    slot += 9;
+                    continue;
+                }
+
+                toAddVertical = 0;
                 slotsFound = 0;
                 page++;
                 slot = iterator.getSlot();

@@ -41,7 +41,7 @@ public class SlotIterator {
 
     private int slot = -1;
     private int endPosition = -1;
-    private SlotIteratorType type;
+    private SlotIteratorType type = SlotIteratorType.HORIZONTAL;
     private boolean override;
     private List<Integer> blackList = new ArrayList<>();
     private SlotIteratorPattern pattern;

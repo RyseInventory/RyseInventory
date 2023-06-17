@@ -348,7 +348,7 @@ public class Pagination {
     @ApiStatus.Internal
     public @Nullable IntelligentItem get(@Nonnegative int slot, @Nonnegative int page) {
         for (IntelligentItemData data : this.inventoryData) {
-            if(data.isPresetOnAllPages() && data.getModifiedSlot() == slot)
+            if (data.isPresetOnAllPages() && data.getModifiedSlot() == slot)
                 return data.getItem();
 
             if (data.getPage() == page && data.getModifiedSlot() == slot)
@@ -405,17 +405,8 @@ public class Pagination {
      * @return The number of items per page.
      */
     private int calculateValueForPage() {
-        SlotIterator iterator = this.slotIterator;
-        int itemsPerPage = this.itemsPerPage;
-
-        if (iterator == null) {
-            return itemsPerPage;
-        } else if (iterator.getEndPosition() == -1) {
-            return itemsPerPage - iterator.getBlackListInternal().size();
-        } else {
-            return iterator.getEndPosition() - iterator.getSlot();
-        }
+        return this.slotIterator == null || this.slotIterator.getEndPosition() == -1
+                ? this.itemsPerPage
+                : this.slotIterator.getEndPosition() - this.slotIterator.getSlot() - this.slotIterator.getBlackListInternal().size();
     }
-
-
 }
