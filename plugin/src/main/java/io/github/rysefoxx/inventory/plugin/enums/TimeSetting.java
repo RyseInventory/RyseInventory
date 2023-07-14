@@ -25,6 +25,7 @@
 
 package io.github.rysefoxx.inventory.plugin.enums;
 
+import io.github.rysefoxx.inventory.plugin.util.TimeUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,4 +55,7 @@ public enum TimeSetting {
                 .orElse(null);
     }
 
+    public static int clickDelay(int delay, TimeSetting setting) {
+        return TimeUtils.buildTime(delay, setting);
+    }
 }

@@ -29,6 +29,8 @@ import io.github.rysefoxx.inventory.plugin.pagination.InventoryManager;
 import lombok.Getter;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,8 +56,10 @@ public class IntelligentItem {
     private boolean canClick = true;
     private boolean canSee = true;
     private boolean advanced = false;
+    private int delay;
 
     private @Nullable Object id;
+    private @Nullable BukkitTask delayTask;
 
     //For serialization
     @Contract(pure = true)
@@ -65,10 +69,11 @@ public class IntelligentItem {
     }
 
     @Contract(pure = true)
-    public IntelligentItem(@NotNull ItemStack itemStack, Consumer<InventoryClickEvent> eventConsumer, IntelligentItemError error) {
+    public IntelligentItem(@NotNull ItemStack itemStack, int delay, Consumer<InventoryClickEvent> eventConsumer, IntelligentItemError error) {
         this.itemStack = itemStack;
         this.defaultConsumer = eventConsumer;
         this.error = error;
+        this.delay = delay;
     }
 
     /**
@@ -79,7 +84,18 @@ public class IntelligentItem {
      */
     @Contract(value = "_, _, _ -> new", pure = true)
     public static @NotNull IntelligentItem of(@NotNull ItemStack itemStack, @NotNull IntelligentItemError error, @NotNull Consumer<InventoryClickEvent> eventConsumer) {
-        return new IntelligentItem(itemStack, eventConsumer, error);
+        return new IntelligentItem(itemStack, 0, eventConsumer, error);
+    }
+
+    /**
+     * @param itemStack     The item stack that will be used to create the intelligent item.
+     * @param delayInTicks  The delay in ticks before the consumer is called. (1 Sec = 20 Ticks)
+     * @param error         The error that will be displayed if the player doesn't have the required permission.
+     * @param eventConsumer The consumer that will be called when the item is clicked.
+     * @return A new instance of IntelligentItem
+     */
+    public static @NotNull IntelligentItem of(@NotNull ItemStack itemStack, int delayInTicks, @NotNull IntelligentItemError error, @NotNull Consumer<InventoryClickEvent> eventConsumer) {
+        return new IntelligentItem(itemStack, delayInTicks, eventConsumer, error);
     }
 
     /**
@@ -89,35 +105,68 @@ public class IntelligentItem {
      */
     @Contract(value = "_, _ -> new", pure = true)
     public static @NotNull IntelligentItem of(@NotNull ItemStack itemStack, @NotNull Consumer<InventoryClickEvent> eventConsumer) {
-        return new IntelligentItem(itemStack, eventConsumer, null);
+        return new IntelligentItem(itemStack, 0, eventConsumer, null);
     }
 
+    /**
+     * @param itemStack     The item that will be displayed in the inventory.
+     * @param delayInTicks  The delay in ticks before the consumer is called. (1 Sec = 20 Ticks)
+     * @param eventConsumer The consumer that will be called when the item is clicked.
+     * @return A new instance of IntelligentItem
+     */
+    public static @NotNull IntelligentItem of(@NotNull ItemStack itemStack, int delayInTicks, @NotNull Consumer<InventoryClickEvent> eventConsumer) {
+        return new IntelligentItem(itemStack, delayInTicks, eventConsumer, null);
+    }
 
     /**
      * This function returns a new IntelligentItem with no actions.
      *
-     * @param itemStack The itemstack that will be used for the item.
+     * @param itemStack The ItemStack that will be used for the item.
      * @return A new IntelligentItem object.
      */
     @Contract(value = "_ -> new", pure = true)
     public static @NotNull IntelligentItem empty(@NotNull ItemStack itemStack) {
-        return new IntelligentItem(itemStack, event -> {
+        return new IntelligentItem(itemStack, 0, event -> {
+        }, null);
+    }
+
+    /**
+     * This function returns a new IntelligentItem with no actions.
+     *
+     * @param itemStack    The ItemStack that will be used for the item.
+     * @param delayInTicks The delay in ticks before the consumer is called. (1 Sec = 20 Ticks)
+     * @return A new IntelligentItem object.
+     */
+    public static @NotNull IntelligentItem empty(@NotNull ItemStack itemStack, int delayInTicks) {
+        return new IntelligentItem(itemStack, delayInTicks, event -> {
         }, null);
     }
 
     /**
      * This function returns an IntelligentItem that does nothing when clicked. And displays an error when the given condition does not apply.
      *
-     * @param itemStack The itemstack that will be used to create the IntelligentItem.
+     * @param itemStack The ItemStack that will be used to create the IntelligentItem.
      * @param error     The error when the given condition does not apply.
      * @return A new instance of IntelligentItem
      */
     @Contract(value = "_, _ -> new", pure = true)
     public static @NotNull IntelligentItem empty(@NotNull ItemStack itemStack, @NotNull IntelligentItemError error) {
-        return new IntelligentItem(itemStack, event -> {
+        return new IntelligentItem(itemStack, 0, event -> {
         }, error);
     }
 
+    /**
+     * This function returns an IntelligentItem that does nothing when clicked. And displays an error when the given condition does not apply.
+     *
+     * @param itemStack    The ItemStack that will be used to create the IntelligentItem.
+     * @param delayInTicks The delay in ticks before the consumer is called. (1 Sec = 20 Ticks)
+     * @param error        The error when the given condition does not apply.
+     * @return A new instance of IntelligentItem
+     */
+    public static @NotNull IntelligentItem empty(@NotNull ItemStack itemStack, int delayInTicks, @NotNull IntelligentItemError error) {
+        return new IntelligentItem(itemStack, delayInTicks, event -> {
+        }, error);
+    }
 
     /**
      * This function takes an ItemStack and returns an IntelligentItem that is ignored.
@@ -128,9 +177,20 @@ public class IntelligentItem {
      */
     @Contract(value = "_ -> new", pure = true)
     public static @NotNull IntelligentItem ignored(@NotNull ItemStack itemStack) {
-        return new IntelligentItem(itemStack, null, null);
+        return new IntelligentItem(itemStack, 0, null, null);
     }
 
+    /**
+     * This function takes an ItemStack and returns an IntelligentItem that is ignored.
+     * This allows the player who has the inventory open to take the item out.
+     *
+     * @param itemStack    The item to be ignored.
+     * @param delayInTicks The delay in ticks before the consumer is called. (1 Sec = 20 Ticks)
+     * @return A new IntelligentItem object.
+     */
+    public static @NotNull IntelligentItem ignored(@NotNull ItemStack itemStack, int delayInTicks) {
+        return new IntelligentItem(itemStack, delayInTicks, null, null);
+    }
 
     /**
      * This function takes an ItemStack and returns an IntelligentItem that is ignored.
@@ -142,7 +202,20 @@ public class IntelligentItem {
      */
     @Contract(value = "_, _ -> new", pure = true)
     public static @NotNull IntelligentItem ignored(@NotNull ItemStack itemStack, @NotNull IntelligentItemError error) {
-        return new IntelligentItem(itemStack, null, error);
+        return new IntelligentItem(itemStack, 0, null, error);
+    }
+
+    /**
+     * This function takes an ItemStack and returns an IntelligentItem that is ignored.
+     * This allows the player who has the inventory open to take the item out.
+     *
+     * @param itemStack    The item stack that is being ignored.
+     * @param delayInTicks The delay in ticks before the consumer is called. (1 Sec = 20 Ticks)
+     * @param error        The error when the given condition does not apply.
+     * @return A new instance of the IntelligentItem class.
+     */
+    public static @NotNull IntelligentItem ignored(@NotNull ItemStack itemStack, int delayInTicks, @NotNull IntelligentItemError error) {
+        return new IntelligentItem(itemStack, delayInTicks, null, error);
     }
 
     /**
@@ -195,7 +268,18 @@ public class IntelligentItem {
      * @return The new intelligent ItemStack
      */
     public @NotNull IntelligentItem update(@NotNull ItemStack newItemStack) {
-        return new IntelligentItem(newItemStack, this.defaultConsumer, this.error);
+        return new IntelligentItem(newItemStack, this.delay, this.defaultConsumer, this.error);
+    }
+
+    /**
+     * Changes the ItemStack of an existing ItemStack without changing the consumer.
+     *
+     * @param newItemStack The new ItemStack
+     * @param delayInTicks The delay in ticks before the consumer is called. (1 Sec = 20 Ticks)
+     * @return The new intelligent ItemStack
+     */
+    public @NotNull IntelligentItem update(@NotNull ItemStack newItemStack, int delayInTicks) {
+        return new IntelligentItem(newItemStack, delayInTicks, this.defaultConsumer, this.error);
     }
 
     /**
@@ -205,7 +289,17 @@ public class IntelligentItem {
      * @return The new intelligent ItemStack
      */
     public @NotNull IntelligentItem update(@NotNull IntelligentItem newIntelligentItem) {
-        return new IntelligentItem(newIntelligentItem.getItemStack(), newIntelligentItem.getDefaultConsumer(), this.error);
+        return new IntelligentItem(newIntelligentItem.getItemStack(), this.delay, newIntelligentItem.getDefaultConsumer(), this.error);
+    }
+    /**
+     * Changes the ItemStack of an existing Intelligent with changing the consumer.
+     *
+     * @param newIntelligentItem The new IntelligentItem
+     * @param delayInTicks The delay in ticks before the consumer is called. (1 Sec = 20 Ticks)
+     * @return The new intelligent ItemStack
+     */
+    public @NotNull IntelligentItem update(@NotNull IntelligentItem newIntelligentItem, int delayInTicks) {
+        return new IntelligentItem(newIntelligentItem.getItemStack(), delayInTicks, newIntelligentItem.getDefaultConsumer(), this.error);
     }
 
     /**
@@ -222,6 +316,7 @@ public class IntelligentItem {
         map.put("can-click", this.canClick);
         map.put("can-see", this.canSee);
         map.put("advanced", this.advanced);
+        map.put("delay", this.delay);
         map.put("id", this.id);
         return map;
     }
@@ -242,6 +337,7 @@ public class IntelligentItem {
         intelligentItem.canSee = (boolean) map.get("can-see");
         intelligentItem.id = map.get("id");
         intelligentItem.advanced = (boolean) map.get("advanced");
+        intelligentItem.delay = (int) map.get("delay");
         return intelligentItem;
     }
 
@@ -258,5 +354,10 @@ public class IntelligentItem {
     @Override
     public int hashCode() {
         return Objects.hash(itemStack, error, defaultConsumer, canClick, canSee, advanced, id);
+    }
+
+    @ApiStatus.Internal
+    public void setDelayTask(@Nullable BukkitTask delayTask) {
+        this.delayTask = delayTask;
     }
 }

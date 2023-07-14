@@ -25,7 +25,6 @@
 
 package io.github.rysefoxx.inventory.plugin;
 
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class RyseInventoryPlugin extends JavaPlugin {
@@ -39,7 +38,5 @@ public final class RyseInventoryPlugin extends JavaPlugin {
         getLogger().severe("Please use our API which you can find on my Github account.");
         getLogger().severe(" -> https://github.com/Rysefoxx/RyseInventory");
         getLogger().info("");
-
-        Bukkit.getPluginManager().disablePlugin(this);
     }
 }

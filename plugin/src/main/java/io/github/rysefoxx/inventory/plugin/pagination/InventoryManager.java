@@ -90,7 +90,7 @@ public class InventoryManager {
      * @return true if the player can open the menu, false if not.
      * */
     public boolean canOpen(UUID uuid) {
-        return !lastOpen.containsKey(uuid) || System.currentTimeMillis() - lastOpen.get(uuid) > 100;
+        return !lastOpen.containsKey(uuid) || System.currentTimeMillis() - lastOpen.get(uuid) > 500;
     }
 
     /*
@@ -240,6 +240,8 @@ public class InventoryManager {
     protected void removeInventoryFromPlayer(@NotNull UUID uuid) {
         this.inventories.remove(uuid);
         this.content.remove(uuid);
+        this.lastInventories.clear();
+        this.lastOpen.clear();
         BukkitTask task = this.updaterTask.remove(uuid);
 
         if (task != null)
@@ -460,7 +462,7 @@ public class InventoryManager {
 
             EventCreator<InventoryClickEvent> customEvent = (EventCreator<InventoryClickEvent>) mainInventory.getEvent(InventoryClickEvent.class);
             if (customEvent != null)
-                customEvent.accept(event);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> customEvent.accept(event), 2L);
 
             List<DisabledInventoryClick> list = mainInventory.getIgnoreClickEvent();
 
@@ -568,12 +570,18 @@ public class InventoryManager {
                         return;
                     }
 
-                    if (!item.isCanClick()) {
-                        item.getError().cantClick(player, item);
+                    if (item.getDelayTask() != null && Bukkit.getScheduler().isCurrentlyRunning(item.getDelayTask().getTaskId()))
                         return;
-                    }
-                    item.getDefaultConsumer().accept(event);
-                    player.updateInventory();
+
+                    item.setDelayTask(Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        if (!item.isCanClick()) {
+                            item.getError().cantClick(player, item);
+                            return;
+                        }
+                        item.setDelayTask(null);
+                        item.getDefaultConsumer().accept(event);
+                        player.updateInventory();
+                    }, item.getDelay()));
                 });
             }
         }
